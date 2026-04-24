@@ -197,15 +197,18 @@ export default async function HomePage() {
           {timeline.length === 0 ? (
             <p className="text-sm text-forest-600">No rounds yet this season.</p>
           ) : (
-            <ol className="space-y-3">
+            <ol className="space-y-2">
               {timeline.map((t, i) => {
                 const holder = roster.find((p) => p.id === t.holderId);
                 return (
-                  <li key={t.round.id + i} className="flex items-start gap-3">
-                    <Avatar playerId={t.holderId} name={holder?.name ?? "?"} size="sm" imageUrl={holder?.udiscAvatarUrl} />
-                    <div className="flex-1 min-w-0">
-                      <Link href={`/rounds/${t.round.id}`} className="block">
-                        <div className="text-sm font-semibold text-forest-800 hover:underline">
+                  <li key={t.round.id + i}>
+                    <Link
+                      href={`/rounds/${t.round.id}`}
+                      className="flex items-center gap-3 rounded-xl border border-forest-100 bg-white px-3 py-2 hover:border-forest-300 hover:bg-forest-50 transition group"
+                    >
+                      <Avatar playerId={t.holderId} name={holder?.name ?? "?"} size="sm" imageUrl={holder?.udiscAvatarUrl} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-forest-800 group-hover:underline truncate">
                           {holder?.name ?? t.holderId}
                         </div>
                         <div className="text-xs text-forest-600">
@@ -215,8 +218,9 @@ export default async function HomePage() {
                            <>🥏 First of the season</>}
                           {" · "}{prettyDate(t.round.date)}
                         </div>
-                      </Link>
-                    </div>
+                      </div>
+                      <span className="text-forest-400 group-hover:text-forest-700 transition">→</span>
+                    </Link>
                   </li>
                 );
               })}
