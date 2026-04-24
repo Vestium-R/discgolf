@@ -37,7 +37,6 @@ export default async function HomePage() {
   const rs = seasonRounds(rounds, season);
   const last = rs.at(-1);
   const timeline = badgeTimeline(rounds, season, initialHolderId).slice(-6).reverse();
-  const priorChamp = history.find((h) => h.season === season - 1);
   const deltas = rankDeltas(roster, rounds, season);
   const held = badgeHoldStreak(rounds, season, initialHolderId);
   const pastChampions = history
@@ -117,9 +116,11 @@ export default async function HomePage() {
         </div>
         {last && (
           <p className="text-xs text-forest-600 text-center">
-            Last round: {prettyDate(last.date)}
-            {last.courseName ? ` at ${last.courseName}` : ""} · {last.results.length} playing
-            {priorChamp ? ` · ${priorChamp.season} champ: ${priorChamp.championName}` : ""}
+            Last round:{" "}
+            <Link href={`/rounds/${last.id}`} className="text-forest-700 hover:text-forest-900 hover:underline font-medium">
+              {prettyDate(last.date)}{last.courseName ? ` at ${last.courseName}` : ""}
+            </Link>
+            {" · "}{last.results.length} playing
           </p>
         )}
       </section>
