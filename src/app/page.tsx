@@ -40,6 +40,9 @@ export default async function HomePage() {
   const priorChamp = history.find((h) => h.season === season - 1);
   const deltas = rankDeltas(roster, rounds, season);
   const held = badgeHoldStreak(rounds, season, initialHolderId);
+  const pastChampions = history
+    .filter((h) => h.season < season && h.championName)
+    .sort((a, b) => b.season - a.season);
 
   const playedRoster = standings.filter((s) => s.roundsPlayed > 0);
 
@@ -233,6 +236,37 @@ export default async function HomePage() {
           )}
         </section>
       </div>
+
+      {/* PAST SEASON CHAMPIONS */}
+      {pastChampions.length > 0 && (
+        <section className="card p-4">
+          <h2 className="font-display font-bold text-forest-800 mb-3">Past season winners</h2>
+          <ul className="space-y-2">
+            {pastChampions.map((h) => {
+              const champ = h.championPlayerId ? roster.find((p) => p.id === h.championPlayerId) : null;
+              return (
+                <li key={h.season}>
+                  <Link
+                    href={`/seasons/${h.season}`}
+                    className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 hover:border-amber-300 hover:bg-amber-100 transition group"
+                  >
+                    <span className="text-2xl">👑</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-amber-900 group-hover:underline">
+                        Season champion
+                      </div>
+                      <div className="text-sm text-amber-800">
+                        {h.season} · {champ?.name ?? h.championName}
+                      </div>
+                    </div>
+                    {champ && <Avatar playerId={champ.id} name={champ.name} size="sm" imageUrl={champ.udiscAvatarUrl} />}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* WHO'S PLAYED */}
       {playedRoster.length > 0 && (
