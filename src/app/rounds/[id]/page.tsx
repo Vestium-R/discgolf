@@ -49,7 +49,7 @@ export default async function RoundDetail({
         ? `🛡 ${holderAfter?.name ?? "?"} defended the patch`
         : thisEvent.kind === "no-change"
           ? `💤 ${prevHolder?.name ?? "?"} kept the patch — didn't play, ${winnerName} won the round`
-          : `🥏 ${holderAfter?.name ?? "?"} wins the first round and takes the patch`
+          : `🥏 ${holderAfter?.name ?? "?"} takes the patch (no prior holder set)`
     : `${winnerName} won the round`;
 
   const summary = buildSummary({
