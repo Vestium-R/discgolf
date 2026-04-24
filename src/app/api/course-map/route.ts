@@ -51,8 +51,10 @@ export async function GET(req: NextRequest) {
     status: 200,
     headers: {
       "Content-Type": "image/png",
-      // Cache for a day — course layout rarely changes
-      "Cache-Control": "public, max-age=86400, s-maxage=86400",
+      // A scorecard is immutable — tee/basket positions never change for a
+      // completed round. Cache for a year so Mapbox is called at most once
+      // per unique scorecard, ever.
+      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
     },
   });
 }
