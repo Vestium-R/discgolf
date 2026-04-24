@@ -127,14 +127,9 @@ export default async function HomePage() {
 
       {/* ADD ROUND */}
       <section className="card p-5">
-        <div className="flex items-start justify-between mb-3 gap-2">
-          <div className="min-w-0">
-            <h2 className="font-display text-lg font-bold text-forest-800">Add a round</h2>
-            <p className="text-sm text-forest-600">Paste a UDisc scorecard. Whoever wins takes the patch.</p>
-          </div>
-          <Link href="/add" className="text-xs text-forest-600 hover:underline whitespace-nowrap">
-            Manual →
-          </Link>
+        <div className="mb-3">
+          <h2 className="font-display text-lg font-bold text-forest-800">Add a round</h2>
+          <p className="text-sm text-forest-600">Paste a UDisc scorecard. Whoever wins takes the patch.</p>
         </div>
         <PasteUdiscBox action="/api/preview" />
       </section>
