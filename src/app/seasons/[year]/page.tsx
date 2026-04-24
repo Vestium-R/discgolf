@@ -9,7 +9,14 @@ import {
   seasonChampion,
   seasonRounds,
 } from "@/lib/scoring";
+
+const kindLabel = (k: "first" | "defended" | "stolen" | "no-change") =>
+  k === "stolen" ? "🗡 Stole the badge" :
+  k === "defended" ? "🛡 Defended" :
+  k === "no-change" ? "💤 Kept (didn't play)" :
+  "🥏 First of the season";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
+import { Avatar } from "@/components/Avatar";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { fmtPoints, prettyDate } from "@/lib/format";
 
@@ -29,10 +36,14 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
   const standings = computeStandings(roster, rounds, year);
   const isCurrent = year === settings.currentSeason;
   const rec = history.find((h) => h.season === year);
+  const initial = rec?.initialBadgeHolderPlayerId ?? null;
   const champ = isCurrent ? null : seasonChampion(standings);
-  const badgeId = isCurrent ? currentBadgeHolder(rounds, year) : champ?.player.id ?? null;
+  const badgeId = isCurrent
+    ? currentBadgeHolder(rounds, year, initial)
+    : rec?.championPlayerId ?? champ?.player.id ?? null;
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
-  const timeline = badgeTimeline(rounds, year).reverse();
+  const timeline = badgeTimeline(rounds, year, initial).reverse();
+  const badgeImage = rec?.badgeImageUrl;
 
   return (
     <div className="space-y-6">
@@ -46,19 +57,23 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
         <SeasonPicker seasons={seasons} active={year} />
       </header>
 
-      {badgeHolder && (
+      {(badgeHolder || badgeImage) && (
         <section className="hero-gradient rounded-3xl p-6 text-white flex items-center gap-5">
-          <BadgeCrown size="lg" glow={isCurrent} />
-          <div>
+          <BadgeCrown size="lg" glow={isCurrent} imageUrl={badgeImage} />
+          <div className="min-w-0">
             <div className="text-xs uppercase tracking-widest opacity-80">
               {isCurrent ? "Currently holds" : "Season champion"}
             </div>
-            <Link
-              href={`/players/${badgeHolder.id}`}
-              className="font-display text-3xl font-bold hover:underline"
-            >
-              {badgeHolder.name}
-            </Link>
+            {badgeHolder ? (
+              <Link
+                href={`/players/${badgeHolder.id}`}
+                className="font-display text-3xl font-bold hover:underline"
+              >
+                {badgeHolder.name}
+              </Link>
+            ) : (
+              <div className="font-display text-2xl font-bold opacity-80">TBD</div>
+            )}
             {rec?.note && <p className="text-xs opacity-75 mt-1 italic">{rec.note}</p>}
           </div>
         </section>
@@ -90,9 +105,12 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
                       {s.roundsPlayed > 0 ? <MedalBadge position={rank} /> : <span className="text-forest-400 text-xs">{rank}</span>}
                     </td>
                     <td className="py-2 px-3">
-                      <Link href={`/players/${s.player.id}`} className={`hover:underline ${dim}`}>
-                        {s.player.name}
-                      </Link>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Avatar playerId={s.player.id} name={s.player.name} size="sm" />
+                        <Link href={`/players/${s.player.id}?season=${year}`} className={`hover:underline truncate ${dim}`}>
+                          {s.player.name}
+                        </Link>
+                      </div>
                     </td>
                     <td className={`py-2 px-3 text-right tabular-nums font-semibold ${dim}`}>{fmtPoints(s.points)}</td>
                     <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.wins}</td>
@@ -115,19 +133,15 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
             <ol className="space-y-3">
               {timeline.map((t, i) => {
                 const holder = roster.find((p) => p.id === t.holderId);
-                const prev = t.prevHolderId ? roster.find((p) => p.id === t.prevHolderId) : null;
                 return (
                   <li key={t.round.id + i} className="flex items-start gap-3">
-                    <BadgeCrown size="xs" />
+                    <Avatar playerId={t.holderId} name={holder?.name ?? "?"} size="sm" />
                     <Link href={`/rounds/${t.round.id}`} className="flex-1 min-w-0 block group">
                       <div className="text-sm font-semibold text-forest-800 group-hover:underline">
                         {holder?.name ?? t.holderId}
                       </div>
                       <div className="text-xs text-forest-600">
-                        {prev && t.stolen ? `Stole from ${prev.name}` :
-                         prev && !t.stolen && t.prevHolderId !== t.holderId ? `Took over from ${prev.name}` :
-                         prev && t.prevHolderId === t.holderId ? "Defended" :
-                         "First of the season"}
+                        {kindLabel(t.kind)}
                         {" · "}{prettyDate(t.round.date)}
                       </div>
                     </Link>

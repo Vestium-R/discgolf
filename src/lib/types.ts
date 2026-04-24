@@ -27,6 +27,8 @@ export type SeasonHistory = {
   championPlayerId?: string;
   championName: string;
   note?: string;
+  badgeImageUrl?: string;
+  initialBadgeHolderPlayerId?: string;
 };
 
 export type Settings = {

@@ -31,21 +31,22 @@ export default async function SeasonsIndex() {
           const liveChamp = yr < settings.currentSeason ? seasonChampion(standings) : null;
           const championName = rec?.championName ?? liveChamp?.player.name ?? null;
           const isCurrent = yr === settings.currentSeason;
+          const badgeImage = rec?.badgeImageUrl;
           return (
             <Link
               key={yr}
               href={`/seasons/${yr}`}
               className="card p-5 hover:border-forest-300 transition block"
             >
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
                   <div className="font-display text-3xl font-bold text-forest-800">{yr}</div>
                   <div className="text-xs text-forest-600 mt-1">
                     {rs.length} round{rs.length === 1 ? "" : "s"}
                     {isCurrent ? " · in progress" : ""}
                   </div>
                 </div>
-                {championName && <BadgeCrown size="md" glow={isCurrent} />}
+                {(badgeImage || championName) && <BadgeCrown size="lg" glow={isCurrent} imageUrl={badgeImage} />}
               </div>
               {championName ? (
                 <div className="mt-3">

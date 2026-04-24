@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getRoster, getRounds, getSettings } from "@/lib/store";
+import { getHistory, getRoster, getRounds, getSettings } from "@/lib/store";
 import {
   availableSeasons,
   computeStandings,
   currentStreak,
+  headToHead,
+  longestStreak,
   pointsForRound,
   seasonRounds,
 } from "@/lib/scoring";
 import { fmtPoints, prettyDate, ordinal } from "@/lib/format";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
+import { Avatar } from "@/components/Avatar";
 import { SeasonPicker } from "@/components/SeasonPicker";
 
 export default async function PlayerPage({
@@ -21,16 +24,23 @@ export default async function PlayerPage({
 }) {
   const { id } = await params;
   const { season: seasonParam } = await searchParams;
-  const [roster, rounds, settings] = await Promise.all([getRoster(), getRounds(), getSettings()]);
+  const [roster, rounds, settings, history] = await Promise.all([
+    getRoster(),
+    getRounds(),
+    getSettings(),
+    getHistory(),
+  ]);
   const player = roster.find((p) => p.id === id);
   if (!player) notFound();
 
   const season = Number(seasonParam) || settings.currentSeason;
-  const seasons = availableSeasons(rounds, settings.currentSeason, []);
+  const badgeImage = history.find((h) => h.season === season)?.badgeImageUrl;
+  const seasons = availableSeasons(rounds, settings.currentSeason, history.map((h) => h.season));
   const standings = computeStandings(roster, rounds, season);
   const me = standings.find((s) => s.player.id === id);
   const rank = standings.findIndex((s) => s.player.id === id) + 1;
   const streak = currentStreak(rounds, season, id);
+  const longest = longestStreak(rounds, season, id);
 
   const seasonList = seasonRounds(rounds, season);
   const mine = seasonList
@@ -45,6 +55,14 @@ export default async function PlayerPage({
 
   const podiums = mine.filter((x) => x.pos <= 3).length;
   const bestFinish = mine.length > 0 ? Math.min(...mine.map((x) => x.pos)) : null;
+  const h2h = headToHead(rounds, id);
+  const h2hRows = [...h2h.entries()]
+    .map(([pid, stats]) => ({ opponent: roster.find((p) => p.id === pid), ...stats }))
+    .filter((r) => r.opponent && r.rounds > 0)
+    .sort((a, b) => b.rounds - a.rounds);
+
+  // Seasons this player has been on the podium
+  const seasonsChamped = history.filter((h) => h.championPlayerId === id);
 
   return (
     <div className="space-y-5">
@@ -54,24 +72,56 @@ export default async function PlayerPage({
       </div>
 
       <header className="card p-5">
-        <div className="flex items-center gap-3">
-          <h2 className="font-display text-2xl font-bold text-forest-800">{player.name}</h2>
-          {streak > 0 && (
-            <span className="text-xs font-semibold rounded-full bg-orange-100 text-orange-800 px-2 py-0.5">
-              🔥 {streak} win{streak === 1 ? "" : "s"} in a row
-            </span>
+        <div className="flex items-center gap-4">
+          <Avatar playerId={player.id} name={player.name} size="lg" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-display text-2xl font-bold text-forest-800">{player.name}</h2>
+              {streak >= 2 && (
+                <span className="text-xs font-semibold rounded-full bg-orange-100 text-orange-800 px-2 py-0.5">
+                  🔥 {streak} in a row
+                </span>
+              )}
+              {seasonsChamped.length > 0 && (
+                <span className="text-xs font-semibold rounded-full bg-amber-100 text-amber-800 px-2 py-0.5">
+                  👑 {seasonsChamped.length}× champion
+                </span>
+              )}
+            </div>
+            {player.udiscHandle && (
+              <a
+                href={`https://udisc.com/users/${player.udiscHandle}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-forest-600 hover:underline"
+              >
+                @{player.udiscHandle}
+              </a>
+            )}
+          </div>
+          {rank === 1 && me && me.roundsPlayed > 0 && (
+            <BadgeCrown size="md" imageUrl={badgeImage} />
           )}
         </div>
-        {player.udiscHandle && (
-          <p className="text-sm text-forest-600">@{player.udiscHandle}</p>
-        )}
         {me && (
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2">
             <Stat label="Rank" value={rank ? ordinal(rank) : "—"} />
             <Stat label="Points" value={fmtPoints(me.points)} />
             <Stat label="Wins" value={String(me.wins)} />
             <Stat label="Podiums" value={String(podiums)} />
             <Stat label="Best" value={bestFinish ? ordinal(bestFinish) : "—"} />
+            <Stat label="Streak" value={longest > 0 ? `${longest}` : "—"} />
+          </div>
+        )}
+        {seasonsChamped.length > 0 && (
+          <div className="mt-3 text-xs text-forest-600">
+            Champion in{" "}
+            {seasonsChamped.map((h, i) => (
+              <span key={h.season}>
+                <Link href={`/seasons/${h.season}`} className="font-semibold underline">{h.season}</Link>
+                {i < seasonsChamped.length - 1 ? ", " : ""}
+              </span>
+            ))}
           </div>
         )}
       </header>
@@ -98,7 +148,7 @@ export default async function PlayerPage({
                         </div>
                       </div>
                     </div>
-                    {pos === 1 && <BadgeCrown size="xs" />}
+                    {pos === 1 && <BadgeCrown size="xs" imageUrl={badgeImage} />}
                   </div>
                 </Link>
               </li>
@@ -106,6 +156,35 @@ export default async function PlayerPage({
           </ul>
         )}
       </section>
+
+      {h2hRows.length > 0 && (
+        <section className="card p-4">
+          <h3 className="font-display font-bold text-forest-800 mb-2">Head-to-head (all time)</h3>
+          <ul className="divide-y divide-forest-100">
+            {h2hRows.map((r) => {
+              const pct = r.rounds > 0 ? Math.round((r.wins / r.rounds) * 100) : 0;
+              return (
+                <li key={r.opponent!.id} className="py-2 flex items-center gap-3">
+                  <Avatar playerId={r.opponent!.id} name={r.opponent!.name} size="sm" />
+                  <Link href={`/players/${r.opponent!.id}`} className="flex-1 text-sm text-forest-800 hover:underline truncate">
+                    {r.opponent!.name}
+                  </Link>
+                  <div className="flex-1 h-2 rounded-full bg-forest-100 overflow-hidden max-w-32">
+                    <div
+                      className="h-full bg-forest-600"
+                      style={{ width: `${pct}%` }}
+                      title={`${pct}% wins vs ${r.opponent!.name}`}
+                    />
+                  </div>
+                  <div className="text-xs tabular-nums w-20 text-right text-forest-700">
+                    {r.wins}W-{r.losses}L · {pct}%
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

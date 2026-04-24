@@ -1,20 +1,33 @@
 export function BadgeCrown({
   size = "md",
   glow = false,
+  imageUrl,
 }: {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   glow?: boolean;
+  imageUrl?: string | null;
 }) {
   const dims =
     size === "xl"
-      ? "w-24 h-24 text-3xl"
+      ? "w-28 h-28 text-3xl"
       : size === "lg"
-        ? "w-14 h-14 text-xl"
+        ? "w-16 h-16 text-xl"
         : size === "md"
-          ? "w-9 h-9 text-sm"
+          ? "w-10 h-10 text-sm"
           : size === "sm"
             ? "w-7 h-7 text-xs"
             : "w-5 h-5 text-[10px]";
+
+  if (imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={imageUrl}
+        alt="Badge"
+        className={`${dims} rounded-full object-cover shadow-lg ring-2 ring-white/40 ${glow ? "badge-crown-glow" : ""}`}
+      />
+    );
+  }
   return (
     <span
       className={`badge-crown ${glow ? "badge-crown-glow" : ""} inline-flex items-center justify-center rounded-full font-bold ${dims}`}

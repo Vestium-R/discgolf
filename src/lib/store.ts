@@ -25,6 +25,8 @@ type HistoryRow = {
   champion_player_id: string | null;
   champion_name: string;
   note: string | null;
+  badge_image_url: string | null;
+  initial_badge_holder_player_id: string | null;
 };
 
 type SettingsRow = { id: number; current_season: number };
@@ -53,7 +55,21 @@ function mapHistory(r: HistoryRow): SeasonHistory {
     championPlayerId: r.champion_player_id ?? undefined,
     championName: r.champion_name,
     note: r.note ?? undefined,
+    badgeImageUrl: r.badge_image_url ?? undefined,
+    initialBadgeHolderPlayerId: r.initial_badge_holder_player_id ?? undefined,
   };
+}
+
+export async function upsertSeasonHistory(h: SeasonHistory): Promise<void> {
+  const { error } = await supabaseAdmin().from("season_history").upsert({
+    season: h.season,
+    champion_player_id: h.championPlayerId ?? null,
+    champion_name: h.championName,
+    note: h.note ?? null,
+    badge_image_url: h.badgeImageUrl ?? null,
+    initial_badge_holder_player_id: h.initialBadgeHolderPlayerId ?? null,
+  });
+  if (error) throw error;
 }
 
 export async function getRoster(): Promise<Player[]> {

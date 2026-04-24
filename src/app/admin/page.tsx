@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { getUser, isAdminEmail } from "@/lib/auth";
-import { getRoster, getSettings } from "@/lib/store";
+import { getHistory, getRoster, getSettings } from "@/lib/store";
 import {
   addPlayerAction,
   signOutAction,
   togglePlayerActiveAction,
   updatePlayerAction,
   updateSeasonAction,
+  updateSeasonConfigAction,
 } from "@/app/actions";
 import { SignInForm } from "@/components/SignInForm";
+import { BadgeCrown } from "@/components/BadgeCrown";
 
 export default async function AdminPage({
   searchParams,
@@ -42,8 +44,7 @@ export default async function AdminPage({
         <div className="card p-5">
           <h2 className="font-display text-lg font-bold text-forest-800">Signed in as {user.email}</h2>
           <p className="mt-2 text-sm text-forest-700">
-            You&apos;re signed in, but admin actions (edit roster, change season, delete rounds) are limited.
-            Ask Jeff to add your email to the admin list.
+            You&apos;re signed in, but admin actions are limited. Ask Jeff to add your email to the admin list.
           </p>
           <form action={signOutAction} className="mt-3">
             <button className="text-sm text-forest-600 hover:underline">Sign out</button>
@@ -53,7 +54,7 @@ export default async function AdminPage({
     );
   }
 
-  const [roster, settings] = await Promise.all([getRoster(), getSettings()]);
+  const [roster, settings, history] = await Promise.all([getRoster(), getSettings(), getHistory()]);
 
   return (
     <div className="space-y-6">
@@ -70,35 +71,122 @@ export default async function AdminPage({
       <section className="card p-4">
         <h3 className="font-display font-bold text-forest-800">Current season</h3>
         <form action={updateSeasonAction} className="mt-2 flex items-center gap-2">
-          <input
-            type="number"
-            name="currentSeason"
-            defaultValue={settings.currentSeason}
-            className="w-24 input-pill"
-          />
+          <input type="number" name="currentSeason" defaultValue={settings.currentSeason} className="w-24 input-pill" />
           <button className="btn-primary">Save</button>
         </form>
-        <p className="mt-2 text-xs text-forest-600">
-          The season where new rounds land by default.
+        <p className="mt-2 text-xs text-forest-600">The season that new rounds land in by default.</p>
+      </section>
+
+      <section className="card p-4">
+        <h3 className="font-display font-bold text-forest-800">Season configs</h3>
+        <p className="text-xs text-forest-600 mb-3">
+          Who starts the season with the badge, what badge image to show, and the past champion.
         </p>
+        <ul className="space-y-4 divide-y divide-forest-100">
+          {history.map((h) => {
+            const initial = h.initialBadgeHolderPlayerId ? roster.find((p) => p.id === h.initialBadgeHolderPlayerId) : null;
+            return (
+              <li key={h.season} className="pt-4 first:pt-0">
+                <form action={updateSeasonConfigAction} className="space-y-2">
+                  <input type="hidden" name="season" value={h.season} />
+                  <div className="flex items-center gap-3">
+                    <BadgeCrown size="md" imageUrl={h.badgeImageUrl} />
+                    <div className="flex-1">
+                      <div className="font-display text-lg font-bold text-forest-800">Season {h.season}</div>
+                      <div className="text-xs text-forest-600">
+                        {initial ? `Starts with: ${initial.name}` : "No starting holder set"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <label className="text-xs">
+                      <span className="block text-forest-700 mb-1">Initial badge holder</span>
+                      <select
+                        name="initialBadgeHolderPlayerId"
+                        defaultValue={h.initialBadgeHolderPlayerId ?? ""}
+                        className="input-pill"
+                      >
+                        <option value="">— none —</option>
+                        {roster.map((p) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs">
+                      <span className="block text-forest-700 mb-1">Champion (past seasons)</span>
+                      <select
+                        name="championPlayerId"
+                        defaultValue={h.championPlayerId ?? ""}
+                        className="input-pill"
+                      >
+                        <option value="">— none —</option>
+                        {roster.map((p) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs sm:col-span-2">
+                      <span className="block text-forest-700 mb-1">Badge image URL</span>
+                      <input
+                        name="badgeImageUrl"
+                        defaultValue={h.badgeImageUrl ?? ""}
+                        placeholder="https://…"
+                        className="input-pill"
+                      />
+                    </label>
+                    <label className="text-xs sm:col-span-2">
+                      <span className="block text-forest-700 mb-1">Note</span>
+                      <input
+                        name="note"
+                        defaultValue={h.note ?? ""}
+                        placeholder="e.g. No stats recorded"
+                        className="input-pill"
+                      />
+                    </label>
+                    <input type="hidden" name="championName" value={h.championName ?? ""} />
+                  </div>
+                  <button className="btn-secondary">Save season {h.season}</button>
+                </form>
+              </li>
+            );
+          })}
+        </ul>
+        <form action={updateSeasonConfigAction} className="mt-4 border-t border-forest-100 pt-4 space-y-2">
+          <h4 className="text-sm font-semibold text-forest-800">Add/update a season</h4>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="text-xs">
+              <span className="block text-forest-700 mb-1">Year</span>
+              <input type="number" name="season" required className="input-pill" placeholder="2027" />
+            </label>
+            <label className="text-xs">
+              <span className="block text-forest-700 mb-1">Initial badge holder</span>
+              <select name="initialBadgeHolderPlayerId" className="input-pill">
+                <option value="">— none —</option>
+                {roster.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs sm:col-span-2">
+              <span className="block text-forest-700 mb-1">Badge image URL</span>
+              <input name="badgeImageUrl" className="input-pill" placeholder="https://…" />
+            </label>
+          </div>
+          <button className="btn-primary">Add season</button>
+        </form>
       </section>
 
       <section className="card p-4">
         <h3 className="font-display font-bold text-forest-800">Roster</h3>
         <p className="text-xs text-forest-600 mb-3">
-          Add each friend&apos;s UDisc handle (from the scorecard; e.g. <code>jeffreyr</code>) so the parser
-          auto-matches them when anyone pastes a round.
+          UDisc handles (from the scorecard, e.g. <code>jeffreyr</code>) let the parser auto-match.
         </p>
         <ul className="divide-y divide-forest-100">
           {roster.map((p) => (
             <li key={p.id} className="py-2">
               <form action={updatePlayerAction} className="flex flex-wrap items-center gap-2">
                 <input type="hidden" name="id" value={p.id} />
-                <input
-                  name="name"
-                  defaultValue={p.name}
-                  className="flex-1 min-w-[160px] input-pill"
-                />
+                <input name="name" defaultValue={p.name} className="flex-1 min-w-[160px] input-pill" />
                 <input
                   name="udiscHandle"
                   defaultValue={p.udiscHandle ?? ""}
@@ -120,25 +208,18 @@ export default async function AdminPage({
           ))}
         </ul>
         <form action={addPlayerAction} className="mt-4 flex flex-wrap items-center gap-2 border-t border-forest-100 pt-3">
-          <input
-            name="name"
-            placeholder="New player name"
-            className="flex-1 min-w-[160px] input-pill"
-          />
-          <input
-            name="udiscHandle"
-            placeholder="UDisc handle (optional)"
-            className="flex-1 min-w-[140px] input-pill"
-          />
+          <input name="name" placeholder="New player name" className="flex-1 min-w-[160px] input-pill" />
+          <input name="udiscHandle" placeholder="UDisc handle (optional)" className="flex-1 min-w-[140px] input-pill" />
           <button className="btn-primary">Add player</button>
         </form>
       </section>
 
       <section className="card p-4">
-        <h3 className="font-display font-bold text-forest-800">Quick links</h3>
+        <h3 className="font-display font-bold text-forest-800">Links</h3>
         <div className="mt-2 flex flex-wrap gap-2">
-          <Link href="/rounds" className="btn-secondary">View all rounds</Link>
+          <Link href="/rounds" className="btn-secondary">All rounds</Link>
           <Link href="/add" className="btn-secondary">Add round (public)</Link>
+          <Link href="/rules" className="btn-secondary">Rules</Link>
           <Link href="/diagnose" className="btn-secondary">Diagnostics</Link>
         </div>
       </section>

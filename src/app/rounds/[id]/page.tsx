@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getRoster, getRounds } from "@/lib/store";
+import { getHistory, getRoster, getRounds } from "@/lib/store";
 import { pointsForRound } from "@/lib/scoring";
 import { fmtPoints, prettyDate, ordinal } from "@/lib/format";
 import { isAdmin } from "@/lib/auth";
 import { deleteRoundAction } from "@/app/actions";
 import { ShareSummary } from "@/components/ShareSummary";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
+import { Avatar } from "@/components/Avatar";
+import { Confetti } from "@/components/Confetti";
 
 export default async function RoundDetail({
   params,
@@ -17,14 +19,21 @@ export default async function RoundDetail({
 }) {
   const { id } = await params;
   const { new: isNew, dup } = await searchParams;
-  const [roster, rounds, admin] = await Promise.all([getRoster(), getRounds(), isAdmin()]);
+  const [roster, rounds, history, admin] = await Promise.all([
+    getRoster(),
+    getRounds(),
+    getHistory(),
+    isAdmin(),
+  ]);
   const round = rounds.find((r) => r.id === id);
   if (!round) notFound();
+  const badgeImage = history.find((h) => h.season === round.season)?.badgeImageUrl;
 
   const byId = new Map(roster.map((p) => [p.id, p]));
   const pts = pointsForRound(round);
   const ordered = [...round.results].sort((a, b) => a.position - b.position);
-  const winnerName = byId.get(ordered[0]?.playerId ?? "")?.name ?? "Unknown";
+  const winner = byId.get(ordered[0]?.playerId ?? "");
+  const winnerName = winner?.name ?? "Unknown";
 
   const summary = buildSummary({
     date: round.date,
@@ -39,48 +48,54 @@ export default async function RoundDetail({
 
   return (
     <div className="space-y-5">
+      {isNew && <Confetti />}
+
       <Link href="/rounds" className="text-sm text-forest-600 hover:underline">← All rounds</Link>
 
       {isNew && (
         <div className="card bg-forest-50 border-forest-200 p-3 text-sm text-forest-800">
-          🥏 Round saved. The badge now rides with <strong>{winnerName}</strong>.
+          🥏 Round saved — the badge now rides with <strong>{winnerName}</strong>.
         </div>
       )}
       {dup && (
         <div className="card bg-amber-50 border-amber-200 p-3 text-sm text-amber-900">
-          Someone already posted this scorecard — no double-counting. Here it is.
+          Someone already posted this scorecard — no double-counting.
         </div>
       )}
 
       <header className="card p-5">
         <div className="flex items-start gap-4">
-          <BadgeCrown size="lg" />
-          <div className="flex-1">
+          <BadgeCrown size="lg" imageUrl={badgeImage} />
+          <div className="flex-1 min-w-0">
             <h2 className="font-display text-xl font-bold text-forest-800">
               {prettyDate(round.date)}
               {round.courseName ? ` — ${round.courseName}` : ""}
             </h2>
             <p className="text-sm text-forest-600">
-              Season {round.season} ·{" "}
-              {round.source === "udisc" && round.udiscUrl ? (
-                <a href={round.udiscUrl} target="_blank" rel="noreferrer" className="underline">
-                  UDisc scorecard
-                </a>
-              ) : (
-                "Manual entry"
-              )}{" "}
-              · Winner: <strong>{winnerName}</strong>
+              Season {round.season} · Winner: <strong>{winnerName}</strong>
             </p>
-            {round.note && <p className="text-sm text-forest-700 mt-1 italic">{round.note}</p>}
+            {round.note && <p className="text-sm text-forest-700 mt-1 italic">&ldquo;{round.note}&rdquo;</p>}
           </div>
         </div>
+        {round.source === "udisc" && round.udiscUrl && (
+          <a
+            href={round.udiscUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-forest-200 bg-forest-50 px-3 py-2 text-sm text-forest-800 hover:bg-forest-100 transition"
+          >
+            <span>📋</span>
+            <span className="font-semibold">View UDisc scorecard</span>
+            <span className="text-forest-500">↗</span>
+          </a>
+        )}
       </header>
 
       <section className="card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-forest-50 text-forest-700">
             <tr>
-              <th className="py-2 px-3 text-left w-12">Pos</th>
+              <th className="py-2 px-3 text-left w-14">Pos</th>
               <th className="py-2 px-3 text-left">Player</th>
               <th className="py-2 px-3 text-right">Points</th>
             </tr>
@@ -92,11 +107,14 @@ export default async function RoundDetail({
                 <tr key={r.playerId} className="border-t border-forest-100">
                   <td className="py-2 px-3"><MedalBadge position={r.position} /></td>
                   <td className="py-2 px-3">
-                    {p ? (
-                      <Link href={`/players/${p.id}`} className="hover:underline">{p.name}</Link>
-                    ) : (
-                      r.playerId
-                    )}
+                    <div className="flex items-center gap-2">
+                      {p && <Avatar playerId={p.id} name={p.name} size="sm" />}
+                      {p ? (
+                        <Link href={`/players/${p.id}`} className="hover:underline">{p.name}</Link>
+                      ) : (
+                        r.playerId
+                      )}
+                    </div>
                   </td>
                   <td className="py-2 px-3 text-right font-semibold tabular-nums">{fmtPoints(pts.get(r.playerId) ?? 0)}</td>
                 </tr>
@@ -134,6 +152,6 @@ function buildSummary(r: {
     lines.push(`${medal} ${row.name} (+${fmtPoints(row.points)} pts)`);
   }
   lines.push("");
-  lines.push("Badge moves → full standings on the site.");
+  lines.push("🏆 Badge moves → full standings on the site.");
   return lines.join("\n");
 }

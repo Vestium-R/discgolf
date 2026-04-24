@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { FloatingAddButton } from "@/components/FloatingAddButton";
 
 export const metadata: Metadata = {
   title: "The Badge",
   description: "Round-by-round badge tracker for our disc golf crew",
+  openGraph: {
+    title: "The Badge",
+    description: "Round-by-round disc golf badge tracker",
+    type: "website",
+  },
 };
 
 export const dynamic = "force-dynamic";
@@ -19,19 +25,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full badge-crown text-sm">★</span>
               The Badge
             </Link>
-            <nav className="flex gap-1 text-sm">
+            <nav className="flex gap-1 text-sm overflow-x-auto">
               <NavLink href="/">Home</NavLink>
               <NavLink href="/rounds">Rounds</NavLink>
               <NavLink href="/seasons">Seasons</NavLink>
-              <NavLink href="/add">Add</NavLink>
+              <NavLink href="/courses">Courses</NavLink>
+              <NavLink href="/rules">Rules</NavLink>
               <NavLink href="/admin">⚙</NavLink>
             </nav>
           </div>
         </header>
-        <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+        <main className="mx-auto max-w-5xl px-4 py-6 pb-24 sm:pb-6">{children}</main>
         <footer className="mx-auto max-w-5xl px-4 py-8 text-xs text-forest-600/70 text-center">
           Pass it, keep it, win it.
         </footer>
+        <FloatingAddButton />
       </body>
     </html>
   );

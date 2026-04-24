@@ -124,6 +124,31 @@ export async function updateSeasonAction(formData: FormData): Promise<void> {
   revalidatePath("/admin");
 }
 
+export async function updateSeasonConfigAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const season = Number(formData.get("season") ?? 0);
+  if (!season) return;
+  const initialBadgeHolderPlayerId = String(formData.get("initialBadgeHolderPlayerId") ?? "").trim() || undefined;
+  const badgeImageUrl = String(formData.get("badgeImageUrl") ?? "").trim() || undefined;
+  const championPlayerId = String(formData.get("championPlayerId") ?? "").trim() || undefined;
+  const championName = String(formData.get("championName") ?? "").trim();
+  const note = String(formData.get("note") ?? "").trim() || undefined;
+  const { upsertSeasonHistory, getRoster } = await import("@/lib/store");
+  const roster = await getRoster();
+  const championFromId = championPlayerId ? roster.find((p) => p.id === championPlayerId)?.name : undefined;
+  await upsertSeasonHistory({
+    season,
+    championPlayerId,
+    championName: championName || championFromId || "",
+    note,
+    badgeImageUrl,
+    initialBadgeHolderPlayerId,
+  });
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath(`/seasons/${season}`);
+}
+
 export async function deleteRoundAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
