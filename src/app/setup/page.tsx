@@ -6,61 +6,80 @@ export default function SetupPage() {
       <header>
         <h2 className="font-display text-2xl font-bold text-forest-800">One-tap sharing</h2>
         <p className="text-sm text-forest-600">
-          Set this up once and every UDisc scorecard becomes a two-tap save.
+          Finish a round in UDisc, share it to The Patch. No retyping, no pasting.
         </p>
       </header>
 
+      {/* THE ACTUAL FLOW (what you do every round) */}
+      <section className="card p-5 space-y-3 border-forest-300 bg-forest-50">
+        <div className="text-xs uppercase tracking-widest text-forest-700 font-semibold">
+          After every round
+        </div>
+        <ol className="text-base text-forest-800 space-y-3 pl-6 list-decimal font-medium">
+          <li>Open the round in UDisc.</li>
+          <li>Tap the three dots <span className="inline-block px-1.5 py-0.5 border border-forest-300 rounded text-xs font-mono">⋮</span></li>
+          <li>Tap <strong>Share Card Cast</strong> → pick <strong>The Patch</strong>.</li>
+        </ol>
+        <p className="text-sm text-forest-700 pt-1">
+          That&apos;s it. The site auto-detects everyone who played, adds the round, moves the patch if it should,
+          and updates the standings.
+        </p>
+      </section>
+
+      {/* ONE-TIME SETUP */}
+      <div>
+        <h3 className="font-display text-lg font-bold text-forest-800 mb-2">One-time setup</h3>
+        <p className="text-sm text-forest-600 mb-4">
+          Before step 3 works, you need to teach your phone that &quot;The Patch&quot; is a share target. Pick your phone below.
+        </p>
+      </div>
+
       <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">📱 iPhone — iOS Shortcut</h3>
+        <h3 className="font-display font-bold text-forest-800">🤖 Android — install as app (30 seconds)</h3>
+        <ol className="text-sm text-forest-700 space-y-2 pl-5 list-decimal">
+          <li>In Chrome, open <Link href="/" className="underline">this site</Link>.</li>
+          <li>Tap the menu ⋮ → <strong>Install app</strong> (or <strong>Add to Home screen</strong>).</li>
+          <li>Done. The Patch now shows up in UDisc&apos;s Card Cast share sheet.</li>
+        </ol>
+      </section>
+
+      <section className="card p-5 space-y-3">
+        <h3 className="font-display font-bold text-forest-800">📱 iPhone — one-time Shortcut (1 minute)</h3>
+        <p className="text-sm text-forest-700">
+          iOS doesn&apos;t let websites register as share targets directly. A Shortcut bridges the gap.
+        </p>
         <ol className="text-sm text-forest-700 space-y-2 pl-5 list-decimal">
           <li>Open the <strong>Shortcuts</strong> app.</li>
           <li>Tap <strong>+</strong> to create a new shortcut.</li>
           <li>Tap <strong>Add Action</strong> → search <strong>Open URLs</strong>.</li>
           <li>
             In the URL field paste:
-            <pre className="mt-1 bg-forest-50 rounded p-2 text-xs overflow-x-auto">https://discgolf-eight.vercel.app/add?auto=1&udiscUrl=[Shortcut Input]</pre>
-            (tap &quot;Shortcut Input&quot; to insert the variable where shown.)
+            <pre className="mt-1 bg-forest-50 rounded p-2 text-xs overflow-x-auto select-all">https://discgolf-eight.vercel.app/add?auto=1&udiscUrl=[Shortcut Input]</pre>
+            (tap &quot;Shortcut Input&quot; to insert the variable where the brackets show.)
           </li>
-          <li>Tap the shortcut settings → rename it to <strong>Save to Patch</strong>.</li>
+          <li>Tap the shortcut&apos;s settings → rename it <strong>The Patch</strong>.</li>
           <li>
-            In settings → <strong>Use with Share Sheet</strong> → turn ON. Accept URLs only.
+            Same settings → <strong>Use with Share Sheet</strong> → turn ON. Accept types: URLs only.
           </li>
           <li>
-            Now after a UDisc round: ⋮ → <strong>Share cast</strong> → <strong>Save to Patch</strong> → done.
+            Done. Now in UDisc: ⋮ → Share Card Cast → <strong>The Patch</strong> → saved.
           </li>
         </ol>
       </section>
 
       <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">🤖 Android — install the site as an app</h3>
-        <ol className="text-sm text-forest-700 space-y-2 pl-5 list-decimal">
-          <li>In Chrome, open <Link href="/" className="underline">this site</Link>.</li>
-          <li>Tap the menu ⋮ → <strong>Install app</strong> (or &quot;Add to Home screen&quot;).</li>
-          <li>
-            Once installed, after a UDisc round: ⋮ → <strong>Share</strong> → <strong>The Patch</strong> → auto-saves.
-          </li>
-        </ol>
-        <p className="text-xs text-forest-600">
-          The Web Share Target API handles everything — no form, no paste. Just share.
+        <h3 className="font-display font-bold text-forest-800">🤔 Why not auto-pull from UDisc?</h3>
+        <p className="text-sm text-forest-700">
+          UDisc doesn&apos;t expose user profiles or a public API. But one share from anyone who played captures the
+          whole round — so whoever finishes and shares is covering the whole group.
         </p>
       </section>
 
       <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">⚡ Home-screen shortcut (any phone)</h3>
+        <h3 className="font-display font-bold text-forest-800">Fallback</h3>
         <p className="text-sm text-forest-700">
-          Bookmark this URL on your home screen for one-tap access to the add page:
-        </p>
-        <pre className="bg-forest-50 rounded p-2 text-xs overflow-x-auto">
-          https://discgolf-eight.vercel.app/add
-        </pre>
-      </section>
-
-      <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">🤔 Why can&apos;t it just auto-pull?</h3>
-        <p className="text-sm text-forest-700">
-          UDisc doesn&apos;t publish user profiles or a public API. Scorecards are public and fully parseable,
-          but there&apos;s no way for the site to discover yours without someone sharing it first.
-          One share captures everyone in the round, though — so whoever finishes clicks once and you&apos;re all logged.
+          No setup, any phone: bookmark <Link href="/add" className="underline"><code>/add</code></Link> on your home screen.
+          From UDisc, Copy Link → open bookmark → paste → tap Save.
         </p>
       </section>
     </div>
