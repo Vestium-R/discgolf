@@ -1,6 +1,6 @@
-# Kent Disc Golf
+# Disc Golf League
 
-Season standings + badge tracker for the Kent County disc golf group.
+Season standings + badge tracker for a friend group.
 
 ## What it does
 
@@ -19,7 +19,7 @@ Already done. Repo: https://github.com/Vestium-R/discgolf
 
 ### 2. Set up Supabase (free)
 
-- Go to [supabase.com](https://supabase.com) and create a new project. Remember the database password.
+- Go to [supabase.com](https://supabase.com) and create a new project. Save the database password.
 - Once the project is ready, open **SQL Editor** → **New query** and run the two files in `supabase/migrations/` in order:
   1. `001_init.sql` — creates tables and enables RLS
   2. `002_seed.sql` — seeds the 9 players, 2025 champion, and current season
