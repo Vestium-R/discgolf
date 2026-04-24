@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getRoster, getRounds } from "@/lib/store";
+import { getRoster, getRounds, getSettings } from "@/lib/store";
 import { prettyDate } from "@/lib/format";
 import { Avatar } from "@/components/Avatar";
 import { BadgeCrown } from "@/components/BadgeCrown";
@@ -29,7 +29,7 @@ function splitCourseName(full: string): { base: string; layout: string | null } 
 }
 
 export default async function CoursesPage() {
-  const [roster, rounds] = await Promise.all([getRoster(), getRounds()]);
+  const [roster, rounds, settings] = await Promise.all([getRoster(), getRounds(), getSettings()]);
   const byId = new Map(roster.map((p) => [p.id, p]));
   const layouts = new Map<string, LayoutStats>();
 
@@ -93,6 +93,7 @@ export default async function CoursesPage() {
                 const topWinner = [...l.winners.entries()].sort((a, b) => b[1] - a[1])[0];
                 const top = topWinner ? byId.get(topWinner[0]) : null;
                 const recent = l.mostRecent ? byId.get(l.mostRecent.winnerId) : null;
+                const filterHref = `/seasons/${settings.currentSeason}?layout=${encodeURIComponent(l.fullName)}`;
                 return (
                   <div key={l.fullName} className="card p-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
@@ -111,11 +112,19 @@ export default async function CoursesPage() {
                         </span>
                       </div>
                     )}
-                    {l.mostRecent && recent && (
-                      <Link href={`/rounds/${l.mostRecent.roundId}`} className="text-xs text-forest-600 hover:underline">
-                        Last: {prettyDate(l.mostRecent.date)} — {recent.name} won →
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      {l.mostRecent && recent ? (
+                        <Link href={`/rounds/${l.mostRecent.roundId}`} className="text-forest-600 hover:underline truncate">
+                          Last: {prettyDate(l.mostRecent.date)} — {recent.name} won
+                        </Link>
+                      ) : <span />}
+                      <Link
+                        href={filterHref}
+                        className="inline-flex items-center gap-1 rounded-full bg-forest-700 text-white px-2 py-0.5 font-semibold hover:bg-forest-600 whitespace-nowrap"
+                      >
+                        Standings →
                       </Link>
-                    )}
+                    </div>
                   </div>
                 );
               })}
