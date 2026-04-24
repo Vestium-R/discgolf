@@ -81,9 +81,9 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {/* WINS LEADER — projected season champion */}
+          {/* WINS LEADER — projected season champion (keeps patch forever) */}
           <div className="rounded-3xl p-5 sm:p-6 border border-forest-200 bg-white shadow-sm relative overflow-hidden">
-            <div className="text-[11px] uppercase tracking-widest text-forest-600 mb-2">🏆 On pace for the year</div>
+            <div className="text-[11px] uppercase tracking-widest text-forest-600 mb-2">🏆 On track to keep it forever</div>
             <div className="flex items-center gap-4">
               {leader ? (
                 <>
@@ -108,8 +108,7 @@ export default async function HomePage() {
               )}
             </div>
             <p className="text-[11px] text-forest-600 mt-3">
-              Most wins at season end adds {season} to the patch.
-              {leaderDifferentFromBadge && " Different from who holds it right now."}
+              Whoever ends {season} with the most wins <strong>keeps the patch</strong> and adds {season} to it. Trading-day patch above; forever-keeper here.
             </p>
           </div>
         </div>

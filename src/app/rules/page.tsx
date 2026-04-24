@@ -49,10 +49,11 @@ export default function RulesPage() {
       </section>
 
       <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">🏆 Season champion</h3>
+        <h3 className="font-display font-bold text-forest-800">🏆 Season champion — keeps the patch forever</h3>
         <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
-          <li>Most wins at year end = season champion.</li>
-          <li>Their year gets added to the patch. Same patch, now older.</li>
+          <li><strong>Most wins at year end keeps the patch permanently.</strong></li>
+          <li>They add the year to it. Same patch, with their year on it.</li>
+          <li>Whoever is holding the patch on the last day of the season is <em>not</em> automatically the champion — only total wins decide.</li>
           <li>Eternal bragging rights.</li>
         </ul>
       </section>
