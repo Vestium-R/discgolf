@@ -72,7 +72,11 @@ export async function GET(req: NextRequest) {
     `https://api.mapbox.com/styles/v1/${MAPBOX_STYLE}/static/` +
     `${overlays}/auto/${WIDTH}x${HEIGHT}@2x?padding=30&access_token=${token}`;
 
-  const res = await fetch(imgUrl);
+  // Send a Referer matching our own host so URL-restricted Mapbox tokens
+  // still accept the request. Falls back to the vercel.app hostname if the
+  // incoming request doesn't have a host header.
+  const refererForMapbox = `https://${host || "discgolf-eight.vercel.app"}/`;
+  const res = await fetch(imgUrl, { headers: { Referer: refererForMapbox } });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     return new NextResponse(`upstream ${res.status}: ${body.slice(0, 200)}`, { status: 502 });
