@@ -70,10 +70,26 @@ export default async function SeasonPage({
           <h2 className="font-display text-3xl font-bold text-forest-800">Season {year}</h2>
           <p className="text-sm text-forest-600">
             {rs.length} round{rs.length === 1 ? "" : "s"}{isCurrent ? " · in progress" : ""}
+            {layoutFilter && <span> · filtered</span>}
           </p>
         </div>
         <SeasonPicker seasons={seasons} active={year} />
       </header>
+
+      {layoutFilter && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 flex items-center gap-3 text-sm">
+          <span>🔍</span>
+          <span className="flex-1 min-w-0">
+            Showing only <strong className="text-amber-900">{layoutFilter}</strong>
+          </span>
+          <Link
+            href={`/seasons/${year}`}
+            className="text-xs font-semibold text-amber-900 hover:underline whitespace-nowrap"
+          >
+            Clear filter ✕
+          </Link>
+        </div>
+      )}
 
       {courseOptions.length > 1 && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
