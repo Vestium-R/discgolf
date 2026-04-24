@@ -6,62 +6,75 @@ export default function RulesPage() {
       <header className="flex items-center gap-3">
         <BadgeCrown size="lg" />
         <div>
-          <h2 className="font-display text-2xl font-bold text-forest-800">How The Badge works</h2>
-          <p className="text-sm text-forest-600">The rules, in plain English.</p>
+          <h2 className="font-display text-2xl font-bold text-forest-800">The Traveling Patch</h2>
+          <p className="text-sm text-forest-600">One badge. One season. One patch holder at a time.</p>
         </div>
       </header>
 
       <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">Two trophies, not one</h3>
+        <h3 className="font-display font-bold text-forest-800">The idea</h3>
         <p className="text-sm text-forest-700">
-          Every season has <strong>two</strong> things to win:
+          There is <strong>one patch</strong>. It travels from player to player all season. The year gets
+          added to it at season end — same patch, new stripe.
         </p>
+      </section>
+
+      <section className="card p-5 space-y-3">
+        <h3 className="font-display font-bold text-forest-800">🧥 Week-to-week (the Traveling Patch)</h3>
+        <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
+          <li>A round counts any time <strong>2+ members</strong> play.</li>
+          <li>Lowest score = 1 win. Winner becomes the patch holder.</li>
+          <li>The patch stays with them until the next round&apos;s winner takes it.</li>
+          <li>The patch is always live — there is always exactly one holder.</li>
+        </ul>
+      </section>
+
+      <section className="card p-5 space-y-3">
+        <h3 className="font-display font-bold text-forest-800">🏆 Season end (same patch, new year)</h3>
+        <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
+          <li>Most wins at season end = season champion.</li>
+          <li>Their year gets added to the patch.</li>
+          <li>Eternal bragging rights.</li>
+        </ul>
+        <p className="text-sm text-forest-700">
+          <strong>It&apos;s still the same patch.</strong> The champion holds it in the off-season and starts the next year with it.
+        </p>
+      </section>
+
+      <section className="card p-5 space-y-3">
+        <h3 className="font-display font-bold text-forest-800">⚖️ Forfeit rule</h3>
+        <p className="text-sm text-forest-700">
+          If the current holder doesn&apos;t show up, they don&apos;t get to keep the patch by sitting out —
+          the next round&apos;s winner simply takes it. No drama. No debate.
+        </p>
+      </section>
+
+      <section className="card p-5 space-y-3">
+        <h3 className="font-display font-bold text-forest-800">⚙️ How this site implements it</h3>
         <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
           <li>
-            <strong>The Badge</strong> — a physical/visual trophy that passes round by round. You only lose it if you play AND someone beats you.
+            <strong>Patch holder</strong> = winner of the most recent round. Updates automatically.
           </li>
           <li>
-            <strong>Season standings #1</strong> — at the end of the season, whoever has the most points becomes the season champion, regardless of who had the badge.
+            <strong>Standings</strong> sort by <strong>wins</strong> (primary). Points (N − position + 1) break ties.
+          </li>
+          <li>
+            Ties at #1 in a round: both players get a win, points are split.
+          </li>
+          <li>
+            Anyone can add a round — just paste a UDisc scorecard link on the home page. No sign-in.
+          </li>
+          <li>
+            One scorecard captures everyone who played. The site dedupes if someone pastes the same link twice.
           </li>
         </ul>
       </section>
 
       <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">Badge rules</h3>
-        <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
-          <li>The season starts with an assigned holder (random, past champ, or whoever admin picks).</li>
-          <li>When they play a round and someone else wins → badge transfers to the new winner.</li>
-          <li>When they play and <em>win</em> → they defend it. 🛡</li>
-          <li>When they <em>don&apos;t play</em> → they keep it. The round happens, points are still awarded, but the badge doesn&apos;t move. 💤</li>
-          <li>The badge can only be taken by someone at the round.</li>
-        </ul>
-      </section>
-
-      <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">Scoring</h3>
-        <p className="text-sm text-forest-700">
-          Every round awards points to each player who played:
-        </p>
-        <p className="text-sm text-forest-700">
-          <strong>Points = N − position + 1</strong>, where N is the number of players in the round.
-        </p>
+        <h3 className="font-display font-bold text-forest-800">Past champions</h3>
         <ul className="text-sm text-forest-700 space-y-1 pl-4 list-disc">
-          <li>2 players: 1st = 2 pts, 2nd = 1 pt</li>
-          <li>3 players: 1st = 3, 2nd = 2, 3rd = 1</li>
-          <li>5 players: 1st = 5, 2nd = 4, 3rd = 3, 4th = 2, 5th = 1</li>
-        </ul>
-        <p className="text-sm text-forest-700">
-          Ties share the points. Tied for 1st in a 5-player round = (5 + 4) / 2 = 4.5 each.
-        </p>
-      </section>
-
-      <section className="card p-5 space-y-3">
-        <h3 className="font-display font-bold text-forest-800">Adding rounds</h3>
-        <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
-          <li>Anyone in the group can add a round — no sign-in.</li>
-          <li>After a UDisc round, tap the scorecard&apos;s Share button → Copy link → come here, tap Add → paste → save.</li>
-          <li>One paste captures everyone who played. If you&apos;re not in the round, the person posting it still gets credit for you all.</li>
-          <li>The same scorecard can&apos;t be double-counted — we dedupe on UDisc&apos;s ID.</li>
+          <li>2025 — Jeffrey Rijkse (Season 1)</li>
+          <li>2026 — in progress</li>
         </ul>
       </section>
     </div>

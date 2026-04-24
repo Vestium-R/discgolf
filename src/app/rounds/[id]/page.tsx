@@ -54,7 +54,7 @@ export default async function RoundDetail({
 
       {isNew && (
         <div className="card bg-forest-50 border-forest-200 p-3 text-sm text-forest-800">
-          🥏 Round saved — the badge now rides with <strong>{winnerName}</strong>.
+          🧥 The patch now rides with <strong>{winnerName}</strong>.
         </div>
       )}
       {dup && (
@@ -152,6 +152,6 @@ function buildSummary(r: {
     lines.push(`${medal} ${row.name} (+${fmtPoints(row.points)} pts)`);
   }
   lines.push("");
-  lines.push("🏆 Badge moves → full standings on the site.");
+  lines.push("🧥 Patch moves → full standings on the site.");
   return lines.join("\n");
 }

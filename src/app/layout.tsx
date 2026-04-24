@@ -4,11 +4,11 @@ import "./globals.css";
 import { FloatingAddButton } from "@/components/FloatingAddButton";
 
 export const metadata: Metadata = {
-  title: "The Badge",
-  description: "Round-by-round badge tracker for our disc golf crew",
+  title: "The Patch",
+  description: "The Traveling Patch — round-by-round disc golf tracker",
   openGraph: {
-    title: "The Badge",
-    description: "Round-by-round disc golf badge tracker",
+    title: "The Patch",
+    description: "The Traveling Patch — round-by-round disc golf tracker",
     type: "website",
   },
 };
@@ -22,8 +22,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-20 border-b border-forest-200 bg-white/80 backdrop-blur">
           <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold text-forest-800">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full badge-crown text-sm">★</span>
-              The Badge
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full badge-crown text-sm">🧥</span>
+              The Patch
             </Link>
             <nav className="flex gap-1 text-sm overflow-x-auto">
               <NavLink href="/">Home</NavLink>
@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
         <main className="mx-auto max-w-5xl px-4 py-6 pb-24 sm:pb-6">{children}</main>
         <footer className="mx-auto max-w-5xl px-4 py-8 text-xs text-forest-600/70 text-center">
-          Pass it, keep it, win it.
+          The Traveling Patch · Always live.
         </footer>
         <FloatingAddButton />
       </body>

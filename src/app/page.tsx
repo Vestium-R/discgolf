@@ -27,19 +27,18 @@ export default async function HomePage() {
   const season = settings.currentSeason;
   const seasonRec = history.find((h) => h.season === season);
   const badgeImage = seasonRec?.badgeImageUrl;
-  const initialHolderId = seasonRec?.initialBadgeHolderPlayerId ?? null;
   const seasons = availableSeasons(rounds, season, history.map((h) => h.season));
   const standings = computeStandings(roster, rounds, season);
-  const badgeId = currentBadgeHolder(rounds, season, initialHolderId);
+  const badgeId = currentBadgeHolder(rounds, season);
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
   const leader = standings.find((s) => s.roundsPlayed > 0) ?? null;
   const leaderDifferentFromBadge = leader && leader.player.id !== badgeId;
   const rs = seasonRounds(rounds, season);
   const last = rs.at(-1);
-  const timeline = badgeTimeline(rounds, season, initialHolderId).slice(-6).reverse();
+  const timeline = badgeTimeline(rounds, season).slice(-6).reverse();
   const priorChamp = history.find((h) => h.season === season - 1);
   const deltas = rankDeltas(roster, rounds, season);
-  const held = badgeHoldStreak(rounds, season, initialHolderId);
+  const held = badgeHoldStreak(rounds, season);
 
   const playedRoster = standings.filter((s) => s.roundsPlayed > 0);
 
@@ -52,9 +51,9 @@ export default async function HomePage() {
           <SeasonPicker seasons={seasons} active={season} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          {/* CURRENT BADGE HOLDER */}
+          {/* CURRENT PATCH HOLDER */}
           <div className="hero-gradient rounded-3xl p-5 sm:p-6 text-white shadow-lg relative overflow-hidden">
-            <div className="text-[11px] uppercase tracking-widest opacity-80 mb-2">Holds the badge</div>
+            <div className="text-[11px] uppercase tracking-widest opacity-80 mb-2">🧥 Patch is with</div>
             <div className="flex items-center gap-4">
               <BadgeCrown size="lg" glow imageUrl={badgeImage} />
               {badgeHolder ? (
@@ -66,7 +65,7 @@ export default async function HomePage() {
                     {badgeHolder.name}
                   </Link>
                   <div className="text-xs opacity-85 mt-1">
-                    {held > 0 ? `Held for ${held} round${held === 1 ? "" : "s"}` : "Just received"}
+                    {held > 1 ? `${held} wins in a row 🔥` : "Latest round winner"}
                   </div>
                 </div>
               ) : (
@@ -77,13 +76,13 @@ export default async function HomePage() {
               )}
             </div>
             <p className="text-[11px] opacity-70 mt-3">
-              Passes only when holder plays and loses.
+              Until the next round. Always live.
             </p>
           </div>
 
-          {/* STANDINGS LEADER */}
+          {/* WINS LEADER — projected season champion */}
           <div className="rounded-3xl p-5 sm:p-6 border border-forest-200 bg-white shadow-sm relative overflow-hidden">
-            <div className="text-[11px] uppercase tracking-widest text-forest-600 mb-2">Season-end badge → #1 standings</div>
+            <div className="text-[11px] uppercase tracking-widest text-forest-600 mb-2">🏆 On pace for the year</div>
             <div className="flex items-center gap-4">
               {leader ? (
                 <>
@@ -96,7 +95,7 @@ export default async function HomePage() {
                       {leader.player.name}
                     </Link>
                     <div className="text-xs text-forest-600 mt-1 tabular-nums">
-                      {fmtPoints(leader.points)} pts · {leader.wins} win{leader.wins === 1 ? "" : "s"} · {leader.roundsPlayed} round{leader.roundsPlayed === 1 ? "" : "s"}
+                      {leader.wins} win{leader.wins === 1 ? "" : "s"} · {leader.roundsPlayed} played · {fmtPoints(leader.points)} pts
                     </div>
                   </div>
                 </>
@@ -107,11 +106,10 @@ export default async function HomePage() {
                 </div>
               )}
             </div>
-            {leaderDifferentFromBadge && (
-              <p className="text-[11px] text-forest-600 mt-3">
-                Season end goes to points leader — different from the badge holder.
-              </p>
-            )}
+            <p className="text-[11px] text-forest-600 mt-3">
+              Most wins at season end adds {season} to the patch.
+              {leaderDifferentFromBadge && " Different from who holds it right now."}
+            </p>
           </div>
         </div>
         {last && (
@@ -128,7 +126,7 @@ export default async function HomePage() {
         <div className="flex items-start justify-between mb-3 gap-2">
           <div className="min-w-0">
             <h2 className="font-display text-lg font-bold text-forest-800">Add a round</h2>
-            <p className="text-sm text-forest-600">Anyone can paste a UDisc scorecard link. We grab everyone who played.</p>
+            <p className="text-sm text-forest-600">Paste a UDisc scorecard. Whoever wins takes the patch.</p>
           </div>
           <Link href="/add" className="text-xs text-forest-600 hover:underline whitespace-nowrap">
             Manual →
@@ -149,8 +147,8 @@ export default async function HomePage() {
               <tr>
                 <th className="py-2 px-3 text-left w-12">#</th>
                 <th className="py-2 px-3 text-left">Player</th>
-                <th className="py-2 px-3 text-right">Pts</th>
-                <th className="py-2 px-3 text-right hidden sm:table-cell">W</th>
+                <th className="py-2 px-3 text-right">Wins</th>
+                <th className="py-2 px-3 text-right hidden sm:table-cell">Pts</th>
                 <th className="py-2 px-3 text-right hidden sm:table-cell">Rds</th>
                 <th className="py-2 px-3 text-right w-10"></th>
               </tr>
@@ -179,8 +177,8 @@ export default async function HomePage() {
                         {hotStreak >= 2 && <span className="text-xs" title={`${hotStreak} wins in a row`}>🔥{hotStreak}</span>}
                       </div>
                     </td>
-                    <td className={`py-2 px-3 text-right font-semibold tabular-nums ${dim}`}>{fmtPoints(s.points)}</td>
-                    <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.wins}</td>
+                    <td className={`py-2 px-3 text-right font-bold text-lg tabular-nums ${dim}`}>{s.wins}</td>
+                    <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{fmtPoints(s.points)}</td>
                     <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.roundsPlayed}</td>
                     <td className="py-2 px-3 text-right"><RankDelta delta={deltas.get(s.player.id) ?? null} /></td>
                   </tr>
@@ -189,13 +187,13 @@ export default async function HomePage() {
             </tbody>
           </table>
           <p className="text-xs text-forest-500 p-3 border-t border-forest-100">
-            Points per round: N − position + 1. Ties split the pot. Arrows: rank change after the last round.
+            Wins decide the season. Points (N − pos + 1) are a tiebreak. Arrows show last-round rank change.
           </p>
         </section>
 
-        {/* BADGE TIMELINE */}
+        {/* PATCH TIMELINE */}
         <section className="lg:col-span-2 card p-4">
-          <h2 className="font-display font-bold text-forest-800 mb-3">Badge passes</h2>
+          <h2 className="font-display font-bold text-forest-800 mb-3">Patch passes</h2>
           {timeline.length === 0 ? (
             <p className="text-sm text-forest-600">No rounds yet this season.</p>
           ) : (
@@ -211,9 +209,9 @@ export default async function HomePage() {
                           {holder?.name ?? t.holderId}
                         </div>
                         <div className="text-xs text-forest-600">
-                          {t.kind === "stolen" ? <>🗡 Stole the badge</> :
+                          {t.kind === "stolen" ? <>🗡 Stole the patch</> :
                            t.kind === "defended" ? <>🛡 Defended</> :
-                           t.kind === "no-change" ? <>💤 Kept (didn&apos;t play)</> :
+                           t.kind === "forfeit" ? <>🏳️ Prev. holder sat out — picked up</> :
                            <>🥏 First of the season</>}
                           {" · "}{prettyDate(t.round.date)}
                         </div>

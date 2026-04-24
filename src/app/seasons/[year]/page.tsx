@@ -10,10 +10,10 @@ import {
   seasonRounds,
 } from "@/lib/scoring";
 
-const kindLabel = (k: "first" | "defended" | "stolen" | "no-change") =>
-  k === "stolen" ? "🗡 Stole the badge" :
+const kindLabel = (k: "first" | "defended" | "stolen" | "forfeit") =>
+  k === "stolen" ? "🗡 Stole the patch" :
   k === "defended" ? "🛡 Defended" :
-  k === "no-change" ? "💤 Kept (didn't play)" :
+  k === "forfeit" ? "🏳️ Picked up (prev. holder sat out)" :
   "🥏 First of the season";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
 import { Avatar } from "@/components/Avatar";
@@ -36,13 +36,12 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
   const standings = computeStandings(roster, rounds, year);
   const isCurrent = year === settings.currentSeason;
   const rec = history.find((h) => h.season === year);
-  const initial = rec?.initialBadgeHolderPlayerId ?? null;
   const champ = isCurrent ? null : seasonChampion(standings);
   const badgeId = isCurrent
-    ? currentBadgeHolder(rounds, year, initial)
+    ? currentBadgeHolder(rounds, year)
     : rec?.championPlayerId ?? champ?.player.id ?? null;
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
-  const timeline = badgeTimeline(rounds, year, initial).reverse();
+  const timeline = badgeTimeline(rounds, year).reverse();
   const badgeImage = rec?.badgeImageUrl;
 
   return (

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "The Badge — disc golf standings";
+export const alt = "The Patch — disc golf standings";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -44,12 +44,12 @@ export default async function OG() {
               fontSize: 90,
             }}
           >
-            ★
+            🧥
           </div>
-          The Badge
+          The Patch
         </div>
         <div style={{ fontSize: 32, opacity: 0.85, marginTop: 20 }}>
-          Pass it · Keep it · Win it
+          The Traveling Patch · Always live
         </div>
       </div>
     ),
