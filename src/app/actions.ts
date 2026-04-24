@@ -127,7 +127,7 @@ export async function updateSeasonAction(formData: FormData): Promise<void> {
 export async function updateSeasonConfigAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const season = Number(formData.get("season") ?? 0);
-  if (!season) return;
+  if (!season) redirect("/admin?err=badseason");
   const initialBadgeHolderPlayerId = String(formData.get("initialBadgeHolderPlayerId") ?? "").trim() || undefined;
   const badgeImageUrl = String(formData.get("badgeImageUrl") ?? "").trim() || undefined;
   const championPlayerId = String(formData.get("championPlayerId") ?? "").trim() || undefined;
@@ -136,17 +136,22 @@ export async function updateSeasonConfigAction(formData: FormData): Promise<void
   const { upsertSeasonHistory, getRoster } = await import("@/lib/store");
   const roster = await getRoster();
   const championFromId = championPlayerId ? roster.find((p) => p.id === championPlayerId)?.name : undefined;
-  await upsertSeasonHistory({
-    season,
-    championPlayerId,
-    championName: championName || championFromId || "",
-    note,
-    badgeImageUrl,
-    initialBadgeHolderPlayerId,
-  });
+  try {
+    await upsertSeasonHistory({
+      season,
+      championPlayerId,
+      championName: championName || championFromId || "",
+      note,
+      badgeImageUrl,
+      initialBadgeHolderPlayerId,
+    });
+  } catch (e) {
+    redirect(`/admin?err=${encodeURIComponent((e as Error).message.slice(0, 200))}`);
+  }
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath(`/seasons/${season}`);
+  redirect("/admin?ok=1");
 }
 
 export async function deleteRoundAction(formData: FormData): Promise<void> {

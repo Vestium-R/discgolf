@@ -15,9 +15,9 @@ import { BadgeCrown } from "@/components/BadgeCrown";
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ err?: string }>;
+  searchParams: Promise<{ err?: string; ok?: string }>;
 }) {
-  const { err } = await searchParams;
+  const { err, ok } = await searchParams;
   const user = await getUser();
 
   if (!user) {
@@ -67,6 +67,17 @@ export default async function AdminPage({
           <button className="text-sm text-forest-600 hover:underline">Sign out</button>
         </form>
       </div>
+
+      {ok && (
+        <div className="card bg-forest-50 border-forest-200 p-3 text-sm text-forest-800">
+          Saved.
+        </div>
+      )}
+      {err && err !== "callback" && (
+        <div className="card bg-red-50 border-red-200 p-3 text-sm text-red-900 whitespace-pre-wrap">
+          {decodeURIComponent(err)}
+        </div>
+      )}
 
       <section className="card p-4">
         <h3 className="font-display font-bold text-forest-800">Current season</h3>

@@ -63,22 +63,33 @@ export function computeStandings(roster: Player[], rounds: Round[], season: numb
 }
 
 /**
- * Season 2 rules:
- *  - The Traveling Patch is always live.
- *  - Latest round winner holds the patch — period.
- *  - If the holder doesn't play, they implicitly forfeit — next winner takes it.
- *  - Season champion = most total wins at season end.
+ * Patch rules:
+ *  - Season starts with an initial holder (admin-assigned).
+ *  - The patch only passes when the current holder PLAYS a round AND someone else wins.
+ *  - If the holder sits out, the patch stays (the round still counts for wins/standings).
+ *  - If the holder plays and wins, they defend.
+ *  - "Forfeit" is a separate, admin-driven action for when someone stops playing regularly.
  */
 export function currentBadgeHolder(
   rounds: Round[],
   season: number,
-  _initialHolderId: string | null = null
+  initialHolderId: string | null = null
 ): string | null {
-  void _initialHolderId;
   const rs = seasonRounds(rounds, season);
-  if (rs.length === 0) return null;
-  const last = rs[rs.length - 1];
-  return last.results.find((r) => r.position === 1)?.playerId ?? null;
+  let holder: string | null = initialHolderId;
+  for (const r of rs) {
+    if (!holder) {
+      const winner = r.results.find((x) => x.position === 1);
+      if (winner) holder = winner.playerId;
+      continue;
+    }
+    const holderPlayed = r.results.some((x) => x.playerId === holder);
+    if (!holderPlayed) continue;
+    const winner = r.results.find((x) => x.position === 1);
+    if (!winner) continue;
+    holder = winner.playerId;
+  }
+  return holder;
 }
 
 export function seasonChampion(standings: PlayerStats[]): PlayerStats | null {
@@ -90,37 +101,47 @@ export type BadgeEvent = {
   round: Round;
   holderId: string;
   prevHolderId: string | null;
-  kind: "first" | "defended" | "stolen" | "forfeit";
+  kind: "first" | "defended" | "stolen" | "no-change";
+  winnerId: string;
 };
 
 /**
- * Season 2 timeline:
- *  - Latest round winner always becomes the patch holder.
- *  - If the previous holder didn't play (forfeit rule), that's marked "forfeit".
- *  - Same player wins two in a row → "defended".
- *  - New player wins while previous holder played → "stolen".
+ * Walk the season applying the "patch only passes if holder plays" rule.
+ * Emits a row for every round:
+ *  - first:       season's initial holder wasn't set; first round's winner claims it
+ *  - defended:    holder played AND won
+ *  - stolen:      holder played AND someone else won
+ *  - no-change:   holder wasn't in the round; round happened but patch stayed
  */
 export function badgeTimeline(
   rounds: Round[],
   season: number,
-  _initialHolderId: string | null = null
+  initialHolderId: string | null = null
 ): BadgeEvent[] {
-  void _initialHolderId;
   const rs = seasonRounds(rounds, season);
   const events: BadgeEvent[] = [];
-  let prev: string | null = null;
+  let holder: string | null = initialHolderId;
   for (const round of rs) {
     const winner = round.results.find((r) => r.position === 1)?.playerId ?? null;
-    if (!winner) continue;
-    let kind: BadgeEvent["kind"];
-    if (prev == null) kind = "first";
-    else if (winner === prev) kind = "defended";
-    else {
-      const prevPlayed = round.results.some((r) => r.playerId === prev);
-      kind = prevPlayed ? "stolen" : "forfeit";
+    if (!holder) {
+      if (winner) {
+        events.push({ round, holderId: winner, prevHolderId: null, kind: "first", winnerId: winner });
+        holder = winner;
+      }
+      continue;
     }
-    events.push({ round, holderId: winner, prevHolderId: prev, kind });
-    prev = winner;
+    const holderPlayed = round.results.some((x) => x.playerId === holder);
+    if (!holderPlayed) {
+      events.push({ round, holderId: holder, prevHolderId: holder, kind: "no-change", winnerId: winner ?? holder });
+      continue;
+    }
+    if (!winner) continue;
+    if (winner === holder) {
+      events.push({ round, holderId: holder, prevHolderId: holder, kind: "defended", winnerId: winner });
+    } else {
+      events.push({ round, holderId: winner, prevHolderId: holder, kind: "stolen", winnerId: winner });
+      holder = winner;
+    }
   }
   return events;
 }
@@ -191,19 +212,18 @@ export function longestStreak(rounds: Round[], season: number, playerId: string)
 }
 
 /**
- * Consecutive rounds the current patch holder has held it (back-to-back wins).
+ * Consecutive rounds (defends + no-changes) since the current holder took the patch.
  */
 export function badgeHoldStreak(
   rounds: Round[],
   season: number,
-  _initialHolderId: string | null = null
+  initialHolderId: string | null = null
 ): number {
-  void _initialHolderId;
-  const events = badgeTimeline(rounds, season);
+  const events = badgeTimeline(rounds, season, initialHolderId);
   if (events.length === 0) return 0;
   let streak = 0;
   for (let i = events.length - 1; i >= 0; i--) {
-    if (events[i].kind === "first" || events[i].kind === "stolen" || events[i].kind === "forfeit") {
+    if (events[i].kind === "first" || events[i].kind === "stolen") {
       streak += 1;
       break;
     }

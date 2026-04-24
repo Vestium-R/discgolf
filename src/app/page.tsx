@@ -27,18 +27,19 @@ export default async function HomePage() {
   const season = settings.currentSeason;
   const seasonRec = history.find((h) => h.season === season);
   const badgeImage = seasonRec?.badgeImageUrl;
+  const initialHolderId = seasonRec?.initialBadgeHolderPlayerId ?? null;
   const seasons = availableSeasons(rounds, season, history.map((h) => h.season));
   const standings = computeStandings(roster, rounds, season);
-  const badgeId = currentBadgeHolder(rounds, season);
+  const badgeId = currentBadgeHolder(rounds, season, initialHolderId);
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
   const leader = standings.find((s) => s.roundsPlayed > 0) ?? null;
   const leaderDifferentFromBadge = leader && leader.player.id !== badgeId;
   const rs = seasonRounds(rounds, season);
   const last = rs.at(-1);
-  const timeline = badgeTimeline(rounds, season).slice(-6).reverse();
+  const timeline = badgeTimeline(rounds, season, initialHolderId).slice(-6).reverse();
   const priorChamp = history.find((h) => h.season === season - 1);
   const deltas = rankDeltas(roster, rounds, season);
-  const held = badgeHoldStreak(rounds, season);
+  const held = badgeHoldStreak(rounds, season, initialHolderId);
 
   const playedRoster = standings.filter((s) => s.roundsPlayed > 0);
 
@@ -65,7 +66,7 @@ export default async function HomePage() {
                     {badgeHolder.name}
                   </Link>
                   <div className="text-xs opacity-85 mt-1">
-                    {held > 1 ? `${held} wins in a row 🔥` : "Latest round winner"}
+                    Held {held} round{held === 1 ? "" : "s"}
                   </div>
                 </div>
               ) : (
@@ -76,7 +77,7 @@ export default async function HomePage() {
               )}
             </div>
             <p className="text-[11px] opacity-70 mt-3">
-              Until the next round. Always live.
+              Passes only when holder plays and someone else wins.
             </p>
           </div>
 
@@ -211,7 +212,7 @@ export default async function HomePage() {
                         <div className="text-xs text-forest-600">
                           {t.kind === "stolen" ? <>🗡 Stole the patch</> :
                            t.kind === "defended" ? <>🛡 Defended</> :
-                           t.kind === "forfeit" ? <>🏳️ Prev. holder sat out — picked up</> :
+                           t.kind === "no-change" ? <>💤 Patch stayed (holder sat out)</> :
                            <>🥏 First of the season</>}
                           {" · "}{prettyDate(t.round.date)}
                         </div>

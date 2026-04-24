@@ -61,15 +61,29 @@ function mapHistory(r: HistoryRow): SeasonHistory {
 }
 
 export async function upsertSeasonHistory(h: SeasonHistory): Promise<void> {
-  const { error } = await supabaseAdmin().from("season_history").upsert({
+  const sb = supabaseAdmin();
+  const base: Record<string, unknown> = {
     season: h.season,
     champion_player_id: h.championPlayerId ?? null,
     champion_name: h.championName,
     note: h.note ?? null,
     badge_image_url: h.badgeImageUrl ?? null,
     initial_badge_holder_player_id: h.initialBadgeHolderPlayerId ?? null,
-  });
-  if (error) throw error;
+  };
+  const { error } = await sb.from("season_history").upsert(base);
+  if (!error) return;
+  // Fallback when schema doesn't have the newer columns (migration not run yet)
+  const msg = error.message?.toLowerCase() ?? "";
+  if (msg.includes("initial_badge_holder_player_id") || msg.includes("badge_image_url")) {
+    delete base.initial_badge_holder_player_id;
+    delete base.badge_image_url;
+    const { error: e2 } = await sb.from("season_history").upsert(base);
+    if (e2) throw e2;
+    throw new Error(
+      "Saved name/champion, but your Supabase is missing columns badge_image_url and/or initial_badge_holder_player_id — run migrations 003 and 004."
+    );
+  }
+  throw error;
 }
 
 export async function getRoster(): Promise<Player[]> {
