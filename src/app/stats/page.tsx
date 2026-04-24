@@ -106,19 +106,22 @@ export default async function StatsPage() {
                 <Avatar playerId={p.id} name={p.name} size="sm" imageUrl={p.udiscAvatarUrl} />
                 <Link href={`/players/${p.id}`} className="flex-1 text-sm text-forest-800 hover:underline truncate">{p.name}</Link>
                 <div className="flex gap-1">
-                  {form.length === 0 ? <span className="text-xs text-forest-500">no rounds</span> : form.map((f, i) => (
-                    <span
-                      key={i}
-                      className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
-                        f === "W" ? "bg-emerald-600 text-white" :
-                        f === "T" ? "bg-amber-400 text-amber-900" :
-                        "bg-forest-100 text-forest-600"
-                      }`}
-                      title={f === "W" ? "Win" : f === "T" ? "Tie for win" : "Loss"}
-                    >
-                      {f}
-                    </span>
-                  ))}
+                  {form.length === 0 ? <span className="text-xs text-forest-500">no rounds</span> : form.map((f, i) => {
+                    const style =
+                      f.position === 1 ? "bg-amber-300 text-amber-900" :
+                      f.position === 2 ? "bg-slate-300 text-slate-800" :
+                      f.position === 3 ? "bg-orange-300 text-orange-900" :
+                      "bg-forest-100 text-forest-600";
+                    return (
+                      <span
+                        key={i}
+                        className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${style}`}
+                        title={`${f.position}${f.position === 1 ? "st" : f.position === 2 ? "nd" : f.position === 3 ? "rd" : "th"} of ${f.fieldSize}`}
+                      >
+                        {f.position}
+                      </span>
+                    );
+                  })}
                 </div>
               </li>
             );

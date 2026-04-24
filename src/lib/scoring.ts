@@ -324,17 +324,15 @@ export function roundsByMonth(rounds: Round[]): Map<string, number> {
   return new Map([...out.entries()].sort((a, b) => a[0].localeCompare(b[0])));
 }
 
-/** "Last 5" form per player across all rounds, as ordered list of (W|T|L). */
-export function recentForm(rounds: Round[], playerId: string, n = 5): ("W" | "T" | "L")[] {
+/** "Last 5" form per player — ordered list of finishing positions with field size. */
+export type FormEntry = { position: number; fieldSize: number };
+export function recentForm(rounds: Round[], playerId: string, n = 5): FormEntry[] {
   const rs = countingRounds(rounds)
     .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))
     .filter((r) => r.results.some((x) => x.playerId === playerId))
     .slice(-n);
   return rs.map((r) => {
     const me = r.results.find((x) => x.playerId === playerId)!;
-    const tiedFirst = r.results.filter((x) => x.position === 1).length > 1;
-    if (me.position === 1 && tiedFirst) return "T";
-    if (me.position === 1) return "W";
-    return "L";
+    return { position: me.position, fieldSize: r.results.length };
   });
 }
