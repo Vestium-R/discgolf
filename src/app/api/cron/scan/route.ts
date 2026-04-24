@@ -89,6 +89,8 @@ async function scanSource(
       source: "udisc",
       udiscUrl: parseUrl,
       courseName: parsed.courseName,
+      variant: "standard",
+      counts: true,
       results,
       createdAt: new Date().toISOString(),
     };

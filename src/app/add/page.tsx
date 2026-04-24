@@ -56,6 +56,8 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         source: "udisc",
         udiscUrl,
         courseName: preview.courseName,
+        variant: "standard",
+        counts: true,
         results,
         createdAt: new Date().toISOString(),
       };
@@ -173,6 +175,16 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
           <input type="hidden" name="udiscUrl" value={udiscUrl} />
           <input type="hidden" name="source" value={udiscUrl ? "udisc" : "manual"} />
           {scorecardId && <input type="hidden" name="roundId" value={scorecardId} />}
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-sm">
+              <span className="block text-forest-700 mb-1">Temp °F (optional)</span>
+              <input name="temperatureF" type="number" className="input-pill" placeholder="45" />
+            </label>
+            <label className="text-sm">
+              <span className="block text-forest-700 mb-1">Wind mph (optional)</span>
+              <input name="windMph" type="number" className="input-pill" placeholder="3" />
+            </label>
+          </div>
           <label className="block text-sm">
             <span className="block text-forest-700 mb-1">Note (optional)</span>
             <input

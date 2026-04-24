@@ -12,9 +12,11 @@ import {
   getSettings,
   insertRound,
   saveSettings,
+  updateRoundVariant,
+  updateRoundWeather,
   upsertPlayer,
 } from "@/lib/store";
-import type { Round, RoundResult } from "@/lib/types";
+import type { Round, RoundResult, RoundVariant } from "@/lib/types";
 import { slug } from "@/lib/slug";
 import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 
@@ -37,6 +39,10 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
   const courseName = String(formData.get("courseName") ?? "").trim() || undefined;
   const note = String(formData.get("note") ?? "").trim() || undefined;
   const roundId = String(formData.get("roundId") ?? "").trim() || undefined;
+  const tempRaw = String(formData.get("temperatureF") ?? "").trim();
+  const windRaw = String(formData.get("windMph") ?? "").trim();
+  const temperatureF = tempRaw && Number.isFinite(Number(tempRaw)) ? Number(tempRaw) : undefined;
+  const windMph = windRaw && Number.isFinite(Number(windRaw)) ? Number(windRaw) : undefined;
 
   const [roster, settings, existing] = await Promise.all([getRoster(), getSettings(), getRounds()]);
 
@@ -67,6 +73,10 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
     udiscUrl,
     courseName,
     note,
+    variant: "standard",
+    counts: true,
+    temperatureF,
+    windMph,
     results,
     createdAt: new Date().toISOString(),
   };
@@ -161,6 +171,31 @@ export async function deleteRoundAction(formData: FormData): Promise<void> {
   revalidatePath("/");
   revalidatePath("/rounds");
   redirect("/rounds");
+}
+
+export async function updateRoundVariantAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const variant = String(formData.get("variant") ?? "standard") as RoundVariant;
+  if (!["standard", "chiplocked", "legends", "other"].includes(variant)) return;
+  await updateRoundVariant(id, variant);
+  revalidatePath("/");
+  revalidatePath("/rounds");
+  revalidatePath(`/rounds/${id}`);
+}
+
+export async function updateRoundWeatherAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const tempRaw = String(formData.get("temperatureF") ?? "").trim();
+  const windRaw = String(formData.get("windMph") ?? "").trim();
+  const tempF = tempRaw === "" ? null : Number(tempRaw);
+  const wind = windRaw === "" ? null : Number(windRaw);
+  if (tempF !== null && !Number.isFinite(tempF)) return;
+  if (wind !== null && !Number.isFinite(wind)) return;
+  await updateRoundWeather(id, tempF, wind);
+  revalidatePath(`/rounds/${id}`);
+  revalidatePath("/rounds");
 }
 
 export async function signOutAction(): Promise<void> {

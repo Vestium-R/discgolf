@@ -122,6 +122,18 @@ export default function RulesPage() {
       </section>
 
       <section className="card p-5 space-y-3">
+        <h3 className="font-display font-bold text-forest-800">🎴 Game variants</h3>
+        <p className="text-sm text-forest-700">
+          Not every round is disc golf as-is. If you played <strong>Chiplocked</strong>,
+          <strong> Legends of the Chains</strong>, or some other variant, admin can tag the round
+          so it&apos;s kept in history but <em>does not affect standings or the patch</em>.
+        </p>
+        <p className="text-sm text-forest-700">
+          After adding the round, click it, sign in as admin, and change the Game format dropdown.
+        </p>
+      </section>
+
+      <section className="card p-5 space-y-3">
         <h3 className="font-display font-bold text-forest-800">🥏 Adding rounds</h3>
         <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
           <li>Anyone can add a round — no sign-in.</li>

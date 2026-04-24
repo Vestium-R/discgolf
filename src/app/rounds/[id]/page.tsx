@@ -4,11 +4,13 @@ import { getHistory, getRoster, getRounds } from "@/lib/store";
 import { badgeTimeline, pointsForRound } from "@/lib/scoring";
 import { fmtPoints, prettyDate } from "@/lib/format";
 import { isAdmin } from "@/lib/auth";
-import { deleteRoundAction } from "@/app/actions";
+import { deleteRoundAction, updateRoundVariantAction, updateRoundWeatherAction } from "@/app/actions";
 import { ShareSummary } from "@/components/ShareSummary";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
 import { Avatar } from "@/components/Avatar";
 import { Confetti } from "@/components/Confetti";
+import { VARIANT_EMOJI, VARIANT_LABELS, type RoundVariant } from "@/lib/types";
+import { formatConditions, rateConditions } from "@/lib/conditions";
 
 export default async function RoundDetail({
   params,
@@ -85,13 +87,37 @@ export default async function RoundDetail({
         <div className="flex items-start gap-4">
           <BadgeCrown size="lg" imageUrl={badgeImage} />
           <div className="flex-1 min-w-0">
-            <h2 className="font-display text-xl font-bold text-forest-800">
-              {prettyDate(round.date)}
-              {round.courseName ? ` — ${round.courseName}` : ""}
-            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-display text-xl font-bold text-forest-800">
+                {prettyDate(round.date)}
+                {round.courseName ? ` — ${round.courseName}` : ""}
+              </h2>
+              {round.variant !== "standard" && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 text-purple-800 px-2 py-0.5 text-xs font-semibold">
+                  {VARIANT_EMOJI[round.variant]} {VARIANT_LABELS[round.variant]}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-forest-600">
               Season {round.season} · Winner: <strong>{winnerName}</strong>
+              {round.counts === false && (
+                <span className="ml-1 text-purple-700">· does not count for standings</span>
+              )}
             </p>
+            {(() => {
+              const rating = rateConditions(round.temperatureF, round.windMph);
+              if (!rating) return null;
+              return (
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${rating.className}`}>
+                    {rating.emoji} {rating.label}
+                  </span>
+                  <span className="text-xs text-forest-600">
+                    {formatConditions(round.temperatureF, round.windMph)}
+                  </span>
+                </div>
+              );
+            })()}
             {round.note && <p className="text-sm text-forest-700 mt-1 italic">&ldquo;{round.note}&rdquo;</p>}
           </div>
         </div>
@@ -145,12 +171,52 @@ export default async function RoundDetail({
       <ShareSummary text={summary} />
 
       {admin && (
-        <form action={deleteRoundAction}>
-          <input type="hidden" name="id" value={round.id} />
-          <button className="text-sm text-red-700 hover:underline" type="submit">
-            Delete this round
-          </button>
-        </form>
+        <section className="card p-4 space-y-3 border-dashed">
+          <h3 className="font-display font-bold text-forest-800">Admin</h3>
+          <form action={updateRoundVariantAction} className="flex flex-wrap items-center gap-2">
+            <input type="hidden" name="id" value={round.id} />
+            <label className="text-sm text-forest-700">Game format:</label>
+            <select
+              name="variant"
+              defaultValue={round.variant}
+              className="input-pill max-w-[240px]"
+            >
+              {(Object.keys(VARIANT_LABELS) as RoundVariant[]).map((v) => (
+                <option key={v} value={v}>{VARIANT_EMOJI[v]} {VARIANT_LABELS[v]}</option>
+              ))}
+            </select>
+            <button className="btn-secondary">Save</button>
+          </form>
+          <p className="text-xs text-forest-600">
+            Non-standard variants (Chiplocked, Legends, Other) keep the round in history but don&apos;t affect
+            standings or the patch.
+          </p>
+          <form action={updateRoundWeatherAction} className="flex flex-wrap items-center gap-2 pt-2 border-t border-forest-100">
+            <input type="hidden" name="id" value={round.id} />
+            <label className="text-sm text-forest-700">Conditions:</label>
+            <input
+              name="temperatureF"
+              type="number"
+              defaultValue={round.temperatureF ?? ""}
+              placeholder="°F"
+              className="input-pill max-w-[90px]"
+            />
+            <input
+              name="windMph"
+              type="number"
+              defaultValue={round.windMph ?? ""}
+              placeholder="mph"
+              className="input-pill max-w-[90px]"
+            />
+            <button className="btn-secondary">Save</button>
+          </form>
+          <form action={deleteRoundAction}>
+            <input type="hidden" name="id" value={round.id} />
+            <button className="text-sm text-red-700 hover:underline" type="submit">
+              Delete this round
+            </button>
+          </form>
+        </section>
       )}
     </div>
   );

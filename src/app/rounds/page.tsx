@@ -4,6 +4,8 @@ import { availableSeasons, seasonRounds, winnersOfRound } from "@/lib/scoring";
 import { prettyDate } from "@/lib/format";
 import { BadgeCrown } from "@/components/BadgeCrown";
 import { SeasonPicker } from "@/components/SeasonPicker";
+import { VARIANT_EMOJI, VARIANT_LABELS } from "@/lib/types";
+import { rateConditions } from "@/lib/conditions";
 
 export default async function RoundsPage({
   searchParams,
@@ -39,6 +41,7 @@ export default async function RoundsPage({
         {all.map((r, idx) => {
           const winners = winnersOfRound(r).map((id) => byName.get(id) ?? id);
           const isLatest = idx === 0 && season === settings.currentSeason;
+          const cond = rateConditions(r.temperatureF, r.windMph);
           return (
             <li key={r.id}>
               <Link
@@ -47,15 +50,28 @@ export default async function RoundsPage({
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-semibold text-forest-800 truncate">
-                      {prettyDate(r.date)}
-                      {r.courseName ? ` — ${r.courseName}` : ""}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-forest-800 truncate">
+                        {prettyDate(r.date)}
+                        {r.courseName ? ` — ${r.courseName}` : ""}
+                      </span>
+                      {r.variant !== "standard" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 text-purple-800 px-2 py-0.5 text-[10px] font-semibold">
+                          {VARIANT_EMOJI[r.variant]} {VARIANT_LABELS[r.variant]}
+                        </span>
+                      )}
+                      {cond && (
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${cond.className}`}>
+                          {cond.emoji} {cond.label}
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm text-forest-600">
                       {r.results.length} players · Winner: {winners.join(", ")}
+                      {r.counts === false && <span className="ml-1 text-purple-700">· history only</span>}
                     </div>
                   </div>
-                  {isLatest && <BadgeCrown size="sm" />}
+                  {isLatest && r.counts !== false && <BadgeCrown size="sm" />}
                 </div>
               </Link>
             </li>

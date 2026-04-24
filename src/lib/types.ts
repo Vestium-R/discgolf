@@ -10,6 +10,8 @@ export type RoundResult = {
   position: number;
 };
 
+export type RoundVariant = "standard" | "chiplocked" | "legends" | "other";
+
 export type Round = {
   id: string;
   date: string;
@@ -18,8 +20,26 @@ export type Round = {
   udiscUrl?: string;
   courseName?: string;
   note?: string;
+  variant: RoundVariant;
+  counts: boolean;
+  temperatureF?: number;
+  windMph?: number;
   results: RoundResult[];
   createdAt: string;
+};
+
+export const VARIANT_LABELS: Record<RoundVariant, string> = {
+  standard: "Standard",
+  chiplocked: "Chiplocked",
+  legends: "Legends of the Chains",
+  other: "Other",
+};
+
+export const VARIANT_EMOJI: Record<RoundVariant, string> = {
+  standard: "🥏",
+  chiplocked: "🎴",
+  legends: "🃏",
+  other: "✨",
 };
 
 export type SeasonHistory = {

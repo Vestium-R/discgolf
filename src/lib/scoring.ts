@@ -31,8 +31,17 @@ export function seasonRounds(rounds: Round[], season: number): Round[] {
     .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt));
 }
 
+/** Rounds that count for standings/patch (excludes Chiplocked, Legends, etc.) */
+function countingRounds(rs: Round[]): Round[] {
+  return rs.filter((r) => r.counts !== false);
+}
+
+function countingSeasonRounds(rounds: Round[], season: number): Round[] {
+  return countingRounds(seasonRounds(rounds, season));
+}
+
 export function computeStandings(roster: Player[], rounds: Round[], season: number): PlayerStats[] {
-  const rs = seasonRounds(rounds, season);
+  const rs = countingSeasonRounds(rounds, season);
   const stats = new Map<string, PlayerStats>();
   for (const p of roster) {
     stats.set(p.id, { player: p, roundsPlayed: 0, wins: 0, points: 0, avgFinish: null });
@@ -75,7 +84,7 @@ export function currentBadgeHolder(
   season: number,
   initialHolderId: string | null = null
 ): string | null {
-  const rs = seasonRounds(rounds, season);
+  const rs = countingSeasonRounds(rounds, season);
   let holder: string | null = initialHolderId;
   for (const r of rs) {
     if (!holder) {
@@ -118,7 +127,7 @@ export function badgeTimeline(
   season: number,
   initialHolderId: string | null = null
 ): BadgeEvent[] {
-  const rs = seasonRounds(rounds, season);
+  const rs = countingSeasonRounds(rounds, season);
   const events: BadgeEvent[] = [];
   let holder: string | null = initialHolderId;
   for (const round of rs) {
@@ -147,7 +156,7 @@ export function badgeTimeline(
 }
 
 export function currentStreak(rounds: Round[], season: number, playerId: string): number {
-  const rs = [...seasonRounds(rounds, season)].reverse();
+  const rs = [...countingSeasonRounds(rounds, season)].reverse();
   let streak = 0;
   for (const r of rs) {
     const played = r.results.some((x) => x.playerId === playerId);
@@ -196,7 +205,7 @@ export function rankDeltas(roster: Player[], rounds: Round[], season: number): M
 
 /** Per-player season-long longest win streak (contiguous wins across played rounds). */
 export function longestStreak(rounds: Round[], season: number, playerId: string): number {
-  const rs = seasonRounds(rounds, season);
+  const rs = countingSeasonRounds(rounds, season);
   let best = 0, cur = 0;
   for (const r of rs) {
     const entry = r.results.find((x) => x.playerId === playerId);
@@ -235,7 +244,7 @@ export function badgeHoldStreak(
 /** Head-to-head across all time — playerId -> opponentId -> { wins, rounds }. */
 export function headToHead(rounds: Round[], playerId: string): Map<string, { wins: number; rounds: number; losses: number }> {
   const out = new Map<string, { wins: number; rounds: number; losses: number }>();
-  for (const r of rounds) {
+  for (const r of countingRounds(rounds)) {
     const mine = r.results.find((x) => x.playerId === playerId);
     if (!mine) continue;
     for (const o of r.results) {
@@ -280,7 +289,8 @@ export function courseLeaders(
 
 /** Per-player "patch thefts" (rounds where they won and a different player was the prior holder). */
 export function patchThefts(rounds: Round[], season?: number): Map<string, number> {
-  const rs = season != null ? seasonRounds(rounds, season) : [...rounds].sort((a, b) => a.date.localeCompare(b.date));
+  const counting = countingRounds(rounds);
+  const rs = season != null ? seasonRounds(counting, season) : [...counting].sort((a, b) => a.date.localeCompare(b.date));
   const out = new Map<string, number>();
   let prev: string | null = null;
   for (const r of rs) {
@@ -315,7 +325,7 @@ export function roundsByMonth(rounds: Round[]): Map<string, number> {
 
 /** "Last 5" form per player across all rounds, as ordered list of (W|T|L). */
 export function recentForm(rounds: Round[], playerId: string, n = 5): ("W" | "T" | "L")[] {
-  const rs = [...rounds]
+  const rs = countingRounds(rounds)
     .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))
     .filter((r) => r.results.some((x) => x.playerId === playerId))
     .slice(-n);
