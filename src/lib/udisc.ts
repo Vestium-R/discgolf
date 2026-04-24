@@ -20,6 +20,7 @@ export type UdiscParseResult = {
   temperatureC?: number;
   windKph?: number;
   entries: ParsedEntry[];
+  coords?: { lat: number; lng: number }[]; // hole tees + baskets
   warning?: string;
 };
 
@@ -149,8 +150,26 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
 
   if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");
 
+  // Hole coordinates. Every hole has "latitude",N,"longitude",N pairs for
+  // both teePad and targetPosition. We just grab every lat/lng pair in the
+  // payload and dedupe — result is the set of tees + baskets for all holes.
+  const coords: { lat: number; lng: number }[] = [];
+  const seen = new Set<string>();
+  const coordRe = /"latitude",(-?\d+(?:\.\d+)?),"longitude",(-?\d+(?:\.\d+)?)/g;
+  let coordMatch: RegExpExecArray | null;
+  while ((coordMatch = coordRe.exec(payload)) !== null) {
+    const lat = Number(coordMatch[1]);
+    const lng = Number(coordMatch[2]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) continue;
+    const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    coords.push({ lat, lng });
+  }
+
   const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;
-  return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries };
+  return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries, coords: coords.length ? coords : undefined };
 }
 
 function extractStream(html: string): string | null {

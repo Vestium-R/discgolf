@@ -19,6 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 import { fmtPoints, prettyDate } from "@/lib/format";
 import { isAdmin } from "@/lib/auth";
 import { deleteRoundAction, refetchRoundAction, updateRoundCountsAction, updateRoundVariantAction } from "@/app/actions";
+import { CourseMap } from "@/components/CourseMap";
 import { ShareSummary } from "@/components/ShareSummary";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
 import { Avatar } from "@/components/Avatar";
@@ -238,6 +239,8 @@ export default async function RoundDetail({
           </tbody>
         </table>
       </section>
+
+      {round.udiscUrl && <CourseMap udiscUrl={round.udiscUrl} title={round.courseName} />}
 
       {courseStats.size > 0 && round.courseName && (
         <section className="card p-4">
