@@ -170,8 +170,8 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
     seen.add(key);
     coords.push({ lat, lng });
   };
-  const keyedRe = /"latitude",(-?\d+(?:\.\d+)?),"longitude",(-?\d+(?:\.\d+)?)/g;
-  for (const m of payload.matchAll(keyedRe)) pushPair(Number(m[1]), Number(m[2]));
+  const keyedCoordRe = /"latitude",(-?\d+(?:\.\d+)?),"longitude",(-?\d+(?:\.\d+)?)/g;
+  for (const m of payload.matchAll(keyedCoordRe)) pushPair(Number(m[1]), Number(m[2]));
   // Compact pairs: two decimals after a `}` and before another punctuation
   const compactCoordRe = /\},(-?\d{1,3}\.\d{3,}),(-?\d{1,3}\.\d{3,})/g;
   for (const m of payload.matchAll(compactCoordRe)) pushPair(Number(m[1]), Number(m[2]));
