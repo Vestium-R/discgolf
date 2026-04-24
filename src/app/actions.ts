@@ -12,6 +12,7 @@ import {
   getSettings,
   insertRound,
   saveSettings,
+  setPlayerAvatarIfMissing,
   updateRoundCounts,
   updateRoundResults,
   updateRoundVariant,
@@ -227,6 +228,8 @@ async function refetchRoundInternal(round: Round, roster: Awaited<ReturnType<typ
   const parsed = await parseUdiscUrl(round.udiscUrl);
   if (!parsed.ok) return "parse-fail";
 
+  const { updateRoundResults, updateRoundWeather, setPlayerAvatarIfMissing } = await import("@/lib/store");
+
   const newResults: RoundResult[] = [];
   for (const e of parsed.entries) {
     const p = matchPlayer(e.rawName, roster, e.username);
@@ -237,10 +240,10 @@ async function refetchRoundInternal(round: Round, roster: Awaited<ReturnType<typ
       score: e.score,
       relativeScore: e.relativeScore,
     });
+    if (e.avatarUrl) await setPlayerAvatarIfMissing(p.id, e.avatarUrl);
   }
   if (newResults.length < 2) return "parse-fail";
 
-  const { updateRoundResults, updateRoundWeather } = await import("@/lib/store");
   await updateRoundResults(round.id, newResults);
   await updateRoundWeather(round.id, parsed.temperatureC ?? null, parsed.windKph ?? null);
   return "ok";

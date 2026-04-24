@@ -106,8 +106,19 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
     });
   }
 
-  // Derive missing positions from totalScore (ascending = better)
   const arr = [...players.values()];
+
+  // Derive missing toPar: if any entry has both score + toPar, course par = score - toPar.
+  // Fill in toPar for other entries with known score.
+  const anchor = arr.find((p) => p.score != null && p.toPar != null);
+  if (anchor) {
+    const par = (anchor.score as number) - (anchor.toPar as number);
+    for (const p of arr) {
+      if (p.toPar == null && p.score != null) p.toPar = (p.score as number) - par;
+    }
+  }
+
+  // Derive missing positions from totalScore (ascending = better)
   if (arr.some((p) => p.place == null)) {
     const ranked = arr
       .filter((p) => Number.isFinite(p.score))

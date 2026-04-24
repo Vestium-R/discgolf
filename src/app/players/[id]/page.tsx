@@ -123,14 +123,21 @@ export default async function PlayerPage({
           </div>
         )}
         {seasonsChamped.length > 0 && (
-          <div className="mt-3 text-xs text-forest-600">
-            Champion in{" "}
-            {seasonsChamped.map((h, i) => (
-              <span key={h.season}>
-                <Link href={`/seasons/${h.season}`} className="font-semibold underline">{h.season}</Link>
-                {i < seasonsChamped.length - 1 ? ", " : ""}
-              </span>
-            ))}
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 flex items-center gap-3">
+            <span className="text-2xl">👑</span>
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-amber-900">
+                {seasonsChamped.length === 1 ? "Season champion" : `${seasonsChamped.length}× season champion`}
+              </div>
+              <div className="text-sm text-amber-800">
+                {seasonsChamped.map((h, i) => (
+                  <span key={h.season}>
+                    <Link href={`/seasons/${h.season}`} className="font-semibold underline">{h.season}</Link>
+                    {i < seasonsChamped.length - 1 ? " · " : ""}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </header>

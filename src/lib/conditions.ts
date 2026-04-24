@@ -14,10 +14,10 @@ function tempTier(t: number): ConditionRating | null {
 }
 
 function windTier(w: number): ConditionRating | null {
-  if (w >= 40)             return { emoji: "💨", label: "Windy",    className: "bg-orange-100 text-orange-900" };
-  if (w >= 20)             return { emoji: "🌬", label: "Breezy",   className: "bg-amber-100 text-amber-800" };
+  if (w >= 40)             return { emoji: "💨", label: "Windy",        className: "bg-orange-100 text-orange-900" };
+  if (w >= 20)             return { emoji: "🌬", label: "Breezy",       className: "bg-amber-100 text-amber-800" };
   if (w >= 10)             return { emoji: "🍃", label: "Light breeze", className: "bg-forest-50 text-forest-700" };
-  return null;
+  return                          { emoji: "🌤",  label: "Calm",         className: "bg-sky-50 text-sky-700" };
 }
 
 /**
