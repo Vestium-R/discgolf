@@ -55,6 +55,16 @@ export default async function PlayerPage({
 
   const podiums = mine.filter((x) => x.pos <= 3).length;
   const bestFinish = mine.length > 0 ? Math.min(...mine.map((x) => x.pos)) : null;
+
+  // Scoring average across all rounds with relativeScore (all-time).
+  const relScores: number[] = [];
+  for (const r of rounds) {
+    const e = r.results.find((x) => x.playerId === id);
+    if (e?.relativeScore != null) relScores.push(e.relativeScore);
+  }
+  const scoringAvg = relScores.length > 0
+    ? relScores.reduce((a, b) => a + b, 0) / relScores.length
+    : null;
   const h2h = headToHead(rounds, id);
   const h2hRows = [...h2h.entries()]
     .map(([pid, stats]) => ({ opponent: roster.find((p) => p.id === pid), ...stats }))
@@ -156,13 +166,17 @@ export default async function PlayerPage({
           )}
         </div>
         {me && (
-          <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2">
+          <div className="mt-4 grid grid-cols-3 sm:grid-cols-7 gap-2">
             <Stat label="Rank" value={rank ? ordinal(rank) : "—"} />
             <Stat label="Points" value={fmtPoints(me.points)} />
             <Stat label="Wins" value={String(me.wins)} />
             <Stat label="Podiums" value={String(podiums)} />
             <Stat label="Best" value={bestFinish ? ordinal(bestFinish) : "—"} />
             <Stat label="Streak" value={longest > 0 ? `${longest}` : "—"} />
+            <Stat
+              label="Avg vs par"
+              value={scoringAvg == null ? "—" : `${scoringAvg > 0 ? "+" : ""}${scoringAvg.toFixed(1)}`}
+            />
           </div>
         )}
         {seasonsChamped.length > 0 && (

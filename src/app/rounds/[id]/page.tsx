@@ -68,6 +68,25 @@ export default async function RoundDetail({
           : `🥏 ${holderAfter?.name ?? "?"} takes the patch (no prior holder set)`
     : `${winnerName} won the round`;
 
+  // Per-player history at THIS course (across all seasons, counting rounds only).
+  type CourseStat = { name: string; rounds: number; bestRel: number | null; avgRel: number | null };
+  const courseStats = new Map<string, CourseStat>();
+  if (round.courseName) {
+    const priorAtCourse = rounds.filter(
+      (r) => r.courseName === round.courseName && r.counts !== false && r.date <= round.date && r.id !== round.id,
+    );
+    for (const pr of priorAtCourse) {
+      for (const res of pr.results) {
+        if (res.relativeScore == null) continue;
+        const stat = courseStats.get(res.playerId) ?? { name: byId.get(res.playerId)?.name ?? "?", rounds: 0, bestRel: null, avgRel: null };
+        stat.rounds += 1;
+        stat.bestRel = stat.bestRel == null ? res.relativeScore : Math.min(stat.bestRel, res.relativeScore);
+        stat.avgRel = stat.avgRel == null ? res.relativeScore : ((stat.avgRel * (stat.rounds - 1)) + res.relativeScore) / stat.rounds;
+        courseStats.set(res.playerId, stat);
+      }
+    }
+  }
+
   // Head-to-head between top-2 in THIS round, using the full rounds history.
   const p1 = ordered[0]?.playerId;
   const p2 = ordered[1]?.playerId;
@@ -220,6 +239,34 @@ export default async function RoundDetail({
         </table>
       </section>
 
+      {courseStats.size > 0 && round.courseName && (
+        <section className="card p-4">
+          <h3 className="font-display font-bold text-forest-800 mb-2">History at {round.courseName}</h3>
+          <ul className="divide-y divide-forest-100">
+            {ordered.map((r) => {
+              const h = courseStats.get(r.playerId);
+              const p = byId.get(r.playerId);
+              if (!h || !p) return null;
+              const thisRel = r.relativeScore;
+              const improved = thisRel != null && h.bestRel != null && thisRel < h.bestRel;
+              return (
+                <li key={r.playerId} className="py-2 flex items-center gap-3 text-sm">
+                  <span className="flex-1 truncate text-forest-800 font-medium">{p.name}</span>
+                  <span className="text-forest-600">{h.rounds + 1}{ordinalSuffix(h.rounds + 1)} round</span>
+                  <span className="text-forest-600">
+                    Best: <span className="tabular-nums font-semibold text-forest-800">{h.bestRel! > 0 ? "+" : ""}{h.bestRel}</span>
+                    {improved && <span className="ml-1 text-emerald-700">🎉 new best!</span>}
+                  </span>
+                  <span className="text-forest-600 hidden sm:inline">
+                    Avg: <span className="tabular-nums">{h.avgRel! > 0 ? "+" : ""}{h.avgRel!.toFixed(1)}</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       <ShareSummary text={summary} roundId={round.id} />
 
       {admin && (
@@ -272,6 +319,13 @@ export default async function RoundDetail({
       )}
     </div>
   );
+}
+
+function ordinalSuffix(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return "th";
+  const mod10 = n % 10;
+  return mod10 === 1 ? "st" : mod10 === 2 ? "nd" : mod10 === 3 ? "rd" : "th";
 }
 
 function buildSummary(r: {
