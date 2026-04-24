@@ -1,17 +1,27 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export function ShareSummary({ text }: { text: string }) {
+export function ShareSummary({ text, roundId }: { text: string; roundId?: string }) {
   const [copied, setCopied] = useState(false);
+  const [url, setUrl] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (roundId && typeof window !== "undefined") {
+      setUrl(`${window.location.origin}/rounds/${roundId}`);
+    }
+  }, [roundId]);
+  // The text that actually hits the clipboard / share sheet: medal summary
+  // plus the round URL so Messenger/Discord unfurl the OG image card under it.
+  const payload = url ? `${text}\n\n${url}` : text;
+
   async function copy() {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(payload);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
   async function share() {
     if (navigator.share) {
       try {
-        await navigator.share({ text });
+        await navigator.share(url ? { text, url } : { text });
         return;
       } catch {
         /* cancelled */
@@ -38,9 +48,9 @@ export function ShareSummary({ text }: { text: string }) {
           </button>
         </div>
       </div>
-      <pre className="whitespace-pre-wrap rounded-lg bg-forest-50 p-3 text-sm text-forest-800 font-sans">{text}</pre>
+      <pre className="whitespace-pre-wrap rounded-lg bg-forest-50 p-3 text-sm text-forest-800 font-sans">{payload}</pre>
       <p className="mt-2 text-xs text-forest-600">
-        Paste into the Messenger group chat — Meta doesn&apos;t allow auto-posting to group chats.
+        Paste into the Messenger group chat — Messenger will unfurl the round link with a preview card.
       </p>
     </section>
   );

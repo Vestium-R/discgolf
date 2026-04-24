@@ -220,7 +220,7 @@ export default async function RoundDetail({
         </table>
       </section>
 
-      <ShareSummary text={summary} />
+      <ShareSummary text={summary} roundId={round.id} />
 
       {admin && (
         <section className="card p-4 space-y-3 border-dashed">
