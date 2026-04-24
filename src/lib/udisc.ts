@@ -154,27 +154,33 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   //   1. Keyed (course center): `"latitude",46.099,"longitude",-64.679`
   //   2. Compact (per hole): `},46.0987,-64.6781,"teeSign"` — bare floats
   //      following a closing brace, aligned with the schema's lat/lng slots.
-  // Grab anything that looks like a plausible lat/lng pair and dedupe.
+  // Grab the course center first, then accept other pairs only if they're
+  // inside a ~10 km box around it — otherwise we pick up distances and other
+  // bare decimals as bogus coordinates.
   const coords: { lat: number; lng: number }[] = [];
   const seen = new Set<string>();
-  const pushPair = (a: number, b: number) => {
-    // Figure out which is lat (|x| ≤ 90) vs lng (|x| ≤ 180). If both could be
-    // lat, trust declared order: first is lat.
+  let anchor: { lat: number; lng: number } | null = null;
+
+  const tryPair = (a: number, b: number) => {
     let lat: number, lng: number;
     if (Math.abs(a) <= 90 && Math.abs(b) <= 180) { lat = a; lng = b; }
     else if (Math.abs(b) <= 90 && Math.abs(a) <= 180) { lat = b; lng = a; }
     else return;
     if (lat === 0 && lng === 0) return;
+    if (anchor && (Math.abs(lat - anchor.lat) > 0.1 || Math.abs(lng - anchor.lng) > 0.1)) return;
     const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
     if (seen.has(key)) return;
     seen.add(key);
     coords.push({ lat, lng });
+    if (!anchor) anchor = { lat, lng };
   };
+
+  // Keyed course-center pair always comes first in the payload — use it as anchor
   const keyedCoordRe = /"latitude",(-?\d+(?:\.\d+)?),"longitude",(-?\d+(?:\.\d+)?)/g;
-  for (const m of payload.matchAll(keyedCoordRe)) pushPair(Number(m[1]), Number(m[2]));
-  // Compact pairs: two decimals after a `}` and before another punctuation
+  for (const m of payload.matchAll(keyedCoordRe)) tryPair(Number(m[1]), Number(m[2]));
+  // Then compact pairs (tees + baskets) filtered to within ~10 km of anchor
   const compactCoordRe = /\},(-?\d{1,3}\.\d{3,}),(-?\d{1,3}\.\d{3,})/g;
-  for (const m of payload.matchAll(compactCoordRe)) pushPair(Number(m[1]), Number(m[2]));
+  for (const m of payload.matchAll(compactCoordRe)) tryPair(Number(m[1]), Number(m[2]));
 
   const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;
   return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries, coords: coords.length ? coords : undefined };
