@@ -33,7 +33,11 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
   ]);
   const seasons = availableSeasons(rounds, settings.currentSeason, history.map((h) => h.season));
   const rs = seasonRounds(rounds, year);
-  const standings = computeStandings(roster, rounds, year);
+  // Past seasons: show everyone who played. Current season: filter to active or already-played
+  // so retired names don't clutter an in-progress standings board.
+  const standings = computeStandings(roster, rounds, year).filter(
+    (s) => s.roundsPlayed > 0 || (year === settings.currentSeason && s.player.active),
+  );
   const isCurrent = year === settings.currentSeason;
   const rec = history.find((h) => h.season === year);
   const initial = rec?.initialBadgeHolderPlayerId ?? null;

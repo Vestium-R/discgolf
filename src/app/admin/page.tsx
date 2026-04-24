@@ -3,6 +3,7 @@ import { getUser, isAdminEmail } from "@/lib/auth";
 import { getHistory, getRoster, getSettings } from "@/lib/store";
 import {
   addPlayerAction,
+  autoInactivateAction,
   backfillAllRoundsAction,
   signOutAction,
   togglePlayerActiveAction,
@@ -192,7 +193,15 @@ export default async function AdminPage({
         <h3 className="font-display font-bold text-forest-800">Roster</h3>
         <p className="text-xs text-forest-600 mb-3">
           UDisc handles (from the scorecard, e.g. <code>jeffreyr</code>) let the parser auto-match.
+          Active players show in standings; inactive players are hidden until they appear in a new
+          UDisc round (which auto-activates them).
         </p>
+        {ok?.startsWith("inactivated") && (
+          <p className="mb-2 text-sm text-forest-800">✓ Marked {ok.replace("inactivated:", "")} player(s) inactive.</p>
+        )}
+        <form action={autoInactivateAction} className="mb-3">
+          <button className="btn-secondary text-sm">Mark inactive: no rounds this season</button>
+        </form>
         <ul className="divide-y divide-forest-100">
           {roster.map((p) => (
             <li key={p.id} className="py-2">

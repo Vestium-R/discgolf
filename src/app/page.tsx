@@ -29,7 +29,9 @@ export default async function HomePage() {
   const badgeImage = seasonRec?.badgeImageUrl;
   const initialHolderId = seasonRec?.initialBadgeHolderPlayerId ?? null;
   const seasons = availableSeasons(rounds, season, history.map((h) => h.season));
-  const standings = computeStandings(roster, rounds, season);
+  const standings = computeStandings(roster, rounds, season).filter(
+    (s) => s.player.active || s.roundsPlayed > 0,
+  );
   const badgeId = currentBadgeHolder(rounds, season, initialHolderId);
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
   const leader = standings.find((s) => s.roundsPlayed > 0) ?? null;

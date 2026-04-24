@@ -192,6 +192,14 @@ export async function setPlayerAvatarIfMissing(playerId: string, avatarUrl: stri
   if (error) throw error;
 }
 
+export async function setPlayerActive(playerId: string, active: boolean): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("players")
+    .update({ active })
+    .eq("id", playerId);
+  if (error) throw error;
+}
+
 export async function updateRoundWeather(id: string, temperatureC: number | null, windKph: number | null): Promise<void> {
   const { error } = await supabaseAdmin()
     .from("rounds")

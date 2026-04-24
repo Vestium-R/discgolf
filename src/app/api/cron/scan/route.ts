@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { getRoster, getRounds, insertRound, setPlayerAvatarIfMissing } from "@/lib/store";
+import { getRoster, getRounds, insertRound, setPlayerActive, setPlayerAvatarIfMissing } from "@/lib/store";
 import type { Round, RoundResult } from "@/lib/types";
 import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 
@@ -81,6 +81,7 @@ async function scanSource(
       if (!p) continue;
       results.push({ playerId: p.id, position: e.position, score: e.score, relativeScore: e.relativeScore });
       if (e.avatarUrl) await setPlayerAvatarIfMissing(p.id, e.avatarUrl);
+      if (!p.active) await setPlayerActive(p.id, true);
     }
     if (results.length < 2) continue; // Require 2+ roster members
 

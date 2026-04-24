@@ -228,7 +228,7 @@ async function refetchRoundInternal(round: Round, roster: Awaited<ReturnType<typ
   const parsed = await parseUdiscUrl(round.udiscUrl);
   if (!parsed.ok) return "parse-fail";
 
-  const { updateRoundResults, updateRoundWeather, setPlayerAvatarIfMissing } = await import("@/lib/store");
+  const { updateRoundResults, updateRoundWeather, setPlayerAvatarIfMissing, setPlayerActive } = await import("@/lib/store");
 
   const newResults: RoundResult[] = [];
   for (const e of parsed.entries) {
@@ -241,6 +241,7 @@ async function refetchRoundInternal(round: Round, roster: Awaited<ReturnType<typ
       relativeScore: e.relativeScore,
     });
     if (e.avatarUrl) await setPlayerAvatarIfMissing(p.id, e.avatarUrl);
+    if (!p.active) await setPlayerActive(p.id, true);
   }
   if (newResults.length < 2) return "parse-fail";
 
@@ -259,6 +260,28 @@ export async function refetchRoundAction(formData: FormData): Promise<void> {
   revalidatePath(`/rounds/${id}`);
   revalidatePath("/rounds");
   redirect(`/rounds/${id}?refetched=1`);
+}
+
+export async function autoInactivateAction(): Promise<void> {
+  await requireAdmin();
+  const [roster, rounds, settings] = await Promise.all([getRoster(), getRounds(), getSettings()]);
+  const played = new Set<string>();
+  for (const r of rounds) {
+    if (r.season !== settings.currentSeason) continue;
+    for (const x of r.results) played.add(x.playerId);
+  }
+  const { setPlayerActive } = await import("@/lib/store");
+  let n = 0;
+  for (const p of roster) {
+    if (p.active && !played.has(p.id)) {
+      await setPlayerActive(p.id, false);
+      n += 1;
+    }
+  }
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/seasons");
+  redirect(`/admin?ok=inactivated:${n}`);
 }
 
 export async function backfillAllRoundsAction(): Promise<void> {
