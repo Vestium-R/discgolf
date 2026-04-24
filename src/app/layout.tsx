@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { FloatingAddButton } from "@/components/FloatingAddButton";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 export const metadata: Metadata = {
   title: "The Patch",
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           The Traveling Patch · Always live.
         </footer>
         <FloatingAddButton />
+        <InstallPrompt />
       </body>
     </html>
   );
