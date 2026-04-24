@@ -168,7 +168,6 @@ export default async function SeasonPage({
                 <th className="py-2 px-3 text-right">Pts</th>
                 <th className="py-2 px-3 text-right hidden sm:table-cell">W</th>
                 <th className="py-2 px-3 text-right hidden sm:table-cell">Rds</th>
-                <th className="py-2 px-3 text-right hidden sm:table-cell">Avg</th>
               </tr>
             </thead>
             <tbody>
@@ -191,9 +190,6 @@ export default async function SeasonPage({
                     <td className={`py-2 px-3 text-right tabular-nums font-semibold ${dim}`}>{fmtPoints(s.points)}</td>
                     <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.wins}</td>
                     <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.roundsPlayed}</td>
-                    <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>
-                      {s.avgFinish == null ? "—" : s.avgFinish.toFixed(2)}
-                    </td>
                   </tr>
                 );
               })}
