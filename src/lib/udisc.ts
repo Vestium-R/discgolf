@@ -151,8 +151,10 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");
 
   // UDisc's own rendered course map lives at /courses/<slug>/v2/course-map.
-  // Slug appears in the stream as /courses/<slug> or /courses/<slug>/layouts/...
-  const slug = payload.match(/\/courses\/([a-zA-Z0-9-]+)/)?.[1];
+  // Slug appears in the rendered HTML's <a href="/courses/<slug>"> links.
+  // Filter out the generic /courses/add and /courses/ci/... region pages.
+  const slugMatches = [...html.matchAll(/\/courses\/([a-z0-9]+(?:-[a-zA-Z0-9]+)+)/g)];
+  const slug = slugMatches.map((m) => m[1]).find((s) => s !== "add");
   const courseMapUrl = slug ? `https://udisc.com/courses/${slug}/v2/course-map` : undefined;
 
   const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getRoster, getRounds, getSettings } from "@/lib/store";
 import { prettyDate } from "@/lib/format";
+import { parseUdiscUrl } from "@/lib/udisc";
 import { Avatar } from "@/components/Avatar";
 import { BadgeCrown } from "@/components/BadgeCrown";
 
@@ -64,6 +65,19 @@ export default async function CoursesPage() {
   for (const g of courses.values()) g.layouts.sort((a, b) => b.rounds - a.rounds);
   const courseList = [...courses.values()].sort((a, b) => b.rounds - a.rounds);
 
+  // Resolve UDisc course-map link per course by re-parsing any round's
+  // udiscUrl. parseUdiscUrl hits Next's fetch cache so repeat views don't
+  // spam UDisc. Silently omit if no rounds have URLs or parse fails.
+  const mapUrlByCourse = new Map<string, string>();
+  await Promise.all(
+    courseList.map(async (c) => {
+      const sample = rounds.find((r) => r.courseName && splitCourseName(r.courseName).base === c.name && r.udiscUrl);
+      if (!sample?.udiscUrl) return;
+      const parsed = await parseUdiscUrl(sample.udiscUrl);
+      if (parsed.ok && parsed.courseMapUrl) mapUrlByCourse.set(c.name, parsed.courseMapUrl);
+    }),
+  );
+
   return (
     <div className="space-y-5">
       <header>
@@ -82,8 +96,20 @@ export default async function CoursesPage() {
       <div className="space-y-5">
         {courseList.map((c) => (
           <section key={c.name} className="space-y-2">
-            <div className="flex items-baseline justify-between gap-3">
-              <h3 className="font-display text-xl font-bold text-forest-800">{c.name}</h3>
+            <div className="flex items-baseline justify-between gap-3 flex-wrap">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <h3 className="font-display text-xl font-bold text-forest-800">{c.name}</h3>
+                {mapUrlByCourse.get(c.name) && (
+                  <a
+                    href={mapUrlByCourse.get(c.name)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-forest-600 hover:text-forest-900 hover:underline inline-flex items-center gap-1"
+                  >
+                    🗺️ Course map
+                  </a>
+                )}
+              </div>
               <span className="text-xs text-forest-600">
                 {c.rounds} round{c.rounds === 1 ? "" : "s"} · {c.layouts.length} layout{c.layouts.length === 1 ? "" : "s"}
               </span>
