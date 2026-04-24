@@ -2,7 +2,6 @@ import type { Player, PlayerStats, Round } from "./types";
 
 /**
  * N - position + 1 with ties splitting points.
- * Example (5 players, tied 1st): both get avg of points for pos 1 and 2 = (5+4)/2 = 4.5
  */
 export function pointsForRound(round: Round): Map<string, number> {
   const n = round.results.length;
@@ -15,9 +14,7 @@ export function pointsForRound(round: Round): Map<string, number> {
   const out = new Map<string, number>();
   for (const [pos, players] of byPos) {
     let sum = 0;
-    for (let i = 0; i < players.length; i++) {
-      sum += n - (pos + i) + 1;
-    }
+    for (let i = 0; i < players.length; i++) sum += n - (pos + i) + 1;
     const share = sum / players.length;
     for (const pid of players) out.set(pid, share);
   }
@@ -53,9 +50,7 @@ export function computeStandings(roster: Player[], rounds: Round[], season: numb
     }
   }
   for (const s of stats.values()) {
-    if (s.roundsPlayed > 0) {
-      s.avgFinish = (finishSum.get(s.player.id) ?? 0) / s.roundsPlayed;
-    }
+    if (s.roundsPlayed > 0) s.avgFinish = (finishSum.get(s.player.id) ?? 0) / s.roundsPlayed;
   }
   return [...stats.values()].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
@@ -64,16 +59,13 @@ export function computeStandings(roster: Player[], rounds: Round[], season: numb
   });
 }
 
-/** Current "currently" badge holder: winner of most recent round of the season. */
 export function currentBadgeHolder(rounds: Round[], season: number): string | null {
   const rs = seasonRounds(rounds, season);
   if (rs.length === 0) return null;
   const last = rs[rs.length - 1];
-  const winners = winnersOfRound(last);
-  return winners[0] ?? null;
+  return winnersOfRound(last)[0] ?? null;
 }
 
-/** End-of-season champion: most wins. Ties broken by points, then avg finish. */
 export function seasonChampion(standings: PlayerStats[]): PlayerStats | null {
   const played = standings.filter((s) => s.roundsPlayed > 0);
   if (played.length === 0) return null;
@@ -85,4 +77,51 @@ export function seasonChampion(standings: PlayerStats[]): PlayerStats | null {
     return af - bf;
   });
   return sorted[0];
+}
+
+export type BadgeEvent = {
+  round: Round;
+  holderId: string;
+  prevHolderId: string | null;
+  stolen: boolean;
+};
+
+/**
+ * Walk the season's rounds to build a badge-passing timeline.
+ * The badge transfers to the winner of each round; "stolen" when the
+ * previous holder played and lost, "changed" when they didn't play.
+ */
+export function badgeTimeline(rounds: Round[], season: number): BadgeEvent[] {
+  const rs = seasonRounds(rounds, season);
+  const events: BadgeEvent[] = [];
+  let prev: string | null = null;
+  for (const round of rs) {
+    const winners = winnersOfRound(round);
+    if (winners.length === 0) continue;
+    const holder = winners[0];
+    const played = round.results.some((r) => r.playerId === prev);
+    const stolen = prev != null && played && holder !== prev;
+    events.push({ round, holderId: holder, prevHolderId: prev, stolen: !!stolen });
+    prev = holder;
+  }
+  return events;
+}
+
+export function currentStreak(rounds: Round[], season: number, playerId: string): number {
+  const rs = [...seasonRounds(rounds, season)].reverse();
+  let streak = 0;
+  for (const r of rs) {
+    const played = r.results.some((x) => x.playerId === playerId);
+    if (!played) continue;
+    const won = r.results.some((x) => x.playerId === playerId && x.position === 1);
+    if (won) streak += 1;
+    else break;
+  }
+  return streak;
+}
+
+export function availableSeasons(rounds: Round[], currentSeason: number, historySeasons: number[]): number[] {
+  const set = new Set<number>([currentSeason, ...historySeasons]);
+  for (const r of rounds) set.add(r.season);
+  return [...set].sort((a, b) => b - a);
 }

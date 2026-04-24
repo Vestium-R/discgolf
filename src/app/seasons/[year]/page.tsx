@@ -1,0 +1,143 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getHistory, getRoster, getRounds, getSettings } from "@/lib/store";
+import {
+  availableSeasons,
+  badgeTimeline,
+  computeStandings,
+  currentBadgeHolder,
+  seasonChampion,
+  seasonRounds,
+} from "@/lib/scoring";
+import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
+import { SeasonPicker } from "@/components/SeasonPicker";
+import { fmtPoints, prettyDate } from "@/lib/format";
+
+export default async function SeasonPage({ params }: { params: Promise<{ year: string }> }) {
+  const { year: yearStr } = await params;
+  const year = Number(yearStr);
+  if (!Number.isFinite(year)) notFound();
+
+  const [roster, rounds, settings, history] = await Promise.all([
+    getRoster(),
+    getRounds(),
+    getSettings(),
+    getHistory(),
+  ]);
+  const seasons = availableSeasons(rounds, settings.currentSeason, history.map((h) => h.season));
+  const rs = seasonRounds(rounds, year);
+  const standings = computeStandings(roster, rounds, year);
+  const isCurrent = year === settings.currentSeason;
+  const rec = history.find((h) => h.season === year);
+  const champ = isCurrent ? null : seasonChampion(standings);
+  const badgeId = isCurrent ? currentBadgeHolder(rounds, year) : champ?.player.id ?? null;
+  const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
+  const timeline = badgeTimeline(rounds, year).reverse();
+
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-3xl font-bold text-forest-800">Season {year}</h2>
+          <p className="text-sm text-forest-600">
+            {rs.length} round{rs.length === 1 ? "" : "s"}{isCurrent ? " · in progress" : ""}
+          </p>
+        </div>
+        <SeasonPicker seasons={seasons} active={year} />
+      </header>
+
+      {badgeHolder && (
+        <section className="hero-gradient rounded-3xl p-6 text-white flex items-center gap-5">
+          <BadgeCrown size="lg" glow={isCurrent} />
+          <div>
+            <div className="text-xs uppercase tracking-widest opacity-80">
+              {isCurrent ? "Currently holds" : "Season champion"}
+            </div>
+            <Link
+              href={`/players/${badgeHolder.id}`}
+              className="font-display text-3xl font-bold hover:underline"
+            >
+              {badgeHolder.name}
+            </Link>
+            {rec?.note && <p className="text-xs opacity-75 mt-1 italic">{rec.note}</p>}
+          </div>
+        </section>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-5">
+        <section className="lg:col-span-3 card overflow-hidden">
+          <div className="p-4 border-b border-forest-100">
+            <h3 className="font-display font-bold text-forest-800">Standings</h3>
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-forest-50 text-forest-700">
+              <tr>
+                <th className="py-2 px-3 text-left w-12">#</th>
+                <th className="py-2 px-3 text-left">Player</th>
+                <th className="py-2 px-3 text-right">Pts</th>
+                <th className="py-2 px-3 text-right hidden sm:table-cell">W</th>
+                <th className="py-2 px-3 text-right hidden sm:table-cell">Rds</th>
+                <th className="py-2 px-3 text-right hidden sm:table-cell">Avg</th>
+              </tr>
+            </thead>
+            <tbody>
+              {standings.map((s, i) => {
+                const rank = i + 1;
+                const dim = s.roundsPlayed === 0 ? "text-forest-400" : "";
+                return (
+                  <tr key={s.player.id} className="border-t border-forest-100">
+                    <td className="py-2 px-3">
+                      {s.roundsPlayed > 0 ? <MedalBadge position={rank} /> : <span className="text-forest-400 text-xs">{rank}</span>}
+                    </td>
+                    <td className="py-2 px-3">
+                      <Link href={`/players/${s.player.id}`} className={`hover:underline ${dim}`}>
+                        {s.player.name}
+                      </Link>
+                    </td>
+                    <td className={`py-2 px-3 text-right tabular-nums font-semibold ${dim}`}>{fmtPoints(s.points)}</td>
+                    <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.wins}</td>
+                    <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.roundsPlayed}</td>
+                    <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>
+                      {s.avgFinish == null ? "—" : s.avgFinish.toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </section>
+
+        <section className="lg:col-span-2 card p-4">
+          <h3 className="font-display font-bold text-forest-800 mb-3">Badge history</h3>
+          {timeline.length === 0 ? (
+            <p className="text-sm text-forest-600">No rounds recorded for {year}.</p>
+          ) : (
+            <ol className="space-y-3">
+              {timeline.map((t, i) => {
+                const holder = roster.find((p) => p.id === t.holderId);
+                const prev = t.prevHolderId ? roster.find((p) => p.id === t.prevHolderId) : null;
+                return (
+                  <li key={t.round.id + i} className="flex items-start gap-3">
+                    <BadgeCrown size="xs" />
+                    <Link href={`/rounds/${t.round.id}`} className="flex-1 min-w-0 block group">
+                      <div className="text-sm font-semibold text-forest-800 group-hover:underline">
+                        {holder?.name ?? t.holderId}
+                      </div>
+                      <div className="text-xs text-forest-600">
+                        {prev && t.stolen ? `Stole from ${prev.name}` :
+                         prev && !t.stolen && t.prevHolderId !== t.holderId ? `Took over from ${prev.name}` :
+                         prev && t.prevHolderId === t.holderId ? "Defended" :
+                         "First of the season"}
+                        {" · "}{prettyDate(t.round.date)}
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}

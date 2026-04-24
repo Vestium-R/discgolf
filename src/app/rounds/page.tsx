@@ -1,39 +1,53 @@
 import Link from "next/link";
 import { getRoster, getRounds, getSettings } from "@/lib/store";
-import { seasonRounds, winnersOfRound } from "@/lib/scoring";
+import { availableSeasons, seasonRounds, winnersOfRound } from "@/lib/scoring";
 import { prettyDate } from "@/lib/format";
 import { BadgeCrown } from "@/components/BadgeCrown";
+import { SeasonPicker } from "@/components/SeasonPicker";
 
-export default async function RoundsPage() {
+export default async function RoundsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ season?: string }>;
+}) {
   const [roster, rounds, settings] = await Promise.all([getRoster(), getRounds(), getSettings()]);
+  const { season: seasonParam } = await searchParams;
+  const season = Number(seasonParam) || settings.currentSeason;
   const byName = new Map(roster.map((p) => [p.id, p.name]));
-  const all = [...seasonRounds(rounds, settings.currentSeason)].reverse();
+  const seasons = availableSeasons(rounds, settings.currentSeason, []);
+  const all = [...seasonRounds(rounds, season)].reverse();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-forest-800">Rounds — {settings.currentSeason}</h2>
-        <Link
-          href="/admin/rounds/new"
-          className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-forest-700"
-        >
-          + Add round
-        </Link>
-      </div>
-      {all.length === 0 && <p className="text-forest-600">No rounds yet.</p>}
+    <div className="space-y-5">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-forest-800">Rounds</h2>
+          <p className="text-sm text-forest-600">Season {season} · {all.length} round{all.length === 1 ? "" : "s"}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <SeasonPicker seasons={seasons} active={season} base="/rounds?season=" />
+          <Link href="/add" className="btn-primary">+ Add round</Link>
+        </div>
+      </header>
+      {all.length === 0 && (
+        <div className="card p-6 text-center">
+          <p className="text-forest-600">No rounds yet.</p>
+          <Link href="/add" className="btn-primary mt-3 inline-flex">Paste the first scorecard</Link>
+        </div>
+      )}
       <ul className="space-y-2">
         {all.map((r, idx) => {
           const winners = winnersOfRound(r).map((id) => byName.get(id) ?? id);
-          const isLatest = idx === 0;
+          const isLatest = idx === 0 && season === settings.currentSeason;
           return (
             <li key={r.id}>
               <Link
                 href={`/rounds/${r.id}`}
-                className="block rounded-xl border border-forest-100 bg-white p-3 shadow-sm hover:border-forest-300"
+                className="block card p-3 hover:border-forest-300 transition"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-forest-800">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-forest-800 truncate">
                       {prettyDate(r.date)}
                       {r.courseName ? ` — ${r.courseName}` : ""}
                     </div>

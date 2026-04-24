@@ -2,6 +2,7 @@ import type { Player } from "./types";
 
 export type ParsedEntry = {
   rawName: string;
+  username?: string;
   position: number;
   score?: number;
 };
@@ -10,15 +11,20 @@ export type UdiscParseResult = {
   ok: boolean;
   url: string;
   courseName?: string;
+  layoutName?: string;
+  date?: string;
   entries: ParsedEntry[];
   warning?: string;
 };
 
 /**
- * Best-effort UDisc leaderboard parser.
- * UDisc is a Next.js site; the page ships a __NEXT_DATA__ JSON blob we can
- * walk for leaderboard entries. Structure is not public API, so we fall back
- * gracefully: the UI lets the user confirm / edit the parsed order.
+ * UDisc scorecards are rendered by React Router. The round data ships as a
+ * turbo-stream payload embedded in `window.__reactRouterContext.streamController.enqueue("...")`.
+ * Rather than implementing the full turbo-stream decoder, we pull the raw
+ * string and extract player records via regex. The stream contains two shapes:
+ *   1. Keyed: "username","X","name","Y",...,"totalScore",N (first record)
+ *   2. Compact: "X","Y","Z","img","img",score,["D",t],["D",t],place,toPar (subsequent)
+ * If compact records lack `place`, we derive it by sorting on totalScore.
  */
 export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   const fail = (warning: string): UdiscParseResult => ({ ok: false, url, entries: [], warning });
@@ -28,7 +34,7 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
       redirect: "follow",
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; KentDiscGolfBot/1.0; +https://github.com/)",
+          "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)",
         Accept: "text/html,application/xhtml+xml",
       },
     });
@@ -38,100 +44,100 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
     return fail(`Could not fetch UDisc page: ${(e as Error).message}`);
   }
 
-  const nextData = extractNextData(html);
-  if (!nextData) return fail("Could not find leaderboard data on page. Enter positions manually.");
+  const payload = extractStream(html);
+  if (!payload) return fail("Could not find scorecard data on page. Enter positions manually.");
 
-  const entries = findLeaderboardEntries(nextData);
-  if (entries.length === 0) return fail("Leaderboard looks empty or private. Enter positions manually.");
+  const courseName = payload.match(/"courseName","([^"]+)"/)?.[1];
+  const layoutName = payload.match(/"layoutName","([^"]+)"/)?.[1];
+  const dateMs = payload.match(/"endDate",\["D",(\d+)\]/)?.[1];
+  const date = dateMs ? new Date(Number(dateMs)).toISOString().slice(0, 10) : undefined;
 
-  const courseName = findCourseName(nextData) ?? undefined;
-  return { ok: true, url, courseName, entries };
+  type Rec = { username: string; name?: string; score?: number; place?: number; toPar?: number };
+  const players = new Map<string, Rec>();
+
+  // Keyed form: "username","X" window has "name","Y" and "totalScore",N nearby
+  const keyedRe = /"username","([^"]+)"/g;
+  let km: RegExpExecArray | null;
+  while ((km = keyedRe.exec(payload)) !== null) {
+    const uname = km[1];
+    const win = payload.slice(km.index, km.index + 3000);
+    const nameM = win.match(/"name","([^"]+)"/);
+    const scoreM = win.match(/"totalScore",(-?\d+)/);
+    const rec: Rec = { username: uname };
+    if (nameM) rec.name = nameM[1];
+    if (scoreM) rec.score = Number(scoreM[1]);
+    if (rec.name || rec.score != null) players.set(uname, rec);
+  }
+
+  // Compact form (permissive image-filename class)
+  const compactRe =
+    /"([a-zA-Z0-9_.]{3,40})","([^"]*)","([^"]*)","[^"]+\.(?:jpg|jpeg|png|webp|gif)","[^"]+\.(?:jpg|jpeg|png|webp|gif)",(-?\d+),\["D",\d+\],\["D",\d+\],(\d+),(-?\d+)/g;
+  let cm: RegExpExecArray | null;
+  while ((cm = compactRe.exec(payload)) !== null) {
+    const [, uname, display, , score, place, toPar] = cm;
+    const cur = players.get(uname) ?? { username: uname };
+    players.set(uname, {
+      username: uname,
+      name: cur.name || display || uname,
+      score: cur.score ?? Number(score),
+      place: Number(place),
+      toPar: Number(toPar),
+    });
+  }
+
+  // Derive missing positions from totalScore (ascending = better)
+  const arr = [...players.values()];
+  if (arr.some((p) => p.place == null)) {
+    const ranked = arr
+      .filter((p) => Number.isFinite(p.score))
+      .sort((a, b) => (a.score as number) - (b.score as number));
+    let lastScore: number | null = null;
+    let lastPlace = 0;
+    ranked.forEach((p, i) => {
+      if (p.score === lastScore) p.place = lastPlace;
+      else {
+        p.place = i + 1;
+        lastPlace = p.place;
+        lastScore = p.score as number;
+      }
+    });
+  }
+
+  const entries: ParsedEntry[] = arr
+    .filter((p) => p.place)
+    .sort((a, b) => (a.place as number) - (b.place as number))
+    .map((p) => ({
+      rawName: p.name ?? p.username,
+      username: p.username,
+      position: p.place as number,
+      score: p.score,
+    }));
+
+  if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");
+
+  const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;
+  return { ok: true, url, courseName: course, layoutName, date, entries };
 }
 
-function extractNextData(html: string): unknown | null {
-  const m = html.match(
-    /<script id="__NEXT_DATA__" type="application\/json"[^>]*>([\s\S]*?)<\/script>/
-  );
+function extractStream(html: string): string | null {
+  const m = html.match(/streamController\.enqueue\("((?:[^"\\]|\\.)+)"\)/);
   if (!m) return null;
   try {
-    return JSON.parse(m[1]);
+    return JSON.parse('"' + m[1] + '"');
   } catch {
     return null;
   }
 }
 
-const NAME_KEYS = ["playerName", "name", "fullName", "displayName"];
-const POS_KEYS = ["position", "place", "rank", "finishPlace", "finishPosition"];
-const SCORE_KEYS = ["totalScore", "score", "totalToPar", "toPar"];
-
-function findLeaderboardEntries(root: unknown): ParsedEntry[] {
-  const candidates: ParsedEntry[][] = [];
-  walk(root, (node) => {
-    if (!Array.isArray(node) || node.length < 2) return;
-    const parsed: ParsedEntry[] = [];
-    for (const item of node) {
-      if (!item || typeof item !== "object") return;
-      const rec = item as Record<string, unknown>;
-      const name = pickString(rec, NAME_KEYS);
-      const pos = pickNumber(rec, POS_KEYS);
-      if (!name || pos == null) return;
-      parsed.push({
-        rawName: name,
-        position: pos,
-        score: pickNumber(rec, SCORE_KEYS) ?? undefined,
-      });
-    }
-    if (parsed.length >= 2) candidates.push(parsed);
-  });
-  if (candidates.length === 0) return [];
-  candidates.sort((a, b) => b.length - a.length);
-  return candidates[0].sort((a, b) => a.position - b.position);
-}
-
-function findCourseName(root: unknown): string | null {
-  let best: string | null = null;
-  walk(root, (node) => {
-    if (node && typeof node === "object" && !Array.isArray(node)) {
-      const rec = node as Record<string, unknown>;
-      const candidate = rec.courseName ?? rec.course_name;
-      if (typeof candidate === "string" && candidate.length > 0 && !best) {
-        best = candidate;
-      }
-    }
-  });
-  return best;
-}
-
-function pickString(o: Record<string, unknown>, keys: string[]): string | null {
-  for (const k of keys) {
-    const v = o[k];
-    if (typeof v === "string" && v.trim().length > 0) return v.trim();
-  }
-  return null;
-}
-
-function pickNumber(o: Record<string, unknown>, keys: string[]): number | null {
-  for (const k of keys) {
-    const v = o[k];
-    if (typeof v === "number" && Number.isFinite(v)) return v;
-    if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) return Number(v);
-  }
-  return null;
-}
-
-function walk(node: unknown, visit: (n: unknown) => void, depth = 0): void {
-  if (depth > 12) return;
-  visit(node);
-  if (Array.isArray(node)) {
-    for (const item of node) walk(item, visit, depth + 1);
-  } else if (node && typeof node === "object") {
-    for (const v of Object.values(node as Record<string, unknown>)) walk(v, visit, depth + 1);
-  }
-}
-
-/** Fuzzy match a UDisc name to a roster player. */
-export function matchPlayer(rawName: string, roster: Player[]): Player | null {
+export function matchPlayer(rawName: string, roster: Player[], username?: string): Player | null {
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+  if (username) {
+    const u = norm(username);
+    for (const p of roster) {
+      if (p.udiscHandle && norm(p.udiscHandle) === u) return p;
+    }
+  }
   const target = norm(rawName);
   const targetParts = target.split(" ").filter(Boolean);
 

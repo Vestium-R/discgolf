@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth";
 import {
   deleteRound,
   getRoster,
+  getRounds,
   getSettings,
   insertRound,
   saveSettings,
@@ -15,6 +16,69 @@ import {
 } from "@/lib/store";
 import type { Round, RoundResult } from "@/lib/types";
 import { slug } from "@/lib/slug";
+import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
+
+type CookieToSet = { name: string; value: string; options?: Parameters<Awaited<ReturnType<typeof cookies>>["set"]>[2] };
+
+// ────────────────────────────────
+// Public actions (no auth required)
+// ────────────────────────────────
+
+export async function previewUdiscAction(formData: FormData): Promise<void> {
+  const url = String(formData.get("udiscUrl") ?? "").trim();
+  if (!url) redirect("/add?err=nourl");
+  redirect(`/add?${new URLSearchParams({ udiscUrl: url }).toString()}`);
+}
+
+export async function submitRoundAction(formData: FormData): Promise<void> {
+  const date = String(formData.get("date") ?? "").trim();
+  const source = String(formData.get("source") ?? "manual") as "udisc" | "manual";
+  const udiscUrl = String(formData.get("udiscUrl") ?? "").trim() || undefined;
+  const courseName = String(formData.get("courseName") ?? "").trim() || undefined;
+  const note = String(formData.get("note") ?? "").trim() || undefined;
+  const roundId = String(formData.get("roundId") ?? "").trim() || undefined;
+
+  const [roster, settings, existing] = await Promise.all([getRoster(), getSettings(), getRounds()]);
+
+  const results: RoundResult[] = [];
+  for (const p of roster) {
+    const raw = String(formData.get(`pos_${p.id}`) ?? "").trim();
+    if (!raw) continue;
+    const pos = Number(raw);
+    if (!Number.isFinite(pos) || pos < 1) continue;
+    results.push({ playerId: p.id, position: pos });
+  }
+
+  if (results.length < 2) redirect("/add?err=toofew");
+
+  const season = Number(formData.get("season")) || settings.currentSeason;
+
+  const finalId = roundId ?? `${date}-${Math.random().toString(36).slice(2, 8)}`;
+  if (existing.some((r) => r.id === finalId)) {
+    revalidatePath("/");
+    redirect(`/rounds/${finalId}?dup=1`);
+  }
+
+  const round: Round = {
+    id: finalId,
+    date: date || new Date().toISOString().slice(0, 10),
+    season,
+    source,
+    udiscUrl,
+    courseName,
+    note,
+    results,
+    createdAt: new Date().toISOString(),
+  };
+  await insertRound(round);
+  revalidatePath("/");
+  revalidatePath("/rounds");
+  redirect(`/rounds/${finalId}?new=1`);
+}
+
+// ────────────────────────────────
+// Admin actions (require admin email)
+// ────────────────────────────────
 
 export async function addPlayerAction(formData: FormData): Promise<void> {
   await requireAdmin();
@@ -60,53 +124,6 @@ export async function updateSeasonAction(formData: FormData): Promise<void> {
   revalidatePath("/admin");
 }
 
-export async function previewUdiscAction(formData: FormData): Promise<void> {
-  await requireAdmin();
-  const url = String(formData.get("udiscUrl") ?? "").trim();
-  redirect(`/admin/rounds/new?${new URLSearchParams({ udiscUrl: url }).toString()}`);
-}
-
-export async function submitRoundAction(formData: FormData): Promise<void> {
-  await requireAdmin();
-  const date = String(formData.get("date") ?? "").trim();
-  const source = String(formData.get("source") ?? "manual") as "udisc" | "manual";
-  const udiscUrl = String(formData.get("udiscUrl") ?? "").trim() || undefined;
-  const courseName = String(formData.get("courseName") ?? "").trim() || undefined;
-  const note = String(formData.get("note") ?? "").trim() || undefined;
-
-  const roster = await getRoster();
-  const settings = await getSettings();
-
-  const results: RoundResult[] = [];
-  for (const p of roster) {
-    const raw = String(formData.get(`pos_${p.id}`) ?? "").trim();
-    if (!raw) continue;
-    const pos = Number(raw);
-    if (!Number.isFinite(pos) || pos < 1) continue;
-    results.push({ playerId: p.id, position: pos });
-  }
-
-  if (results.length < 2) redirect("/admin/rounds/new?err=toofew");
-
-  const season = Number(formData.get("season")) || settings.currentSeason;
-  const id = `${date}-${Math.random().toString(36).slice(2, 8)}`;
-  const round: Round = {
-    id,
-    date: date || new Date().toISOString().slice(0, 10),
-    season,
-    source,
-    udiscUrl,
-    courseName,
-    note,
-    results,
-    createdAt: new Date().toISOString(),
-  };
-  await insertRound(round);
-  revalidatePath("/");
-  revalidatePath("/rounds");
-  redirect(`/rounds/${id}`);
-}
-
 export async function deleteRoundAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
@@ -115,8 +132,6 @@ export async function deleteRoundAction(formData: FormData): Promise<void> {
   revalidatePath("/rounds");
   redirect("/rounds");
 }
-
-type CookieToSet = { name: string; value: string; options?: Parameters<Awaited<ReturnType<typeof cookies>>["set"]>[2] };
 
 export async function signOutAction(): Promise<void> {
   const cookieStore = await cookies();
@@ -136,9 +151,28 @@ export async function signOutAction(): Promise<void> {
   redirect("/admin");
 }
 
+// Helpers
+
+export async function udiscRoundIdFromUrl(url: string): Promise<string | null> {
+  const m = url.match(/\/scorecards\/([A-Za-z0-9_-]+)/);
+  return m?.[1] ?? null;
+}
+
 function uniqueId(base: string, taken: string[]): string {
   if (!taken.includes(base)) return base;
   let n = 2;
   while (taken.includes(`${base}-${n}`)) n++;
   return `${base}-${n}`;
+}
+
+// Preview helper (pure) — called by the /add page
+export async function previewForm(url: string) {
+  const roster = await getRoster();
+  const res = await parseUdiscUrl(url);
+  if (!res.ok) return { ok: false as const, warning: res.warning ?? "Could not parse" };
+  const matches = res.entries.map((e) => ({
+    ...e,
+    suggestedPlayerId: matchPlayer(e.rawName, roster, e.username)?.id ?? null,
+  }));
+  return { ok: true as const, result: res, roster, matches };
 }

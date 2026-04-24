@@ -10,10 +10,55 @@
 html, body {
   background: var(--bg);
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
 
 .badge-crown {
-  background: radial-gradient(circle at 30% 30%, #ffd861 0%, #e9b949 55%, #b48423 100%);
+  background: radial-gradient(circle at 30% 30%, #ffe58c 0%, #e9b949 55%, #a67119 100%);
   color: #2a1f05;
-  box-shadow: 0 1px 0 rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.4);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 0 0 1px rgba(166, 113, 25, 0.4);
+}
+
+.badge-crown-glow {
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 0 1px rgba(166, 113, 25, 0.4),
+    0 0 30px rgba(233, 185, 73, 0.5);
+  animation: badge-pulse 3.5s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.hero-gradient {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(233, 185, 73, 0.12), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(78, 124, 84, 0.15), transparent 50%),
+    linear-gradient(135deg, #1f3323 0%, #305036 100%);
+}
+
+.medal-1 { background: linear-gradient(135deg, #ffd861, #b48423); color: #2a1f05; }
+.medal-2 { background: linear-gradient(135deg, #e8e8e8, #9b9b9b); color: #1a1a1a; }
+.medal-3 { background: linear-gradient(135deg, #e3a168, #8b5523); color: #2a1505; }
+
+.card {
+  @apply rounded-2xl border border-forest-100 bg-white shadow-sm;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl bg-forest-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-forest-700 active:scale-[0.98] transition;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-xl border border-forest-300 bg-white px-4 py-2.5 text-sm font-semibold text-forest-700 hover:bg-forest-50 active:scale-[0.98] transition;
+}
+
+.input-pill {
+  @apply w-full rounded-xl border border-forest-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-200;
 }
