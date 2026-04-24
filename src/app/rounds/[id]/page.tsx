@@ -240,9 +240,9 @@ export default async function RoundDetail({
         </table>
       </section>
 
-      {round.udiscUrl && <CourseMap udiscUrl={round.udiscUrl} title={round.courseName} />}
-
       <ShareSummary text={summary} roundId={round.id} />
+
+      {round.udiscUrl && <CourseMap udiscUrl={round.udiscUrl} title={round.courseName} />}
 
       {round.courseName && (
         <section className="card p-4">
