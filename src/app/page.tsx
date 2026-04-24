@@ -46,12 +46,16 @@ export default async function HomePage() {
     .sort((a, b) => b.season - a.season);
 
   // Tightest rivalry: smallest points gap between adjacent ranks in top 3.
-  const top3 = standings.slice(0, 3);
+  // Only meaningful once there's a real field — at least 3 contenders and both
+  // involved have played a few rounds. Otherwise it's just restating the standings.
+  const top3 = standings.slice(0, 3).filter((s) => s.roundsPlayed >= 2);
   let tightest: { lead: typeof top3[0]; chaser: typeof top3[0]; gap: number } | null = null;
-  for (let i = 0; i < top3.length - 1; i++) {
-    const gap = top3[i].points - top3[i + 1].points;
-    if (gap >= 0 && (!tightest || gap < tightest.gap)) {
-      tightest = { lead: top3[i], chaser: top3[i + 1], gap };
+  if (top3.length >= 3) {
+    for (let i = 0; i < top3.length - 1; i++) {
+      const gap = top3[i].points - top3[i + 1].points;
+      if (gap >= 0 && (!tightest || gap < tightest.gap)) {
+        tightest = { lead: top3[i], chaser: top3[i + 1], gap };
+      }
     }
   }
 
