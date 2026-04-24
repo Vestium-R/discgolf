@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-20 border-b border-forest-200 bg-white/80 backdrop-blur">
           <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold text-forest-800">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full badge-crown text-sm">🧥</span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full badge-crown text-sm">🥏</span>
               The Patch
             </Link>
             <nav className="flex gap-1 text-sm overflow-x-auto">

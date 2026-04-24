@@ -1,12 +1,12 @@
 import { ImageResponse } from "next/og";
 
-export const size = { width: 512, height: 512 };
+export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
 const BADGE_URL =
   "https://ih1.redbubble.net/image.4441310192.0640/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.jpg";
 
-export default function Icon() {
+export default function AppleIcon() {
   return new ImageResponse(
     (
       <div
@@ -23,9 +23,9 @@ export default function Icon() {
         {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
         <img
           src={BADGE_URL}
-          width={512}
-          height={512}
-          style={{ objectFit: "cover", borderRadius: 128 }}
+          width={180}
+          height={180}
+          style={{ objectFit: "cover" }}
         />
       </div>
     ),
