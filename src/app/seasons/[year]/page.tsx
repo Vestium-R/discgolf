@@ -42,6 +42,8 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
     ? currentBadgeHolder(rounds, year, initial)
     : rec?.championPlayerId ?? champ?.player.id ?? null;
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
+  const paceLeader = isCurrent ? seasonChampion(standings) : null;
+  const paceLeaderDifferent = paceLeader && paceLeader.player.id !== badgeId;
   const timeline = badgeTimeline(rounds, year, initial).reverse();
   const badgeImage = rec?.badgeImageUrl;
 
@@ -57,26 +59,47 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
         <SeasonPicker seasons={seasons} active={year} />
       </header>
 
-      {(badgeHolder || badgeImage) && (
-        <section className="hero-gradient rounded-3xl p-6 text-white flex items-center gap-5">
-          <BadgeCrown size="lg" glow={isCurrent} imageUrl={badgeImage} />
-          <div className="min-w-0">
-            <div className="text-xs uppercase tracking-widest opacity-80">
-              {isCurrent ? "Currently holds" : "Season champion"}
-            </div>
-            {badgeHolder ? (
-              <Link
-                href={`/players/${badgeHolder.id}`}
-                className="font-display text-3xl font-bold hover:underline"
-              >
-                {badgeHolder.name}
-              </Link>
-            ) : (
-              <div className="font-display text-2xl font-bold opacity-80">TBD</div>
-            )}
-            {rec?.note && <p className="text-xs opacity-75 mt-1 italic">{rec.note}</p>}
-          </div>
-        </section>
+      {(badgeHolder || badgeImage || paceLeader) && (
+        <div className={`grid gap-4 ${isCurrent && paceLeaderDifferent ? "sm:grid-cols-2" : ""}`}>
+          {(badgeHolder || badgeImage) && (
+            <section className="hero-gradient rounded-3xl p-6 text-white flex items-center gap-5">
+              <BadgeCrown size="lg" glow={isCurrent} imageUrl={badgeImage} />
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-widest opacity-80">
+                  {isCurrent ? "🧥 Currently holds" : "👑 Season champion"}
+                </div>
+                {badgeHolder ? (
+                  <Link
+                    href={`/players/${badgeHolder.id}`}
+                    className="font-display text-3xl font-bold hover:underline"
+                  >
+                    {badgeHolder.name}
+                  </Link>
+                ) : (
+                  <div className="font-display text-2xl font-bold opacity-80">TBD</div>
+                )}
+                {rec?.note && <p className="text-xs opacity-75 mt-1 italic">{rec.note}</p>}
+              </div>
+            </section>
+          )}
+          {isCurrent && paceLeader && paceLeaderDifferent && (
+            <section className="rounded-3xl p-6 bg-forest-50 border border-forest-200 flex items-center gap-5">
+              <Avatar playerId={paceLeader.player.id} name={paceLeader.player.name} size="lg" imageUrl={paceLeader.player.udiscAvatarUrl} />
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-widest text-forest-700">🏁 On pace</div>
+                <Link
+                  href={`/players/${paceLeader.player.id}?season=${year}`}
+                  className="font-display text-3xl font-bold text-forest-800 hover:underline block truncate"
+                >
+                  {paceLeader.player.name}
+                </Link>
+                <div className="text-xs text-forest-600 mt-1">
+                  {fmtPoints(paceLeader.points)} pts · {paceLeader.wins} win{paceLeader.wins === 1 ? "" : "s"} · {paceLeader.roundsPlayed} round{paceLeader.roundsPlayed === 1 ? "" : "s"}
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-5">
