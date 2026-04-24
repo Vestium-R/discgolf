@@ -4,22 +4,40 @@ import { prettyDate } from "@/lib/format";
 import { Avatar } from "@/components/Avatar";
 import { BadgeCrown } from "@/components/BadgeCrown";
 
-type CourseStats = {
-  name: string;
+type LayoutStats = {
+  name: string; // the layout label (e.g. "The Demon Layout"), or "Default" if course has no layout suffix
+  fullName: string; // "Course — Layout" as stored on the round
   rounds: number;
-  winners: Map<string, number>; // playerId -> wins at this course
+  winners: Map<string, number>;
   mostRecent: { date: string; roundId: string; winnerId: string } | null;
 };
 
+type CourseGroup = {
+  name: string; // base course name, e.g. "Dieppe DGC"
+  rounds: number;
+  layouts: LayoutStats[];
+};
+
+/**
+ * Rounds carry a combined course identifier like "Dieppe DGC — The Demon Layout".
+ * Split on the em-dash to group all layouts of a course together.
+ */
+function splitCourseName(full: string): { base: string; layout: string | null } {
+  const idx = full.indexOf(" — ");
+  if (idx < 0) return { base: full, layout: null };
+  return { base: full.slice(0, idx), layout: full.slice(idx + 3) };
+}
+
 export default async function CoursesPage() {
   const [roster, rounds] = await Promise.all([getRoster(), getRounds()]);
-  const byName = new Map(roster.map((p) => [p.id, p]));
-  const courses = new Map<string, CourseStats>();
+  const byId = new Map(roster.map((p) => [p.id, p]));
+  const layouts = new Map<string, LayoutStats>();
 
   for (const r of rounds) {
     if (!r.courseName) continue;
-    const stats = courses.get(r.courseName) ?? {
-      name: r.courseName,
+    const stats = layouts.get(r.courseName) ?? {
+      name: splitCourseName(r.courseName).layout ?? "Default layout",
+      fullName: r.courseName,
       rounds: 0,
       winners: new Map(),
       mostRecent: null,
@@ -32,58 +50,78 @@ export default async function CoursesPage() {
         stats.mostRecent = { date: r.date, roundId: r.id, winnerId: winner.playerId };
       }
     }
-    courses.set(r.courseName, stats);
+    layouts.set(r.courseName, stats);
   }
 
-  const list = [...courses.values()].sort((a, b) => b.rounds - a.rounds);
+  const courses = new Map<string, CourseGroup>();
+  for (const l of layouts.values()) {
+    const { base } = splitCourseName(l.fullName);
+    const g = courses.get(base) ?? { name: base, rounds: 0, layouts: [] };
+    g.rounds += l.rounds;
+    g.layouts.push(l);
+    courses.set(base, g);
+  }
+  for (const g of courses.values()) g.layouts.sort((a, b) => b.rounds - a.rounds);
+  const courseList = [...courses.values()].sort((a, b) => b.rounds - a.rounds);
 
   return (
     <div className="space-y-5">
       <header>
         <h2 className="font-display text-2xl font-bold text-forest-800">Courses</h2>
         <p className="text-sm text-forest-600">
-          Where the badge changes hands. Most rounds played, top winners per course.
+          Where the badge changes hands. Most rounds played, top winners per layout.
         </p>
       </header>
 
-      {list.length === 0 && (
+      {courseList.length === 0 && (
         <div className="card p-6 text-center">
           <p className="text-forest-600">No rounds have a course name yet.</p>
         </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {list.map((c) => {
-          const topWinner = [...c.winners.entries()].sort((a, b) => b[1] - a[1])[0];
-          const top = topWinner ? byName.get(topWinner[0]) : null;
-          const recent = c.mostRecent ? byName.get(c.mostRecent.winnerId) : null;
-          return (
-            <div key={c.name} className="card p-4">
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <h3 className="font-display font-bold text-forest-800 text-lg">{c.name}</h3>
-                <span className="text-xs text-forest-600">{c.rounds} round{c.rounds === 1 ? "" : "s"}</span>
-              </div>
-              {top && (
-                <div className="flex items-center gap-2 mb-2">
-                  <BadgeCrown size="xs" />
-                  <Avatar playerId={top.id} name={top.name} size="sm" imageUrl={top.udiscAvatarUrl} />
-                  <span className="text-sm">
-                    <Link href={`/players/${top.id}`} className="font-semibold text-forest-800 hover:underline">{top.name}</Link>
-                    <span className="text-forest-600"> · {topWinner![1]} win{topWinner![1] === 1 ? "" : "s"}</span>
-                  </span>
-                </div>
-              )}
-              {c.mostRecent && recent && (
-                <Link
-                  href={`/rounds/${c.mostRecent.roundId}`}
-                  className="text-xs text-forest-600 hover:underline"
-                >
-                  Last: {prettyDate(c.mostRecent.date)} — {recent.name} won →
-                </Link>
-              )}
+      <div className="space-y-5">
+        {courseList.map((c) => (
+          <section key={c.name} className="space-y-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="font-display text-xl font-bold text-forest-800">{c.name}</h3>
+              <span className="text-xs text-forest-600">
+                {c.rounds} round{c.rounds === 1 ? "" : "s"} · {c.layouts.length} layout{c.layouts.length === 1 ? "" : "s"}
+              </span>
             </div>
-          );
-        })}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {c.layouts.map((l) => {
+                const topWinner = [...l.winners.entries()].sort((a, b) => b[1] - a[1])[0];
+                const top = topWinner ? byId.get(topWinner[0]) : null;
+                const recent = l.mostRecent ? byId.get(l.mostRecent.winnerId) : null;
+                return (
+                  <div key={l.fullName} className="card p-4">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="font-semibold text-forest-800">{l.name}</div>
+                      <span className="text-xs text-forest-600">{l.rounds} round{l.rounds === 1 ? "" : "s"}</span>
+                    </div>
+                    {top && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <BadgeCrown size="xs" />
+                        <Avatar playerId={top.id} name={top.name} size="sm" imageUrl={top.udiscAvatarUrl} />
+                        <span className="text-sm">
+                          <Link href={`/players/${top.id}`} className="font-semibold text-forest-800 hover:underline">
+                            {top.name}
+                          </Link>
+                          <span className="text-forest-600"> · {topWinner![1]} win{topWinner![1] === 1 ? "" : "s"}</span>
+                        </span>
+                      </div>
+                    )}
+                    {l.mostRecent && recent && (
+                      <Link href={`/rounds/${l.mostRecent.roundId}`} className="text-xs text-forest-600 hover:underline">
+                        Last: {prettyDate(l.mostRecent.date)} — {recent.name} won →
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
   );
