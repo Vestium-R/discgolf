@@ -28,9 +28,12 @@ export default async function SeasonsIndex() {
           const rec = history.find((h) => h.season === yr);
           const rs = seasonRounds(rounds, yr);
           const standings = computeStandings(roster, rounds, yr);
-          const liveChamp = yr < settings.currentSeason ? seasonChampion(standings) : null;
-          const championName = rec?.championName ?? liveChamp?.player.name ?? null;
           const isCurrent = yr === settings.currentSeason;
+          // For past seasons: champion from history row, else compute from standings.
+          // For current season: always use the live leader regardless of what history says.
+          const leaderName = isCurrent
+            ? seasonChampion(standings)?.player.name ?? null
+            : rec?.championName ?? seasonChampion(standings)?.player.name ?? null;
           const badgeImage = rec?.badgeImageUrl;
           return (
             <Link
@@ -46,18 +49,20 @@ export default async function SeasonsIndex() {
                     {isCurrent ? " · in progress" : ""}
                   </div>
                 </div>
-                {(badgeImage || championName) && <BadgeCrown size="lg" glow={isCurrent} imageUrl={badgeImage} />}
+                {(badgeImage || leaderName) && <BadgeCrown size="lg" glow={isCurrent} imageUrl={badgeImage} />}
               </div>
-              {championName ? (
+              {leaderName ? (
                 <div className="mt-3">
                   <div className="text-xs uppercase tracking-wide text-forest-600">
                     {isCurrent ? "Leading" : "Champion"}
                   </div>
-                  <div className="font-semibold text-forest-800">{championName}</div>
+                  <div className="font-semibold text-forest-800">{leaderName}</div>
                   {rec?.note && <div className="text-xs text-forest-500 italic mt-0.5">{rec.note}</div>}
                 </div>
-              ) : (
+              ) : rs.length === 0 ? (
                 <p className="mt-3 text-sm text-forest-500">No rounds recorded.</p>
+              ) : (
+                <p className="mt-3 text-sm text-forest-500">Standings forming…</p>
               )}
             </Link>
           );
