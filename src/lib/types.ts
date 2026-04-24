@@ -8,6 +8,8 @@ export type Player = {
 export type RoundResult = {
   playerId: string;
   position: number;
+  score?: number;
+  rating?: number;
 };
 
 export type RoundVariant = "standard" | "chiplocked" | "legends" | "other";
@@ -23,7 +25,7 @@ export type Round = {
   variant: RoundVariant;
   counts: boolean;
   temperatureC?: number;
-  windMph?: number;
+  windKph?: number;
   results: RoundResult[];
   createdAt: string;
 };

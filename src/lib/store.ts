@@ -21,7 +21,8 @@ type RoundRow = {
   temperature_c: number | string | null;
   temperature_f: number | null;
   wind_mph: number | null;
-  results: { playerId: string; position: number }[];
+  wind_kph: number | null;
+  results: { playerId: string; position: number; score?: number; rating?: number }[];
   created_at: string;
 };
 
@@ -48,6 +49,12 @@ function mapRound(r: RoundRow): Round {
   } else if (r.temperature_f != null) {
     tempC = Math.round(((r.temperature_f - 32) * 5) / 9 * 10) / 10;
   }
+  let windKph: number | undefined;
+  if (r.wind_kph != null) {
+    windKph = Number(r.wind_kph);
+  } else if (r.wind_mph != null) {
+    windKph = Math.round(r.wind_mph * 1.60934);
+  }
   return {
     id: r.id,
     date: r.date,
@@ -59,7 +66,7 @@ function mapRound(r: RoundRow): Round {
     variant,
     counts: r.counts ?? true,
     temperatureC: tempC,
-    windMph: r.wind_mph ?? undefined,
+    windKph,
     results: r.results,
     createdAt: r.created_at,
   };
@@ -143,7 +150,7 @@ export async function insertRound(r: Round): Promise<void> {
     variant: r.variant ?? "standard",
     counts: r.counts ?? true,
     temperature_c: r.temperatureC ?? null,
-    wind_mph: r.windMph ?? null,
+    wind_kph: r.windKph ?? null,
     results: r.results,
   });
   if (error) throw error;
@@ -163,10 +170,15 @@ export async function updateRoundCounts(id: string, counts: boolean): Promise<vo
   if (error) throw error;
 }
 
-export async function updateRoundWeather(id: string, temperatureC: number | null, windMph: number | null): Promise<void> {
+export async function updateRoundResults(id: string, results: Round["results"]): Promise<void> {
+  const { error } = await supabaseAdmin().from("rounds").update({ results }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateRoundWeather(id: string, temperatureC: number | null, windKph: number | null): Promise<void> {
   const { error } = await supabaseAdmin()
     .from("rounds")
-    .update({ temperature_c: temperatureC, wind_mph: windMph })
+    .update({ temperature_c: temperatureC, wind_kph: windKph })
     .eq("id", id);
   if (error) throw error;
 }

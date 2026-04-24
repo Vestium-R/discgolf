@@ -13,6 +13,8 @@ export type UdiscParseResult = {
   courseName?: string;
   layoutName?: string;
   date?: string;
+  temperatureC?: number;
+  windKph?: number;
   entries: ParsedEntry[];
   warning?: string;
 };
@@ -51,6 +53,14 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   const layoutName = payload.match(/"layoutName","([^"]+)"/)?.[1];
   const dateMs = payload.match(/"endDate",\["D",(\d+)\]/)?.[1];
   const date = dateMs ? new Date(Number(dateMs)).toISOString().slice(0, 10) : undefined;
+
+  // Weather: UDisc always ships temperature in Kelvin and wind speed in m/s,
+  // regardless of the user's display unit preference.
+  // "temperature",280.21,"humidity",...,"speed",1.54,"direction",...
+  const tempK = Number(payload.match(/"temperature",(-?\d+(?:\.\d+)?)/)?.[1]);
+  const windMps = Number(payload.match(/"wind",\{[^}]+\},"speed",(-?\d+(?:\.\d+)?)/)?.[1]);
+  const temperatureC = Number.isFinite(tempK) ? Math.round((tempK - 273.15) * 10) / 10 : undefined;
+  const windKph = Number.isFinite(windMps) ? Math.round(windMps * 3.6) : undefined;
 
   type Rec = { username: string; name?: string; score?: number; place?: number; toPar?: number };
   const players = new Map<string, Rec>();
@@ -116,7 +126,7 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");
 
   const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;
-  return { ok: true, url, courseName: course, layoutName, date, entries };
+  return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries };
 }
 
 function extractStream(html: string): string | null {

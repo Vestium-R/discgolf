@@ -78,7 +78,7 @@ async function scanSource(
     const results: RoundResult[] = [];
     for (const e of parsed.entries) {
       const p = matchPlayer(e.rawName, roster, e.username);
-      if (p) results.push({ playerId: p.id, position: e.position });
+      if (p) results.push({ playerId: p.id, position: e.position, score: e.score });
     }
     if (results.length < 2) continue; // Require 2+ roster members
 
@@ -91,10 +91,11 @@ async function scanSource(
       courseName: parsed.courseName,
       variant: "standard",
       counts: true,
+      temperatureC: parsed.temperatureC,
+      windKph: parsed.windKph,
       results,
       createdAt: new Date().toISOString(),
     };
-    void round;
     await insertRound(round);
     existing.add(id);
     added += 1;

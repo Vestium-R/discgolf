@@ -13,12 +13,12 @@ import {
   insertRound,
   saveSettings,
   updateRoundCounts,
+  updateRoundResults,
   updateRoundVariant,
   updateRoundWeather,
   upsertPlayer,
 } from "@/lib/store";
 import type { Round, RoundResult, RoundVariant } from "@/lib/types";
-import { fToC } from "@/lib/conditions";
 import { slug } from "@/lib/slug";
 import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 
@@ -42,14 +42,9 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
   const note = String(formData.get("note") ?? "").trim() || undefined;
   const roundId = String(formData.get("roundId") ?? "").trim() || undefined;
   const tempRaw = String(formData.get("temperature") ?? "").trim();
-  const tempUnit = String(formData.get("tempUnit") ?? "C").trim().toUpperCase();
-  const windRaw = String(formData.get("windMph") ?? "").trim();
-  let temperatureC: number | undefined;
-  if (tempRaw && Number.isFinite(Number(tempRaw))) {
-    const n = Number(tempRaw);
-    temperatureC = tempUnit === "F" ? fToC(n) : n;
-  }
-  const windMph = windRaw && Number.isFinite(Number(windRaw)) ? Number(windRaw) : undefined;
+  const windRaw = String(formData.get("windKph") ?? "").trim();
+  const temperatureC = tempRaw && Number.isFinite(Number(tempRaw)) ? Number(tempRaw) : undefined;
+  const windKph = windRaw && Number.isFinite(Number(windRaw)) ? Number(windRaw) : undefined;
 
   const [roster, settings, existing] = await Promise.all([getRoster(), getSettings(), getRounds()]);
 
@@ -59,7 +54,9 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
     if (!raw) continue;
     const pos = Number(raw);
     if (!Number.isFinite(pos) || pos < 1) continue;
-    results.push({ playerId: p.id, position: pos });
+    const scoreRaw = String(formData.get(`score_${p.id}`) ?? "").trim();
+    const score = scoreRaw && Number.isFinite(Number(scoreRaw)) ? Number(scoreRaw) : undefined;
+    results.push({ playerId: p.id, position: pos, score });
   }
 
   if (results.length < 2) redirect("/add?err=toofew");
@@ -83,7 +80,7 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
     variant: "standard",
     counts: true,
     temperatureC,
-    windMph,
+    windKph,
     results,
     createdAt: new Date().toISOString(),
   };
@@ -195,13 +192,12 @@ export async function updateRoundWeatherAction(formData: FormData): Promise<void
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const tempRaw = String(formData.get("temperature") ?? "").trim();
-  const tempUnit = String(formData.get("tempUnit") ?? "C").trim().toUpperCase();
-  const windRaw = String(formData.get("windMph") ?? "").trim();
+  const windRaw = String(formData.get("windKph") ?? "").trim();
   let tempC: number | null = null;
   if (tempRaw !== "") {
     const n = Number(tempRaw);
     if (!Number.isFinite(n)) return;
-    tempC = tempUnit === "F" ? fToC(n) : n;
+    tempC = n;
   }
   const wind = windRaw === "" ? null : Number(windRaw);
   if (wind !== null && !Number.isFinite(wind)) return;
@@ -218,6 +214,80 @@ export async function updateRoundCountsAction(formData: FormData): Promise<void>
   revalidatePath("/");
   revalidatePath("/rounds");
   revalidatePath(`/rounds/${id}`);
+}
+
+/**
+ * Re-parse one round's UDisc scorecard and backfill weather + per-player score.
+ * Positions are NOT changed — we only enrich the existing result rows.
+ */
+async function refetchRoundInternal(round: Round, roster: Awaited<ReturnType<typeof getRoster>>): Promise<"ok" | "no-url" | "parse-fail"> {
+  if (!round.udiscUrl) return "no-url";
+  const parsed = await parseUdiscUrl(round.udiscUrl);
+  if (!parsed.ok) return "parse-fail";
+
+  const scoreByPlayerId = new Map<string, number>();
+  for (const e of parsed.entries) {
+    if (e.score == null) continue;
+    const p = matchPlayer(e.rawName, roster, e.username);
+    if (p) scoreByPlayerId.set(p.id, e.score);
+  }
+  const newResults: RoundResult[] = round.results.map((r) => ({
+    ...r,
+    score: scoreByPlayerId.get(r.playerId) ?? r.score,
+  }));
+
+  const { updateRoundResults, updateRoundWeather } = await import("@/lib/store");
+  await updateRoundResults(round.id, newResults);
+  if (parsed.temperatureC != null || parsed.windKph != null) {
+    await updateRoundWeather(round.id, parsed.temperatureC ?? null, parsed.windKph ?? null);
+  }
+  return "ok";
+}
+
+export async function refetchRoundAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const [roster, rounds] = await Promise.all([getRoster(), getRounds()]);
+  const round = rounds.find((r) => r.id === id);
+  if (!round) redirect(`/rounds/${id}`);
+  await refetchRoundInternal(round!, roster);
+  revalidatePath(`/rounds/${id}`);
+  revalidatePath("/rounds");
+  redirect(`/rounds/${id}?refetched=1`);
+}
+
+export async function backfillAllRoundsAction(): Promise<void> {
+  await requireAdmin();
+  const [roster, rounds] = await Promise.all([getRoster(), getRounds()]);
+  let ok = 0, skipped = 0, failed = 0;
+  for (const r of rounds) {
+    if (!r.udiscUrl) { skipped += 1; continue; }
+    const res = await refetchRoundInternal(r, roster);
+    if (res === "ok") ok += 1;
+    else if (res === "parse-fail") failed += 1;
+    else skipped += 1;
+  }
+  revalidatePath("/rounds");
+  revalidatePath("/admin");
+  redirect(`/admin?ok=backfill:${ok},skipped:${skipped},failed:${failed}`);
+}
+
+export async function updateRoundScoresAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const rounds = await getRounds();
+  const round = rounds.find((r) => r.id === id);
+  if (!round) return;
+  const results: RoundResult[] = round.results.map((r) => {
+    const scoreRaw = String(formData.get(`score_${r.playerId}`) ?? "").trim();
+    const ratingRaw = String(formData.get(`rating_${r.playerId}`) ?? "").trim();
+    const score = scoreRaw === "" ? undefined : Number.isFinite(Number(scoreRaw)) ? Number(scoreRaw) : r.score;
+    const rating = ratingRaw === "" ? undefined : Number.isFinite(Number(ratingRaw)) ? Number(ratingRaw) : r.rating;
+    return { ...r, score, rating };
+  });
+  await updateRoundResults(id, results);
+  revalidatePath(`/rounds/${id}`);
+  revalidatePath("/rounds");
 }
 
 export async function signOutAction(): Promise<void> {

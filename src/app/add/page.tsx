@@ -47,6 +47,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
       const results: RoundResult[] = preview.entries.map((e) => ({
         playerId: suggestions.get(e.rawName)!,
         position: e.position,
+        score: e.score,
       }));
       const date = preview.date ?? new Date().toISOString().slice(0, 10);
       const round: Round = {
@@ -58,10 +59,11 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         courseName: preview.courseName,
         variant: "standard",
         counts: true,
+        temperatureC: preview.temperatureC,
+        windKph: preview.windKph,
         results,
         createdAt: new Date().toISOString(),
       };
-      void round;
       await insertRound(round);
       redirect(`/rounds/${scorecardId}?new=1`);
     }
@@ -70,10 +72,14 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
   const today = new Date().toISOString().slice(0, 10);
   const date = preview?.ok && preview.date ? preview.date : today;
   const defaultPositions: Record<string, number> = {};
+  const defaultScores: Record<string, number> = {};
   if (preview?.ok) {
     for (const e of preview.entries) {
       const pid = suggestions.get(e.rawName);
-      if (pid) defaultPositions[pid] = e.position;
+      if (pid) {
+        defaultPositions[pid] = e.position;
+        if (e.score != null) defaultScores[pid] = e.score;
+      }
     }
   }
   const unmatched = preview?.ok
@@ -178,18 +184,29 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
           {scorecardId && <input type="hidden" name="roundId" value={scorecardId} />}
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm">
-              <span className="block text-forest-700 mb-1">Temp (optional)</span>
-              <div className="flex gap-2">
-                <input name="temperature" type="number" step="0.1" className="input-pill flex-1" placeholder="7" />
-                <select name="tempUnit" defaultValue="C" className="input-pill w-20">
-                  <option value="C">°C</option>
-                  <option value="F">°F</option>
-                </select>
-              </div>
+              <span className="block text-forest-700 mb-1">
+                Temp °C {preview?.ok && preview.temperatureC != null && <span className="text-forest-500">(from UDisc)</span>}
+              </span>
+              <input
+                name="temperature"
+                type="number"
+                step="0.1"
+                defaultValue={preview?.ok && preview.temperatureC != null ? preview.temperatureC : ""}
+                className="input-pill"
+                placeholder="7"
+              />
             </label>
             <label className="text-sm">
-              <span className="block text-forest-700 mb-1">Wind mph (optional)</span>
-              <input name="windMph" type="number" className="input-pill" placeholder="3" />
+              <span className="block text-forest-700 mb-1">
+                Wind km/h {preview?.ok && preview.windKph != null && <span className="text-forest-500">(from UDisc)</span>}
+              </span>
+              <input
+                name="windKph"
+                type="number"
+                defaultValue={preview?.ok && preview.windKph != null ? preview.windKph : ""}
+                className="input-pill"
+                placeholder="5"
+              />
             </label>
           </div>
           <label className="block text-sm">
@@ -205,8 +222,13 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         <section className="card p-4">
           <h3 className="font-display font-bold text-forest-800">Positions</h3>
           <p className="text-sm text-forest-600 mb-3">
-            Enter finishing position for each player who played. Leave blank for non-players. Ties: same number.
+            Enter finishing position and score for each player. Leave blank for non-players. Ties: same position.
           </p>
+          <div className="flex items-center gap-3 text-xs text-forest-500 mb-1 pr-1">
+            <div className="flex-1" />
+            <div className="w-20 text-center">Pos</div>
+            <div className="w-20 text-center">Score</div>
+          </div>
           <ul className="divide-y divide-forest-100">
             {roster.map((p) => (
               <li key={p.id} className="py-2 flex items-center gap-3">
@@ -220,6 +242,14 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
                   min={1}
                   step={1}
                   defaultValue={defaultPositions[p.id] ?? ""}
+                  className="w-20 rounded-lg border border-forest-200 bg-white px-2 py-1.5 text-sm text-center"
+                  placeholder="—"
+                />
+                <input
+                  name={`score_${p.id}`}
+                  type="number"
+                  step={1}
+                  defaultValue={defaultScores[p.id] ?? ""}
                   className="w-20 rounded-lg border border-forest-200 bg-white px-2 py-1.5 text-sm text-center"
                   placeholder="—"
                 />

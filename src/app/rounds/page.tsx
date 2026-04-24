@@ -41,7 +41,7 @@ export default async function RoundsPage({
         {all.map((r, idx) => {
           const winners = winnersOfRound(r).map((id) => byName.get(id) ?? id);
           const isLatest = idx === 0 && season === settings.currentSeason;
-          const cond = rateConditions(r.temperatureC, r.windMph);
+          const cond = rateConditions(r.temperatureC, r.windKph);
           return (
             <li key={r.id}>
               <Link
