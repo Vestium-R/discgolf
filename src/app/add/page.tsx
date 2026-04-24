@@ -61,6 +61,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         results,
         createdAt: new Date().toISOString(),
       };
+      void round;
       await insertRound(round);
       redirect(`/rounds/${scorecardId}?new=1`);
     }
@@ -177,8 +178,14 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
           {scorecardId && <input type="hidden" name="roundId" value={scorecardId} />}
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm">
-              <span className="block text-forest-700 mb-1">Temp °F (optional)</span>
-              <input name="temperatureF" type="number" className="input-pill" placeholder="45" />
+              <span className="block text-forest-700 mb-1">Temp (optional)</span>
+              <div className="flex gap-2">
+                <input name="temperature" type="number" step="0.1" className="input-pill flex-1" placeholder="7" />
+                <select name="tempUnit" defaultValue="C" className="input-pill w-20">
+                  <option value="C">°C</option>
+                  <option value="F">°F</option>
+                </select>
+              </div>
             </label>
             <label className="text-sm">
               <span className="block text-forest-700 mb-1">Wind mph (optional)</span>

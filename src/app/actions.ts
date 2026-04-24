@@ -12,11 +12,13 @@ import {
   getSettings,
   insertRound,
   saveSettings,
+  updateRoundCounts,
   updateRoundVariant,
   updateRoundWeather,
   upsertPlayer,
 } from "@/lib/store";
 import type { Round, RoundResult, RoundVariant } from "@/lib/types";
+import { fToC } from "@/lib/conditions";
 import { slug } from "@/lib/slug";
 import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 
@@ -39,9 +41,14 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
   const courseName = String(formData.get("courseName") ?? "").trim() || undefined;
   const note = String(formData.get("note") ?? "").trim() || undefined;
   const roundId = String(formData.get("roundId") ?? "").trim() || undefined;
-  const tempRaw = String(formData.get("temperatureF") ?? "").trim();
+  const tempRaw = String(formData.get("temperature") ?? "").trim();
+  const tempUnit = String(formData.get("tempUnit") ?? "C").trim().toUpperCase();
   const windRaw = String(formData.get("windMph") ?? "").trim();
-  const temperatureF = tempRaw && Number.isFinite(Number(tempRaw)) ? Number(tempRaw) : undefined;
+  let temperatureC: number | undefined;
+  if (tempRaw && Number.isFinite(Number(tempRaw))) {
+    const n = Number(tempRaw);
+    temperatureC = tempUnit === "F" ? fToC(n) : n;
+  }
   const windMph = windRaw && Number.isFinite(Number(windRaw)) ? Number(windRaw) : undefined;
 
   const [roster, settings, existing] = await Promise.all([getRoster(), getSettings(), getRounds()]);
@@ -75,7 +82,7 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
     note,
     variant: "standard",
     counts: true,
-    temperatureF,
+    temperatureC,
     windMph,
     results,
     createdAt: new Date().toISOString(),
@@ -187,15 +194,30 @@ export async function updateRoundVariantAction(formData: FormData): Promise<void
 export async function updateRoundWeatherAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  const tempRaw = String(formData.get("temperatureF") ?? "").trim();
+  const tempRaw = String(formData.get("temperature") ?? "").trim();
+  const tempUnit = String(formData.get("tempUnit") ?? "C").trim().toUpperCase();
   const windRaw = String(formData.get("windMph") ?? "").trim();
-  const tempF = tempRaw === "" ? null : Number(tempRaw);
+  let tempC: number | null = null;
+  if (tempRaw !== "") {
+    const n = Number(tempRaw);
+    if (!Number.isFinite(n)) return;
+    tempC = tempUnit === "F" ? fToC(n) : n;
+  }
   const wind = windRaw === "" ? null : Number(windRaw);
-  if (tempF !== null && !Number.isFinite(tempF)) return;
   if (wind !== null && !Number.isFinite(wind)) return;
-  await updateRoundWeather(id, tempF, wind);
+  await updateRoundWeather(id, tempC, wind);
   revalidatePath(`/rounds/${id}`);
   revalidatePath("/rounds");
+}
+
+export async function updateRoundCountsAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const counts = formData.get("counts") === "1";
+  await updateRoundCounts(id, counts);
+  revalidatePath("/");
+  revalidatePath("/rounds");
+  revalidatePath(`/rounds/${id}`);
 }
 
 export async function signOutAction(): Promise<void> {

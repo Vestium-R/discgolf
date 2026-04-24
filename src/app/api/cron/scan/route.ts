@@ -94,6 +94,7 @@ async function scanSource(
       results,
       createdAt: new Date().toISOString(),
     };
+    void round;
     await insertRound(round);
     existing.add(id);
     added += 1;

@@ -18,6 +18,7 @@ type RoundRow = {
   note: string | null;
   variant: string | null;
   counts: boolean | null;
+  temperature_c: number | string | null;
   temperature_f: number | null;
   wind_mph: number | null;
   results: { playerId: string; position: number }[];
@@ -41,6 +42,12 @@ function mapPlayer(r: PlayerRow): Player {
 
 function mapRound(r: RoundRow): Round {
   const variant = (r.variant ?? "standard") as RoundVariant;
+  let tempC: number | undefined;
+  if (r.temperature_c != null) {
+    tempC = Number(r.temperature_c);
+  } else if (r.temperature_f != null) {
+    tempC = Math.round(((r.temperature_f - 32) * 5) / 9 * 10) / 10;
+  }
   return {
     id: r.id,
     date: r.date,
@@ -50,8 +57,8 @@ function mapRound(r: RoundRow): Round {
     courseName: r.course_name ?? undefined,
     note: r.note ?? undefined,
     variant,
-    counts: r.counts ?? variant === "standard",
-    temperatureF: r.temperature_f ?? undefined,
+    counts: r.counts ?? true,
+    temperatureC: tempC,
     windMph: r.wind_mph ?? undefined,
     results: r.results,
     createdAt: r.created_at,
@@ -135,7 +142,7 @@ export async function insertRound(r: Round): Promise<void> {
     note: r.note ?? null,
     variant: r.variant ?? "standard",
     counts: r.counts ?? true,
-    temperature_f: r.temperatureF ?? null,
+    temperature_c: r.temperatureC ?? null,
     wind_mph: r.windMph ?? null,
     results: r.results,
   });
@@ -143,18 +150,23 @@ export async function insertRound(r: Round): Promise<void> {
 }
 
 export async function updateRoundVariant(id: string, variant: RoundVariant): Promise<void> {
-  const counts = variant === "standard";
+  // Variants are cosmetic labels now — all rounds count unless explicitly unticked
   const { error } = await supabaseAdmin()
     .from("rounds")
-    .update({ variant, counts })
+    .update({ variant })
     .eq("id", id);
   if (error) throw error;
 }
 
-export async function updateRoundWeather(id: string, temperatureF: number | null, windMph: number | null): Promise<void> {
+export async function updateRoundCounts(id: string, counts: boolean): Promise<void> {
+  const { error } = await supabaseAdmin().from("rounds").update({ counts }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateRoundWeather(id: string, temperatureC: number | null, windMph: number | null): Promise<void> {
   const { error } = await supabaseAdmin()
     .from("rounds")
-    .update({ temperature_f: temperatureF, wind_mph: windMph })
+    .update({ temperature_c: temperatureC, wind_mph: windMph })
     .eq("id", id);
   if (error) throw error;
 }

@@ -22,7 +22,7 @@ export type Round = {
   note?: string;
   variant: RoundVariant;
   counts: boolean;
-  temperatureF?: number;
+  temperatureC?: number;
   windMph?: number;
   results: RoundResult[];
   createdAt: string;

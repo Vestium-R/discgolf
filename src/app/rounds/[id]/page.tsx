@@ -4,7 +4,7 @@ import { getHistory, getRoster, getRounds } from "@/lib/store";
 import { badgeTimeline, pointsForRound } from "@/lib/scoring";
 import { fmtPoints, prettyDate } from "@/lib/format";
 import { isAdmin } from "@/lib/auth";
-import { deleteRoundAction, updateRoundVariantAction, updateRoundWeatherAction } from "@/app/actions";
+import { deleteRoundAction, updateRoundCountsAction, updateRoundVariantAction, updateRoundWeatherAction } from "@/app/actions";
 import { ShareSummary } from "@/components/ShareSummary";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
 import { Avatar } from "@/components/Avatar";
@@ -105,7 +105,7 @@ export default async function RoundDetail({
               )}
             </p>
             {(() => {
-              const rating = rateConditions(round.temperatureF, round.windMph);
+              const rating = rateConditions(round.temperatureC, round.windMph);
               if (!rating) return null;
               return (
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -113,7 +113,7 @@ export default async function RoundDetail({
                     {rating.emoji} {rating.label}
                   </span>
                   <span className="text-xs text-forest-600">
-                    {formatConditions(round.temperatureF, round.windMph)}
+                    {formatConditions(round.temperatureC, round.windMph)}
                   </span>
                 </div>
               );
@@ -188,19 +188,24 @@ export default async function RoundDetail({
             <button className="btn-secondary">Save</button>
           </form>
           <p className="text-xs text-forest-600">
-            Non-standard variants (Chiplocked, Legends, Other) keep the round in history but don&apos;t affect
-            standings or the patch.
+            Variant is a label only — all rounds count by default. Use the checkbox below to exclude a round
+            from standings/patch if you ever need to.
           </p>
           <form action={updateRoundWeatherAction} className="flex flex-wrap items-center gap-2 pt-2 border-t border-forest-100">
             <input type="hidden" name="id" value={round.id} />
             <label className="text-sm text-forest-700">Conditions:</label>
             <input
-              name="temperatureF"
+              name="temperature"
               type="number"
-              defaultValue={round.temperatureF ?? ""}
-              placeholder="°F"
+              step="0.1"
+              defaultValue={round.temperatureC ?? ""}
+              placeholder="temp"
               className="input-pill max-w-[90px]"
             />
+            <select name="tempUnit" defaultValue="C" className="input-pill max-w-[80px]">
+              <option value="C">°C</option>
+              <option value="F">°F</option>
+            </select>
             <input
               name="windMph"
               type="number"
@@ -208,6 +213,14 @@ export default async function RoundDetail({
               placeholder="mph"
               className="input-pill max-w-[90px]"
             />
+            <button className="btn-secondary">Save</button>
+          </form>
+          <form action={updateRoundCountsAction} className="flex flex-wrap items-center gap-2 pt-2 border-t border-forest-100">
+            <input type="hidden" name="id" value={round.id} />
+            <label className="text-sm text-forest-700 inline-flex items-center gap-2">
+              <input type="checkbox" name="counts" value="1" defaultChecked={round.counts !== false} />
+              Counts for standings + patch
+            </label>
             <button className="btn-secondary">Save</button>
           </form>
           <form action={deleteRoundAction}>
