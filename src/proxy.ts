@@ -6,7 +6,7 @@ type CookieToSet = { name: string; value: string; options?: Record<string, unkno
 /**
  * Refreshes Supabase session cookies so server components see fresh auth state.
  */
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   let res = NextResponse.next({ request: req });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
