@@ -272,7 +272,7 @@ export default async function HomePage() {
       {/* WHO'S PLAYED */}
       {playedRoster.length > 0 && (
         <section className="card p-4">
-          <h2 className="font-display font-bold text-forest-800 mb-3">Who&apos;s played</h2>
+          <h2 className="font-display font-bold text-forest-800 mb-3">Who&apos;s played this season</h2>
           <div className="flex flex-wrap gap-2">
             {playedRoster.map((s) => (
               <Link
