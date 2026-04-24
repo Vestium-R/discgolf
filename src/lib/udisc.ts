@@ -159,7 +159,7 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   // bare decimals as bogus coordinates.
   const coords: { lat: number; lng: number }[] = [];
   const seen = new Set<string>();
-  let anchor: { lat: number; lng: number } | null = null;
+  let geoAnchor: { lat: number; lng: number } | null = null;
 
   const tryPair = (a: number, b: number) => {
     let lat: number, lng: number;
@@ -167,12 +167,12 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
     else if (Math.abs(b) <= 90 && Math.abs(a) <= 180) { lat = b; lng = a; }
     else return;
     if (lat === 0 && lng === 0) return;
-    if (anchor && (Math.abs(lat - anchor.lat) > 0.1 || Math.abs(lng - anchor.lng) > 0.1)) return;
+    if (geoAnchor && (Math.abs(lat - geoAnchor.lat) > 0.1 || Math.abs(lng - geoAnchor.lng) > 0.1)) return;
     const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
     if (seen.has(key)) return;
     seen.add(key);
     coords.push({ lat, lng });
-    if (!anchor) anchor = { lat, lng };
+    if (!geoAnchor) geoAnchor = { lat, lng };
   };
 
   // Keyed course-center pair always comes first in the payload — use it as anchor
