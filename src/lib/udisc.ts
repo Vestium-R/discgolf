@@ -150,23 +150,31 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
 
   if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");
 
-  // Hole coordinates. Every hole has "latitude",N,"longitude",N pairs for
-  // both teePad and targetPosition. We just grab every lat/lng pair in the
-  // payload and dedupe — result is the set of tees + baskets for all holes.
+  // Hole coordinates. Turbo-stream encodes lat/lng pairs in two shapes:
+  //   1. Keyed (course center): `"latitude",46.099,"longitude",-64.679`
+  //   2. Compact (per hole): `},46.0987,-64.6781,"teeSign"` — bare floats
+  //      following a closing brace, aligned with the schema's lat/lng slots.
+  // Grab anything that looks like a plausible lat/lng pair and dedupe.
   const coords: { lat: number; lng: number }[] = [];
   const seen = new Set<string>();
-  const coordRe = /"latitude",(-?\d+(?:\.\d+)?),"longitude",(-?\d+(?:\.\d+)?)/g;
-  let coordMatch: RegExpExecArray | null;
-  while ((coordMatch = coordRe.exec(payload)) !== null) {
-    const lat = Number(coordMatch[1]);
-    const lng = Number(coordMatch[2]);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) continue;
+  const pushPair = (a: number, b: number) => {
+    // Figure out which is lat (|x| ≤ 90) vs lng (|x| ≤ 180). If both could be
+    // lat, trust declared order: first is lat.
+    let lat: number, lng: number;
+    if (Math.abs(a) <= 90 && Math.abs(b) <= 180) { lat = a; lng = b; }
+    else if (Math.abs(b) <= 90 && Math.abs(a) <= 180) { lat = b; lng = a; }
+    else return;
+    if (lat === 0 && lng === 0) return;
     const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return;
     seen.add(key);
     coords.push({ lat, lng });
-  }
+  };
+  const keyedRe = /"latitude",(-?\d+(?:\.\d+)?),"longitude",(-?\d+(?:\.\d+)?)/g;
+  for (const m of payload.matchAll(keyedRe)) pushPair(Number(m[1]), Number(m[2]));
+  // Compact pairs: two decimals after a `}` and before another punctuation
+  const compactCoordRe = /\},(-?\d{1,3}\.\d{3,}),(-?\d{1,3}\.\d{3,})/g;
+  for (const m of payload.matchAll(compactCoordRe)) pushPair(Number(m[1]), Number(m[2]));
 
   const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;
   return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries, coords: coords.length ? coords : undefined };
