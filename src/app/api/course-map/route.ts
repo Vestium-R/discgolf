@@ -73,7 +73,10 @@ export async function GET(req: NextRequest) {
     `${overlays}/auto/${WIDTH}x${HEIGHT}@2x?padding=30&access_token=${token}`;
 
   const res = await fetch(imgUrl);
-  if (!res.ok) return new NextResponse(`upstream ${res.status}`, { status: 502 });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    return new NextResponse(`upstream ${res.status}: ${body.slice(0, 200)}`, { status: 502 });
+  }
   const buf = await res.arrayBuffer();
   return new NextResponse(buf, {
     status: 200,
