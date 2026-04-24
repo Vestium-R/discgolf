@@ -221,7 +221,9 @@ export function longestStreak(rounds: Round[], season: number, playerId: string)
 }
 
 /**
- * Consecutive rounds (defends + no-changes) since the current holder took the patch.
+ * Rounds the current holder actually played and kept the patch (defends +
+ * the round they took it on). Rounds the holder sat out don't count — the
+ * patch stays, but that's not "holding" it.
  */
 export function badgeHoldStreak(
   rounds: Round[],
@@ -232,11 +234,10 @@ export function badgeHoldStreak(
   if (events.length === 0) return 0;
   let streak = 0;
   for (let i = events.length - 1; i >= 0; i--) {
-    if (events[i].kind === "first" || events[i].kind === "stolen") {
-      streak += 1;
-      break;
-    }
-    streak += 1;
+    const k = events[i].kind;
+    if (k === "defended") streak += 1;
+    else if (k === "first" || k === "stolen") { streak += 1; break; }
+    // no-change: holder didn't play, doesn't count toward the streak
   }
   return streak;
 }

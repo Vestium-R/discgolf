@@ -66,7 +66,7 @@ export default async function HomePage() {
                     {badgeHolder.name}
                   </Link>
                   <div className="text-xs opacity-85 mt-1">
-                    Held {held} round{held === 1 ? "" : "s"}
+                    {held === 0 ? "Hasn't defended yet" : `Held ${held} round${held === 1 ? "" : "s"}`}
                   </div>
                 </div>
               ) : (
