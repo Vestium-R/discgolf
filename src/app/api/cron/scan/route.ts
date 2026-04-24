@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { getRoster, getRounds, insertRound } from "@/lib/store";
+import { getRoster, getRounds, insertRound, setPlayerAvatarIfMissing } from "@/lib/store";
 import type { Round, RoundResult } from "@/lib/types";
 import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 
@@ -78,7 +78,9 @@ async function scanSource(
     const results: RoundResult[] = [];
     for (const e of parsed.entries) {
       const p = matchPlayer(e.rawName, roster, e.username);
-      if (p) results.push({ playerId: p.id, position: e.position, score: e.score, relativeScore: e.relativeScore });
+      if (!p) continue;
+      results.push({ playerId: p.id, position: e.position, score: e.score, relativeScore: e.relativeScore });
+      if (e.avatarUrl) await setPlayerAvatarIfMissing(p.id, e.avatarUrl);
     }
     if (results.length < 2) continue; // Require 2+ roster members
 

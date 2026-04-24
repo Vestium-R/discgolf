@@ -61,8 +61,12 @@ export default async function PlayerPage({
     .filter((r) => r.opponent && r.rounds > 0)
     .sort((a, b) => b.rounds - a.rounds);
 
-  // Seasons this player has been on the podium
-  const seasonsChamped = history.filter((h) => h.championPlayerId === id);
+  // Only completed seasons count as championships — the current season
+  // isn't over yet, so even if a champion has been provisionally set it
+  // shouldn't show on the profile.
+  const seasonsChamped = history.filter(
+    (h) => h.championPlayerId === id && h.season < settings.currentSeason,
+  );
 
   return (
     <div className="space-y-5">
@@ -73,7 +77,7 @@ export default async function PlayerPage({
 
       <header className="card p-5">
         <div className="flex items-center gap-4">
-          <Avatar playerId={player.id} name={player.name} size="lg" />
+          <Avatar playerId={player.id} name={player.name} size="lg" imageUrl={player.udiscAvatarUrl} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="font-display text-2xl font-bold text-forest-800">{player.name}</h2>
@@ -85,6 +89,11 @@ export default async function PlayerPage({
               {seasonsChamped.length > 0 && (
                 <span className="text-xs font-semibold rounded-full bg-amber-100 text-amber-800 px-2 py-0.5">
                   👑 {seasonsChamped.length}× champion
+                </span>
+              )}
+              {rank === 1 && me && me.roundsPlayed > 0 && season === settings.currentSeason && (
+                <span className="text-xs font-semibold rounded-full bg-forest-100 text-forest-800 px-2 py-0.5">
+                  🏁 Leading {settings.currentSeason}
                 </span>
               )}
             </div>
@@ -165,7 +174,7 @@ export default async function PlayerPage({
               const pct = r.rounds > 0 ? Math.round((r.wins / r.rounds) * 100) : 0;
               return (
                 <li key={r.opponent!.id} className="py-2 flex items-center gap-3">
-                  <Avatar playerId={r.opponent!.id} name={r.opponent!.name} size="sm" />
+                  <Avatar playerId={r.opponent!.id} name={r.opponent!.name} size="sm" imageUrl={r.opponent!.udiscAvatarUrl} />
                   <Link href={`/players/${r.opponent!.id}`} className="flex-1 text-sm text-forest-800 hover:underline truncate">
                     {r.opponent!.name}
                   </Link>

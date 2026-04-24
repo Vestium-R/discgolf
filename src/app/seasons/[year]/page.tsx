@@ -106,7 +106,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
                     </td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Avatar playerId={s.player.id} name={s.player.name} size="sm" />
+                        <Avatar playerId={s.player.id} name={s.player.name} size="sm" imageUrl={s.player.udiscAvatarUrl} />
                         <Link href={`/players/${s.player.id}?season=${year}`} className={`hover:underline truncate ${dim}`}>
                           {s.player.name}
                         </Link>
@@ -135,7 +135,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
                 const holder = roster.find((p) => p.id === t.holderId);
                 return (
                   <li key={t.round.id + i} className="flex items-start gap-3">
-                    <Avatar playerId={t.holderId} name={holder?.name ?? "?"} size="sm" />
+                    <Avatar playerId={t.holderId} name={holder?.name ?? "?"} size="sm" imageUrl={holder?.udiscAvatarUrl} />
                     <Link href={`/rounds/${t.round.id}`} className="flex-1 min-w-0 block group">
                       <div className="text-sm font-semibold text-forest-800 group-hover:underline">
                         {holder?.name ?? t.holderId}

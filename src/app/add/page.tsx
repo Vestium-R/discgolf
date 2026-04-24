@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getRoster, getRounds, getSettings, insertRound } from "@/lib/store";
+import { getRoster, getRounds, getSettings, insertRound, setPlayerAvatarIfMissing } from "@/lib/store";
 import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 import { submitRoundAction } from "@/app/actions";
 import { PasteUdiscBox } from "@/components/PasteUdiscBox";
@@ -50,6 +50,10 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         score: e.score,
         relativeScore: e.relativeScore,
       }));
+      for (const e of preview.entries) {
+        const pid = suggestions.get(e.rawName);
+        if (pid && e.avatarUrl) await setPlayerAvatarIfMissing(pid, e.avatarUrl);
+      }
       const date = preview.date ?? new Date().toISOString().slice(0, 10);
       const round: Round = {
         id: scorecardId,

@@ -160,7 +160,7 @@ export default async function RoundDetail({
                   <td className="py-2 px-3"><MedalBadge position={r.position} /></td>
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      {p && <Avatar playerId={p.id} name={p.name} size="sm" />}
+                      {p && <Avatar playerId={p.id} name={p.name} size="sm" imageUrl={p.udiscAvatarUrl} />}
                       {p ? (
                         <Link href={`/players/${p.id}`} className="hover:underline">{p.name}</Link>
                       ) : (

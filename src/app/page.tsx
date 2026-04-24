@@ -87,7 +87,7 @@ export default async function HomePage() {
             <div className="flex items-center gap-4">
               {leader ? (
                 <>
-                  <Avatar playerId={leader.player.id} name={leader.player.name} size="lg" />
+                  <Avatar playerId={leader.player.id} name={leader.player.name} size="lg" imageUrl={leader.player.udiscAvatarUrl} />
                   <div className="min-w-0">
                     <Link
                       href={`/players/${leader.player.id}`}
@@ -169,7 +169,7 @@ export default async function HomePage() {
                     </td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Avatar playerId={s.player.id} name={s.player.name} size="sm" />
+                        <Avatar playerId={s.player.id} name={s.player.name} size="sm" imageUrl={s.player.udiscAvatarUrl} />
                         <Link href={`/players/${s.player.id}`} className={`hover:underline truncate ${dim}`}>
                           {s.player.name}
                         </Link>
@@ -202,7 +202,7 @@ export default async function HomePage() {
                 const holder = roster.find((p) => p.id === t.holderId);
                 return (
                   <li key={t.round.id + i} className="flex items-start gap-3">
-                    <Avatar playerId={t.holderId} name={holder?.name ?? "?"} size="sm" />
+                    <Avatar playerId={t.holderId} name={holder?.name ?? "?"} size="sm" imageUrl={holder?.udiscAvatarUrl} />
                     <div className="flex-1 min-w-0">
                       <Link href={`/rounds/${t.round.id}`} className="block">
                         <div className="text-sm font-semibold text-forest-800 hover:underline">

@@ -103,7 +103,7 @@ export default async function StatsPage() {
             const form = recentForm(rounds, p.id, 5);
             return (
               <li key={p.id} className="py-2 flex items-center gap-3">
-                <Avatar playerId={p.id} name={p.name} size="sm" />
+                <Avatar playerId={p.id} name={p.name} size="sm" imageUrl={p.udiscAvatarUrl} />
                 <Link href={`/players/${p.id}`} className="flex-1 text-sm text-forest-800 hover:underline truncate">{p.name}</Link>
                 <div className="flex gap-1">
                   {form.length === 0 ? <span className="text-xs text-forest-500">no rounds</span> : form.map((f, i) => (
@@ -160,7 +160,7 @@ function Leaderboard({
   rows,
 }: {
   title: string;
-  rows: { p: { id: string; name: string }; v: number }[];
+  rows: { p: { id: string; name: string; udiscAvatarUrl?: string }; v: number }[];
 }) {
   const max = Math.max(1, ...rows.map((r) => r.v));
   return (
@@ -172,7 +172,7 @@ function Leaderboard({
         ) : (
           rows.map((r) => (
             <li key={r.p.id} className="flex items-center gap-2">
-              <Avatar playerId={r.p.id} name={r.p.name} size="xs" />
+              <Avatar playerId={r.p.id} name={r.p.name} size="xs" imageUrl={r.p.udiscAvatarUrl} />
               <Link href={`/players/${r.p.id}`} className="flex-1 text-sm text-forest-800 hover:underline truncate">
                 {r.p.name}
               </Link>

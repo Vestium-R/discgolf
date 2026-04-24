@@ -76,7 +76,7 @@ export default async function RoundsPage({
                       )}
                     </div>
                     <div className="text-sm text-forest-600">
-                      <span className="font-mono tracking-wide">{playerInitials.join(" ")}</span> · Winner: {winners.join(", ")}
+                      {r.results.length} players (<span className="font-mono tracking-wide">{playerInitials.join(", ")}</span>) · Winner: {winners.join(", ")}
                       {r.counts === false && <span className="ml-1 text-purple-700">· history only</span>}
                     </div>
                   </div>

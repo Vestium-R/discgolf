@@ -6,7 +6,10 @@ export type ParsedEntry = {
   position: number;
   score?: number;
   relativeScore?: number;
+  avatarUrl?: string;
 };
+
+const UDISC_CDN = "https://d22ksth68ujgu2.cloudfront.net/";
 
 export type UdiscParseResult = {
   ok: boolean;
@@ -63,7 +66,7 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   const temperatureC = Number.isFinite(tempK) ? Math.round((tempK - 273.15) * 10) / 10 : undefined;
   const windKph = Number.isFinite(windMps) ? Math.round(windMps * 3.6) : undefined;
 
-  type Rec = { username: string; name?: string; score?: number; place?: number; toPar?: number };
+  type Rec = { username: string; name?: string; score?: number; place?: number; toPar?: number; avatarUrl?: string };
   const players = new Map<string, Rec>();
 
   // Keyed form: "username","X" window has "name","Y" and "totalScore",N nearby
@@ -74,19 +77,24 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
     const win = payload.slice(km.index, km.index + 3000);
     const nameM = win.match(/"name","([^"]+)"/);
     const scoreM = win.match(/"totalScore",(-?\d+)/);
+    // "thumbnailImage","<hash>_T_Player-YYYYMMDD_HHMMSS.jpg","image","<hash>_Player-..."
+    const thumbM = win.match(/"thumbnailImage","([^"]+\.(?:jpg|jpeg|png|webp))"/);
+    const fullM = win.match(/"image","([^"]+\.(?:jpg|jpeg|png|webp))"/);
     const rec: Rec = { username: uname };
     if (nameM) rec.name = nameM[1];
     if (scoreM) rec.score = Number(scoreM[1]);
-    if (rec.name || rec.score != null) players.set(uname, rec);
+    const avatarFile = thumbM?.[1] ?? fullM?.[1];
+    if (avatarFile) rec.avatarUrl = UDISC_CDN + avatarFile;
+    if (rec.name || rec.score != null || rec.avatarUrl) players.set(uname, rec);
   }
 
   // Compact form (permissive image-filename class). Captures:
   //   score, position, relativeScore (to par)
   const compactRe =
-    /"([a-zA-Z0-9_.]{3,40})","([^"]*)","([^"]*)","[^"]+\.(?:jpg|jpeg|png|webp|gif)","[^"]+\.(?:jpg|jpeg|png|webp|gif)",(-?\d+),\["D",\d+\],\["D",\d+\],(\d+),(-?\d+)/g;
+    /"([a-zA-Z0-9_.]{3,40})","([^"]*)","([^"]*)","([^"]+\.(?:jpg|jpeg|png|webp|gif))","([^"]+\.(?:jpg|jpeg|png|webp|gif))",(-?\d+),\["D",\d+\],\["D",\d+\],(\d+),(-?\d+)/g;
   let cm: RegExpExecArray | null;
   while ((cm = compactRe.exec(payload)) !== null) {
-    const [, uname, display, , score, place, toPar] = cm;
+    const [, uname, display, , thumbFile, , score, place, toPar] = cm;
     const cur = players.get(uname) ?? { username: uname };
     players.set(uname, {
       username: uname,
@@ -94,6 +102,7 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
       score: cur.score ?? Number(score),
       place: Number(place),
       toPar: Number(toPar),
+      avatarUrl: cur.avatarUrl ?? (thumbFile ? UDISC_CDN + thumbFile : undefined),
     });
   }
 
@@ -124,6 +133,7 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
       position: p.place as number,
       score: p.score,
       relativeScore: p.toPar,
+      avatarUrl: p.avatarUrl,
     }));
 
   if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");

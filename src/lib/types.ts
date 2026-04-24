@@ -2,6 +2,7 @@ export type Player = {
   id: string;
   name: string;
   udiscHandle?: string;
+  udiscAvatarUrl?: string;
   active: boolean;
 };
 

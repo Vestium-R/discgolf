@@ -66,7 +66,7 @@ export default async function CoursesPage() {
               {top && (
                 <div className="flex items-center gap-2 mb-2">
                   <BadgeCrown size="xs" />
-                  <Avatar playerId={top.id} name={top.name} size="sm" />
+                  <Avatar playerId={top.id} name={top.name} size="sm" imageUrl={top.udiscAvatarUrl} />
                   <span className="text-sm">
                     <Link href={`/players/${top.id}`} className="font-semibold text-forest-800 hover:underline">{top.name}</Link>
                     <span className="text-forest-600"> · {topWinner![1]} win{topWinner![1] === 1 ? "" : "s"}</span>

@@ -5,6 +5,7 @@ type PlayerRow = {
   id: string;
   name: string;
   udisc_handle: string | null;
+  udisc_avatar_url: string | null;
   active: boolean;
 };
 
@@ -38,7 +39,13 @@ type HistoryRow = {
 type SettingsRow = { id: number; current_season: number };
 
 function mapPlayer(r: PlayerRow): Player {
-  return { id: r.id, name: r.name, udiscHandle: r.udisc_handle ?? undefined, active: r.active };
+  return {
+    id: r.id,
+    name: r.name,
+    udiscHandle: r.udisc_handle ?? undefined,
+    udiscAvatarUrl: r.udisc_avatar_url ?? undefined,
+    active: r.active,
+  };
 }
 
 function mapRound(r: RoundRow): Round {
@@ -123,6 +130,7 @@ export async function upsertPlayer(p: Player): Promise<void> {
     id: p.id,
     name: p.name,
     udisc_handle: p.udiscHandle ?? null,
+    udisc_avatar_url: p.udiscAvatarUrl ?? null,
     active: p.active,
   });
   if (error) throw error;
@@ -172,6 +180,15 @@ export async function updateRoundCounts(id: string, counts: boolean): Promise<vo
 
 export async function updateRoundResults(id: string, results: Round["results"]): Promise<void> {
   const { error } = await supabaseAdmin().from("rounds").update({ results }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function setPlayerAvatarIfMissing(playerId: string, avatarUrl: string): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("players")
+    .update({ udisc_avatar_url: avatarUrl })
+    .eq("id", playerId)
+    .is("udisc_avatar_url", null);
   if (error) throw error;
 }
 
