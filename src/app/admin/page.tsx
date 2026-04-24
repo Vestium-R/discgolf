@@ -3,6 +3,7 @@ import { getUser, isAdminEmail } from "@/lib/auth";
 import { getHistory, getRoster, getSettings } from "@/lib/store";
 import {
   addPlayerAction,
+  backfillAllRoundsAction,
   signOutAction,
   togglePlayerActiveAction,
   updatePlayerAction,
@@ -222,6 +223,20 @@ export default async function AdminPage({
           <input name="name" placeholder="New player name" className="flex-1 min-w-[160px] input-pill" />
           <input name="udiscHandle" placeholder="UDisc handle (optional)" className="flex-1 min-w-[140px] input-pill" />
           <button className="btn-primary">Add player</button>
+        </form>
+      </section>
+
+      <section className="card p-4">
+        <h3 className="font-display font-bold text-forest-800">Backfill rounds</h3>
+        <p className="mt-1 text-sm text-forest-600">
+          Re-parse every round that has a UDisc link to pull per-player scores and weather.
+          Positions aren&apos;t changed. Safe to run repeatedly.
+        </p>
+        {ok?.startsWith("backfill") && (
+          <p className="mt-2 text-sm text-forest-800">✓ {ok.replace("backfill:", "").replace(/,/g, " · ")}</p>
+        )}
+        <form action={backfillAllRoundsAction} className="mt-3">
+          <button className="btn-primary">Backfill all UDisc rounds</button>
         </form>
       </section>
 

@@ -4,7 +4,7 @@ import { getHistory, getRoster, getRounds } from "@/lib/store";
 import { badgeTimeline, pointsForRound } from "@/lib/scoring";
 import { fmtPoints, prettyDate } from "@/lib/format";
 import { isAdmin } from "@/lib/auth";
-import { deleteRoundAction, updateRoundCountsAction, updateRoundVariantAction, updateRoundWeatherAction } from "@/app/actions";
+import { deleteRoundAction, refetchRoundAction, updateRoundCountsAction, updateRoundScoresAction, updateRoundVariantAction, updateRoundWeatherAction } from "@/app/actions";
 import { ShareSummary } from "@/components/ShareSummary";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
 import { Avatar } from "@/components/Avatar";
@@ -17,10 +17,10 @@ export default async function RoundDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ new?: string; dup?: string }>;
+  searchParams: Promise<{ new?: string; dup?: string; refetched?: string }>;
 }) {
   const { id } = await params;
-  const { new: isNew, dup } = await searchParams;
+  const { new: isNew, dup, refetched } = await searchParams;
   const [roster, rounds, history, admin] = await Promise.all([
     getRoster(),
     getRounds(),
@@ -63,6 +63,8 @@ export default async function RoundDetail({
       pos: r.position,
       name: byId.get(r.playerId)?.name ?? "?",
       points: pts.get(r.playerId) ?? 0,
+      score: r.score,
+      rating: r.rating,
     })),
   });
 
@@ -80,6 +82,11 @@ export default async function RoundDetail({
       {dup && (
         <div className="card bg-amber-50 border-amber-200 p-3 text-sm text-amber-900">
           Someone already posted this scorecard — no double-counting.
+        </div>
+      )}
+      {refetched && (
+        <div className="card bg-forest-50 border-forest-200 p-3 text-sm text-forest-800">
+          Re-fetched from UDisc — scores &amp; weather updated.
         </div>
       )}
 
@@ -105,7 +112,7 @@ export default async function RoundDetail({
               )}
             </p>
             {(() => {
-              const rating = rateConditions(round.temperatureC, round.windMph);
+              const rating = rateConditions(round.temperatureC, round.windKph);
               if (!rating) return null;
               return (
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -113,7 +120,7 @@ export default async function RoundDetail({
                     {rating.emoji} {rating.label}
                   </span>
                   <span className="text-xs text-forest-600">
-                    {formatConditions(round.temperatureC, round.windMph)}
+                    {formatConditions(round.temperatureC, round.windKph)}
                   </span>
                 </div>
               );
@@ -141,6 +148,8 @@ export default async function RoundDetail({
             <tr>
               <th className="py-2 px-3 text-left w-14">Pos</th>
               <th className="py-2 px-3 text-left">Player</th>
+              <th className="py-2 px-3 text-right">Score</th>
+              <th className="py-2 px-3 text-right">Rating</th>
               <th className="py-2 px-3 text-right">Points</th>
             </tr>
           </thead>
@@ -160,6 +169,8 @@ export default async function RoundDetail({
                       )}
                     </div>
                   </td>
+                  <td className="py-2 px-3 text-right tabular-nums text-forest-700">{r.score ?? "—"}</td>
+                  <td className="py-2 px-3 text-right tabular-nums text-forest-700">{r.rating ?? "—"}</td>
                   <td className="py-2 px-3 text-right font-semibold tabular-nums">{fmtPoints(pts.get(r.playerId) ?? 0)}</td>
                 </tr>
               );
@@ -199,21 +210,46 @@ export default async function RoundDetail({
               type="number"
               step="0.1"
               defaultValue={round.temperatureC ?? ""}
-              placeholder="temp"
+              placeholder="°C"
               className="input-pill max-w-[90px]"
             />
-            <select name="tempUnit" defaultValue="C" className="input-pill max-w-[80px]">
-              <option value="C">°C</option>
-              <option value="F">°F</option>
-            </select>
             <input
-              name="windMph"
+              name="windKph"
               type="number"
-              defaultValue={round.windMph ?? ""}
-              placeholder="mph"
+              defaultValue={round.windKph ?? ""}
+              placeholder="km/h"
               className="input-pill max-w-[90px]"
             />
             <button className="btn-secondary">Save</button>
+          </form>
+          <form action={updateRoundScoresAction} className="space-y-2 pt-2 border-t border-forest-100">
+            <input type="hidden" name="id" value={round.id} />
+            <p className="text-sm text-forest-700">Scores &amp; ratings per player:</p>
+            <ul className="space-y-1">
+              {ordered.map((r) => {
+                const p = byId.get(r.playerId);
+                return (
+                  <li key={r.playerId} className="flex items-center gap-2 text-sm">
+                    <span className="flex-1 truncate text-forest-700">{p?.name ?? r.playerId}</span>
+                    <input
+                      name={`score_${r.playerId}`}
+                      type="number"
+                      defaultValue={r.score ?? ""}
+                      placeholder="score"
+                      className="input-pill max-w-[90px]"
+                    />
+                    <input
+                      name={`rating_${r.playerId}`}
+                      type="number"
+                      defaultValue={r.rating ?? ""}
+                      placeholder="rating"
+                      className="input-pill max-w-[90px]"
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+            <button className="btn-secondary">Save scores</button>
           </form>
           <form action={updateRoundCountsAction} className="flex flex-wrap items-center gap-2 pt-2 border-t border-forest-100">
             <input type="hidden" name="id" value={round.id} />
@@ -223,6 +259,17 @@ export default async function RoundDetail({
             </label>
             <button className="btn-secondary">Save</button>
           </form>
+          {round.udiscUrl && (
+            <form action={refetchRoundAction} className="pt-2 border-t border-forest-100">
+              <input type="hidden" name="id" value={round.id} />
+              <button className="btn-secondary" type="submit">
+                Re-fetch from UDisc
+              </button>
+              <p className="text-xs text-forest-600 mt-1">
+                Pulls current scores &amp; weather from the saved UDisc link. Positions are not changed.
+              </p>
+            </form>
+          )}
           <form action={deleteRoundAction}>
             <input type="hidden" name="id" value={round.id} />
             <button className="text-sm text-red-700 hover:underline" type="submit">
@@ -240,14 +287,18 @@ function buildSummary(r: {
   courseName?: string;
   season: number;
   patchMsg: string;
-  results: { pos: number; name: string; points: number }[];
+  results: { pos: number; name: string; points: number; score?: number; rating?: number }[];
 }): string {
   const medals = ["🥇", "🥈", "🥉"];
   const lines: string[] = [];
   lines.push(`🥏 ${r.date}${r.courseName ? ` @ ${r.courseName}` : ""}`);
   for (const row of r.results) {
     const medal = medals[row.pos - 1] ?? `${row.pos}.`;
-    lines.push(`${medal} ${row.name} (+${fmtPoints(row.points)} pts)`);
+    const extras: string[] = [];
+    if (row.score != null) extras.push(`${row.score}`);
+    if (row.rating != null) extras.push(`${row.rating} rtg`);
+    extras.push(`+${fmtPoints(row.points)} pts`);
+    lines.push(`${medal} ${row.name} (${extras.join(" · ")})`);
   }
   lines.push("");
   lines.push(r.patchMsg);
