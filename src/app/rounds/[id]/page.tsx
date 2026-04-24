@@ -242,6 +242,8 @@ export default async function RoundDetail({
 
       {round.udiscUrl && <CourseMap udiscUrl={round.udiscUrl} title={round.courseName} />}
 
+      <ShareSummary text={summary} roundId={round.id} />
+
       {round.courseName && (
         <section className="card p-4">
           <h3 className="font-display font-bold text-forest-800 mb-2">History at {round.courseName}</h3>
@@ -276,8 +278,6 @@ export default async function RoundDetail({
           </ul>
         </section>
       )}
-
-      <ShareSummary text={summary} roundId={round.id} />
 
       {admin && (
         <section className="card p-4 space-y-3 border-dashed">
