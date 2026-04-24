@@ -104,9 +104,9 @@ export default async function CoursesPage() {
                     href={mapUrlByCourse.get(c.name)}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-forest-600 hover:text-forest-900 hover:underline inline-flex items-center gap-1"
+                    className="inline-flex items-center gap-1 rounded-full bg-forest-700 text-white px-3 py-1 text-xs font-semibold hover:bg-forest-600 transition"
                   >
-                    🗺️ Course map
+                    🗺️ Course map ↗
                   </a>
                 )}
               </div>
