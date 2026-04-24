@@ -68,6 +68,49 @@ export default async function PlayerPage({
     (h) => h.championPlayerId === id && h.season < settings.currentSeason,
   );
 
+  // Personal records across all time.
+  // Best round: lowest relativeScore (most under par). Tiebreak by earliest date.
+  let bestRound: { relativeScore: number; score?: number; roundId: string; date: string; courseName?: string } | null = null;
+  const firstWin: { date: string; roundId: string; courseName?: string } | null = (() => {
+    for (const r of [...rounds].sort((a, b) => a.date.localeCompare(b.date))) {
+      const mine = r.results.find((x) => x.playerId === id);
+      if (mine && mine.position === 1) return { date: r.date, roundId: r.id, courseName: r.courseName };
+    }
+    return null;
+  })();
+  for (const r of rounds) {
+    const mine = r.results.find((x) => x.playerId === id);
+    if (!mine || mine.relativeScore == null) continue;
+    if (bestRound == null || mine.relativeScore < bestRound.relativeScore) {
+      bestRound = {
+        relativeScore: mine.relativeScore,
+        score: mine.score,
+        roundId: r.id,
+        date: r.date,
+        courseName: r.courseName,
+      };
+    }
+  }
+  // Longest win streak at a specific course: contiguous wins at same courseName.
+  const courseStreak: { courseName: string; count: number } | null = (() => {
+    const byCourse = new Map<string, { count: number; current: number }>();
+    for (const r of [...rounds].sort((a, b) => a.date.localeCompare(b.date))) {
+      if (!r.courseName) continue;
+      const mine = r.results.find((x) => x.playerId === id);
+      if (!mine) continue;
+      const entry = byCourse.get(r.courseName) ?? { count: 0, current: 0 };
+      if (mine.position === 1) entry.current += 1;
+      else entry.current = 0;
+      if (entry.current > entry.count) entry.count = entry.current;
+      byCourse.set(r.courseName, entry);
+    }
+    let best: { courseName: string; count: number } | null = null;
+    for (const [c, v] of byCourse) {
+      if (v.count >= 2 && (!best || v.count > best.count)) best = { courseName: c, count: v.count };
+    }
+    return best;
+  })();
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -141,6 +184,40 @@ export default async function PlayerPage({
           </div>
         )}
       </header>
+
+      {(bestRound || firstWin || courseStreak) && (
+        <section className="card p-4">
+          <h3 className="font-display font-bold text-forest-800 mb-3">Personal records</h3>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {bestRound && (
+              <Link href={`/rounds/${bestRound.roundId}`} className="rounded-xl border border-forest-100 bg-forest-50 p-3 hover:border-forest-300 transition">
+                <div className="text-xs uppercase tracking-wide text-forest-600">Best round</div>
+                <div className="text-2xl font-bold tabular-nums text-forest-800">
+                  {bestRound.relativeScore > 0 ? "+" : ""}{bestRound.relativeScore}
+                  {bestRound.score != null && <span className="text-lg text-forest-600"> ({bestRound.score})</span>}
+                </div>
+                <div className="text-xs text-forest-600 truncate">{bestRound.courseName ?? "—"} · {prettyDate(bestRound.date)}</div>
+              </Link>
+            )}
+            {courseStreak && (
+              <div className="rounded-xl border border-forest-100 bg-forest-50 p-3">
+                <div className="text-xs uppercase tracking-wide text-forest-600">Course streak</div>
+                <div className="text-2xl font-bold tabular-nums text-forest-800">
+                  {courseStreak.count} <span className="text-lg text-forest-600">wins</span>
+                </div>
+                <div className="text-xs text-forest-600 truncate">{courseStreak.courseName}</div>
+              </div>
+            )}
+            {firstWin && (
+              <Link href={`/rounds/${firstWin.roundId}`} className="rounded-xl border border-forest-100 bg-forest-50 p-3 hover:border-forest-300 transition">
+                <div className="text-xs uppercase tracking-wide text-forest-600">First win</div>
+                <div className="text-2xl font-bold text-forest-800">🏆</div>
+                <div className="text-xs text-forest-600 truncate">{firstWin.courseName ?? "—"} · {prettyDate(firstWin.date)}</div>
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
 
       <section>
         <h3 className="font-display font-bold text-forest-800 mb-2">Rounds in {season}</h3>

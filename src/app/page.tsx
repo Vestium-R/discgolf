@@ -45,6 +45,16 @@ export default async function HomePage() {
     .filter((h) => h.season < season && h.championName)
     .sort((a, b) => b.season - a.season);
 
+  // Tightest rivalry: smallest points gap between adjacent ranks in top 3.
+  const top3 = standings.slice(0, 3);
+  let tightest: { lead: typeof top3[0]; chaser: typeof top3[0]; gap: number } | null = null;
+  for (let i = 0; i < top3.length - 1; i++) {
+    const gap = top3[i].points - top3[i + 1].points;
+    if (gap >= 0 && (!tightest || gap < tightest.gap)) {
+      tightest = { lead: top3[i], chaser: top3[i + 1], gap };
+    }
+  }
+
   const playedRoster = standings.filter((s) => s.roundsPlayed > 0);
 
   return (
@@ -116,6 +126,21 @@ export default async function HomePage() {
             </p>
           </div>
         </div>
+        {tightest && tightest.chaser.roundsPlayed > 0 && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-2xl">⚔️</span>
+              <div className="min-w-0 text-sm">
+                <span className="font-semibold text-amber-900">{tightest.lead.player.name}</span>
+                <span className="text-amber-800"> leads </span>
+                <span className="font-semibold text-amber-900">{tightest.chaser.player.name}</span>
+                <span className="text-amber-800"> by </span>
+                <span className="font-semibold text-amber-900 tabular-nums">{fmtPoints(tightest.gap)} pt{tightest.gap === 1 ? "" : "s"}</span>
+              </div>
+            </div>
+            <Avatar playerId={tightest.chaser.player.id} name={tightest.chaser.player.name} size="sm" imageUrl={tightest.chaser.player.udiscAvatarUrl} />
+          </div>
+        )}
         {last && (
           <p className="text-xs text-forest-600 text-center">
             Last round:{" "}

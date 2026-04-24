@@ -1,7 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getHistory, getRoster, getRounds } from "@/lib/store";
-import { badgeTimeline, pointsForRound } from "@/lib/scoring";
+import { badgeTimeline, headToHead, pointsForRound } from "@/lib/scoring";
+import { getRounds as _getRoundsForMeta } from "@/lib/store";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const rounds = await _getRoundsForMeta();
+  const round = rounds.find((r) => r.id === id);
+  if (!round) return { title: "Round" };
+  const title = `${round.courseName ?? "UDisc round"} · ${round.date}`;
+  return {
+    title,
+    openGraph: { title, type: "article" },
+  };
+}
 import { fmtPoints, prettyDate } from "@/lib/format";
 import { isAdmin } from "@/lib/auth";
 import { deleteRoundAction, refetchRoundAction, updateRoundCountsAction, updateRoundVariantAction } from "@/app/actions";
@@ -53,6 +67,22 @@ export default async function RoundDetail({
           ? `💤 ${prevHolder?.name ?? "?"} kept the patch — didn't play, ${winnerName} won the round`
           : `🥏 ${holderAfter?.name ?? "?"} takes the patch (no prior holder set)`
     : `${winnerName} won the round`;
+
+  // Head-to-head between top-2 in THIS round, using the full rounds history.
+  const p1 = ordered[0]?.playerId;
+  const p2 = ordered[1]?.playerId;
+  let h2hBanner: { winnerName: string; loserName: string; wins: number; total: number } | null = null;
+  if (p1 && p2 && p1 !== p2) {
+    const h2h = headToHead(rounds, p1).get(p2);
+    if (h2h && h2h.rounds >= 3) {
+      h2hBanner = {
+        winnerName: byId.get(p1)?.name ?? "?",
+        loserName: byId.get(p2)?.name ?? "?",
+        wins: h2h.wins,
+        total: h2h.rounds,
+      };
+    }
+  }
 
   const summary = buildSummary({
     date: round.date,
@@ -141,6 +171,15 @@ export default async function RoundDetail({
           </a>
         )}
       </header>
+
+      {h2hBanner && (
+        <div className="rounded-2xl border border-forest-200 bg-white px-4 py-2 text-sm text-forest-700 flex items-center gap-2">
+          <span>📊</span>
+          <span>
+            <strong>{h2hBanner.winnerName}</strong> has beaten <strong>{h2hBanner.loserName}</strong> in <strong>{h2hBanner.wins} of their last {h2hBanner.total}</strong> rounds.
+          </span>
+        </div>
+      )}
 
       <section className="card overflow-hidden">
         <table className="w-full text-sm">

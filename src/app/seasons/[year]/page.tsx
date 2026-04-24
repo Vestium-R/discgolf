@@ -20,10 +20,17 @@ import { Avatar } from "@/components/Avatar";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { fmtPoints, prettyDate } from "@/lib/format";
 
-export default async function SeasonPage({ params }: { params: Promise<{ year: string }> }) {
+export default async function SeasonPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ year: string }>;
+  searchParams: Promise<{ layout?: string }>;
+}) {
   const { year: yearStr } = await params;
   const year = Number(yearStr);
   if (!Number.isFinite(year)) notFound();
+  const { layout: layoutFilter } = await searchParams;
 
   const [roster, rounds, settings, history] = await Promise.all([
     getRoster(),
@@ -32,23 +39,28 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
     getHistory(),
   ]);
   const seasons = availableSeasons(rounds, settings.currentSeason, history.map((h) => h.season));
-  const rs = seasonRounds(rounds, year);
+  const rsAll = seasonRounds(rounds, year);
+  const courseOptions = [...new Set(rsAll.map((r) => r.courseName).filter((x): x is string => !!x))].sort();
+  const filteredRounds = layoutFilter
+    ? rounds.filter((r) => r.courseName === layoutFilter)
+    : rounds;
+  const rs = seasonRounds(filteredRounds, year);
   // Past seasons: show everyone who played. Current season: filter to active or already-played
   // so retired names don't clutter an in-progress standings board.
-  const standings = computeStandings(roster, rounds, year).filter(
-    (s) => s.roundsPlayed > 0 || (year === settings.currentSeason && s.player.active),
+  const standings = computeStandings(roster, filteredRounds, year).filter(
+    (s) => s.roundsPlayed > 0 || (year === settings.currentSeason && s.player.active && !layoutFilter),
   );
   const isCurrent = year === settings.currentSeason;
   const rec = history.find((h) => h.season === year);
   const initial = rec?.initialBadgeHolderPlayerId ?? null;
   const champ = isCurrent ? null : seasonChampion(standings);
   const badgeId = isCurrent
-    ? currentBadgeHolder(rounds, year, initial)
+    ? currentBadgeHolder(filteredRounds, year, initial)
     : rec?.championPlayerId ?? champ?.player.id ?? null;
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
   const paceLeader = isCurrent ? seasonChampion(standings) : null;
   const paceLeaderDifferent = paceLeader && paceLeader.player.id !== badgeId;
-  const timeline = badgeTimeline(rounds, year, initial).reverse();
+  const timeline = badgeTimeline(filteredRounds, year, initial).reverse();
   const badgeImage = rec?.badgeImageUrl;
 
   return (
@@ -62,6 +74,27 @@ export default async function SeasonPage({ params }: { params: Promise<{ year: s
         </div>
         <SeasonPicker seasons={seasons} active={year} />
       </header>
+
+      {courseOptions.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-forest-600">Layout:</span>
+          <Link
+            href={`/seasons/${year}`}
+            className={`rounded-full px-3 py-1 ${!layoutFilter ? "bg-forest-700 text-white" : "bg-forest-50 text-forest-700 hover:bg-forest-100"}`}
+          >
+            All
+          </Link>
+          {courseOptions.map((c) => (
+            <Link
+              key={c}
+              href={`/seasons/${year}?layout=${encodeURIComponent(c)}`}
+              className={`rounded-full px-3 py-1 ${layoutFilter === c ? "bg-forest-700 text-white" : "bg-forest-50 text-forest-700 hover:bg-forest-100"}`}
+            >
+              {c}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {(badgeHolder || badgeImage || paceLeader) && (
         <div className={`grid gap-4 ${isCurrent && paceLeaderDifferent ? "sm:grid-cols-2" : ""}`}>
