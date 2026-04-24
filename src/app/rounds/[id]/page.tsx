@@ -74,7 +74,7 @@ export default async function RoundDetail({
   let h2hBanner: { winnerName: string; loserName: string; wins: number; total: number } | null = null;
   if (p1 && p2 && p1 !== p2) {
     const h2h = headToHead(rounds, p1).get(p2);
-    if (h2h && h2h.rounds >= 3) {
+    if (h2h && h2h.rounds >= 2) {
       h2hBanner = {
         winnerName: byId.get(p1)?.name ?? "?",
         loserName: byId.get(p2)?.name ?? "?",
