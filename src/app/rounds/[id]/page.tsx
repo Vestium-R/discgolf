@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getHistory, getRoster, getRounds } from "@/lib/store";
-import { pointsForRound } from "@/lib/scoring";
-import { fmtPoints, prettyDate, ordinal } from "@/lib/format";
+import { badgeTimeline, pointsForRound } from "@/lib/scoring";
+import { fmtPoints, prettyDate } from "@/lib/format";
 import { isAdmin } from "@/lib/auth";
 import { deleteRoundAction } from "@/app/actions";
 import { ShareSummary } from "@/components/ShareSummary";
@@ -27,7 +27,9 @@ export default async function RoundDetail({
   ]);
   const round = rounds.find((r) => r.id === id);
   if (!round) notFound();
-  const badgeImage = history.find((h) => h.season === round.season)?.badgeImageUrl;
+  const seasonRec = history.find((h) => h.season === round.season);
+  const badgeImage = seasonRec?.badgeImageUrl;
+  const initialHolder = seasonRec?.initialBadgeHolderPlayerId ?? null;
 
   const byId = new Map(roster.map((p) => [p.id, p]));
   const pts = pointsForRound(round);
@@ -35,10 +37,26 @@ export default async function RoundDetail({
   const winner = byId.get(ordered[0]?.playerId ?? "");
   const winnerName = winner?.name ?? "Unknown";
 
+  // Figure out what actually happened to the patch in THIS round
+  const events = badgeTimeline(rounds, round.season, initialHolder);
+  const thisEvent = events.find((e) => e.round.id === round.id);
+  const prevHolder = thisEvent?.prevHolderId ? byId.get(thisEvent.prevHolderId) : null;
+  const holderAfter = thisEvent ? byId.get(thisEvent.holderId) : null;
+  const patchMsg = thisEvent
+    ? thisEvent.kind === "stolen"
+      ? `🗡 ${holderAfter?.name ?? "?"} stole the patch from ${prevHolder?.name ?? "?"}`
+      : thisEvent.kind === "defended"
+        ? `🛡 ${holderAfter?.name ?? "?"} defended the patch`
+        : thisEvent.kind === "no-change"
+          ? `💤 ${prevHolder?.name ?? "?"} kept the patch — didn't play, ${winnerName} won the round`
+          : `🥏 ${holderAfter?.name ?? "?"} claims the first patch of the season`
+    : `${winnerName} won the round`;
+
   const summary = buildSummary({
     date: round.date,
     courseName: round.courseName,
     season: round.season,
+    patchMsg,
     results: ordered.map((r) => ({
       pos: r.position,
       name: byId.get(r.playerId)?.name ?? "?",
@@ -54,7 +72,7 @@ export default async function RoundDetail({
 
       {isNew && (
         <div className="card bg-forest-50 border-forest-200 p-3 text-sm text-forest-800">
-          🧥 The patch now rides with <strong>{winnerName}</strong>.
+          {patchMsg}.
         </div>
       )}
       {dup && (
@@ -142,6 +160,7 @@ function buildSummary(r: {
   date: string;
   courseName?: string;
   season: number;
+  patchMsg: string;
   results: { pos: number; name: string; points: number }[];
 }): string {
   const medals = ["🥇", "🥈", "🥉"];
@@ -152,6 +171,6 @@ function buildSummary(r: {
     lines.push(`${medal} ${row.name} (+${fmtPoints(row.points)} pts)`);
   }
   lines.push("");
-  lines.push("🧥 Patch moves → full standings on the site.");
+  lines.push(r.patchMsg);
   return lines.join("\n");
 }
