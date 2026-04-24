@@ -252,9 +252,58 @@ export function courseLeaders(
       out.set(r.courseName, { playerId: winner.playerId, roundId: r.id, date: r.date, rounds: 1 });
     } else {
       existing.rounds += 1;
-      // Keep the earliest record as the "holder" — most recent wins don't overwrite
       out.set(r.courseName, existing);
     }
   }
   return out;
+}
+
+/** Per-player "patch thefts" (rounds where they won and a different player was the prior holder). */
+export function patchThefts(rounds: Round[], season?: number): Map<string, number> {
+  const rs = season != null ? seasonRounds(rounds, season) : [...rounds].sort((a, b) => a.date.localeCompare(b.date));
+  const out = new Map<string, number>();
+  let prev: string | null = null;
+  for (const r of rs) {
+    const w = r.results.find((x) => x.position === 1)?.playerId;
+    if (!w) continue;
+    if (prev && w !== prev) out.set(w, (out.get(w) ?? 0) + 1);
+    prev = w;
+  }
+  return out;
+}
+
+/** Longest back-to-back wins streak any player has ever had in a season. */
+export function allTimeLongestStreak(rounds: Round[], playerId: string): number {
+  const seasons = new Set(rounds.map((r) => r.season));
+  let best = 0;
+  for (const s of seasons) {
+    const l = longestStreak(rounds, s, playerId);
+    if (l > best) best = l;
+  }
+  return best;
+}
+
+/** Rounds grouped by YYYY-MM for activity charts. */
+export function roundsByMonth(rounds: Round[]): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const r of rounds) {
+    const ym = r.date.slice(0, 7);
+    out.set(ym, (out.get(ym) ?? 0) + 1);
+  }
+  return new Map([...out.entries()].sort((a, b) => a[0].localeCompare(b[0])));
+}
+
+/** "Last 5" form per player across all rounds, as ordered list of (W|T|L). */
+export function recentForm(rounds: Round[], playerId: string, n = 5): ("W" | "T" | "L")[] {
+  const rs = [...rounds]
+    .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))
+    .filter((r) => r.results.some((x) => x.playerId === playerId))
+    .slice(-n);
+  return rs.map((r) => {
+    const me = r.results.find((x) => x.playerId === playerId)!;
+    const tiedFirst = r.results.filter((x) => x.position === 1).length > 1;
+    if (me.position === 1 && tiedFirst) return "T";
+    if (me.position === 1) return "W";
+    return "L";
+  });
 }

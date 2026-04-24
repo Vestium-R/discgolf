@@ -28,9 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="flex gap-1 text-sm overflow-x-auto">
               <NavLink href="/">Home</NavLink>
               <NavLink href="/rounds">Rounds</NavLink>
+              <NavLink href="/stats">Stats</NavLink>
               <NavLink href="/seasons">Seasons</NavLink>
               <NavLink href="/courses">Courses</NavLink>
               <NavLink href="/rules">Rules</NavLink>
+              <NavLink href="/setup">Setup</NavLink>
               <NavLink href="/admin">⚙</NavLink>
             </nav>
           </div>

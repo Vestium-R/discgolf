@@ -1,28 +1,66 @@
 import Link from "next/link";
-import { getRoster, getSettings } from "@/lib/store";
+import { redirect } from "next/navigation";
+import { getRoster, getRounds, getSettings, insertRound } from "@/lib/store";
 import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 import { submitRoundAction } from "@/app/actions";
 import { PasteUdiscBox } from "@/components/PasteUdiscBox";
+import type { Round, RoundResult } from "@/lib/types";
 
 type Params = {
   udiscUrl?: string;
   err?: string;
+  auto?: string;
+  text?: string; // shared via Android Web Share Target
 };
 
 export default async function AddPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
+  // Android Web Share Target may pass the URL in `text` instead of `udiscUrl`
+  const sharedText = params.text ?? "";
+  const sharedMatch = sharedText.match(/https?:\/\/udisc\.com\/scorecards\/[A-Za-z0-9_-]+[^\s]*/);
+  const udiscUrl = (params.udiscUrl ?? sharedMatch?.[0] ?? "").trim();
+  const auto = params.auto === "1" || !!sharedMatch;
+
   const [roster, settings] = await Promise.all([getRoster(), getSettings()]);
 
   let preview: Awaited<ReturnType<typeof parseUdiscUrl>> | null = null;
   const suggestions = new Map<string, string | null>();
   let scorecardId: string | null = null;
-  if (params.udiscUrl) {
-    preview = await parseUdiscUrl(params.udiscUrl);
-    scorecardId = params.udiscUrl.match(/\/scorecards\/([A-Za-z0-9_-]+)/)?.[1] ?? null;
+  if (udiscUrl) {
+    preview = await parseUdiscUrl(udiscUrl);
+    scorecardId = udiscUrl.match(/\/scorecards\/([A-Za-z0-9_-]+)/)?.[1] ?? null;
     if (preview.ok) {
       for (const e of preview.entries) {
         suggestions.set(e.rawName, matchPlayer(e.rawName, roster, e.username)?.id ?? null);
       }
+    }
+  }
+
+  // AUTO-SUBMIT: if ?auto=1 or shared-from-UDisc, and the parse is clean + all players matched + not a dup, just save
+  if (auto && preview?.ok && scorecardId) {
+    const rounds = await getRounds();
+    if (rounds.some((r) => r.id === scorecardId)) {
+      redirect(`/rounds/${scorecardId}?dup=1`);
+    }
+    const allMatched = preview.entries.every((e) => suggestions.get(e.rawName));
+    if (allMatched) {
+      const results: RoundResult[] = preview.entries.map((e) => ({
+        playerId: suggestions.get(e.rawName)!,
+        position: e.position,
+      }));
+      const date = preview.date ?? new Date().toISOString().slice(0, 10);
+      const round: Round = {
+        id: scorecardId,
+        date,
+        season: Number(date.slice(0, 4)) || settings.currentSeason,
+        source: "udisc",
+        udiscUrl,
+        courseName: preview.courseName,
+        results,
+        createdAt: new Date().toISOString(),
+      };
+      await insertRound(round);
+      redirect(`/rounds/${scorecardId}?new=1`);
     }
   }
 
@@ -132,8 +170,8 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
               />
             </label>
           </div>
-          <input type="hidden" name="udiscUrl" value={params.udiscUrl ?? ""} />
-          <input type="hidden" name="source" value={params.udiscUrl ? "udisc" : "manual"} />
+          <input type="hidden" name="udiscUrl" value={udiscUrl} />
+          <input type="hidden" name="source" value={udiscUrl ? "udisc" : "manual"} />
           {scorecardId && <input type="hidden" name="roundId" value={scorecardId} />}
           <label className="block text-sm">
             <span className="block text-forest-700 mb-1">Note (optional)</span>
