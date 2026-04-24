@@ -22,7 +22,7 @@ type RoundRow = {
   temperature_f: number | null;
   wind_mph: number | null;
   wind_kph: number | null;
-  results: { playerId: string; position: number; score?: number; rating?: number }[];
+  results: { playerId: string; position: number; score?: number; relativeScore?: number; rating?: number }[];
   created_at: string;
 };
 

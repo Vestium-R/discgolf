@@ -5,6 +5,7 @@ export type ParsedEntry = {
   username?: string;
   position: number;
   score?: number;
+  relativeScore?: number;
 };
 
 export type UdiscParseResult = {
@@ -79,7 +80,8 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
     if (rec.name || rec.score != null) players.set(uname, rec);
   }
 
-  // Compact form (permissive image-filename class)
+  // Compact form (permissive image-filename class). Captures:
+  //   score, position, relativeScore (to par)
   const compactRe =
     /"([a-zA-Z0-9_.]{3,40})","([^"]*)","([^"]*)","[^"]+\.(?:jpg|jpeg|png|webp|gif)","[^"]+\.(?:jpg|jpeg|png|webp|gif)",(-?\d+),\["D",\d+\],\["D",\d+\],(\d+),(-?\d+)/g;
   let cm: RegExpExecArray | null;
@@ -121,6 +123,7 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
       username: p.username,
       position: p.place as number,
       score: p.score,
+      relativeScore: p.toPar,
     }));
 
   if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");

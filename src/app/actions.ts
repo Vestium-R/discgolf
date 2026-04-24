@@ -217,30 +217,32 @@ export async function updateRoundCountsAction(formData: FormData): Promise<void>
 }
 
 /**
- * Re-parse one round's UDisc scorecard and backfill weather + per-player score.
- * Positions are NOT changed — we only enrich the existing result rows.
+ * Re-parse one round's UDisc scorecard and fully rebuild it: positions,
+ * players, score, relativeScore, and weather all come from the fresh parse.
+ * Round id, date, season, variant, counts, and note are preserved.
+ * Players not matched to roster are dropped (same policy as initial submit).
  */
 async function refetchRoundInternal(round: Round, roster: Awaited<ReturnType<typeof getRoster>>): Promise<"ok" | "no-url" | "parse-fail"> {
   if (!round.udiscUrl) return "no-url";
   const parsed = await parseUdiscUrl(round.udiscUrl);
   if (!parsed.ok) return "parse-fail";
 
-  const scoreByPlayerId = new Map<string, number>();
+  const newResults: RoundResult[] = [];
   for (const e of parsed.entries) {
-    if (e.score == null) continue;
     const p = matchPlayer(e.rawName, roster, e.username);
-    if (p) scoreByPlayerId.set(p.id, e.score);
+    if (!p) continue;
+    newResults.push({
+      playerId: p.id,
+      position: e.position,
+      score: e.score,
+      relativeScore: e.relativeScore,
+    });
   }
-  const newResults: RoundResult[] = round.results.map((r) => ({
-    ...r,
-    score: scoreByPlayerId.get(r.playerId) ?? r.score,
-  }));
+  if (newResults.length < 2) return "parse-fail";
 
   const { updateRoundResults, updateRoundWeather } = await import("@/lib/store");
   await updateRoundResults(round.id, newResults);
-  if (parsed.temperatureC != null || parsed.windKph != null) {
-    await updateRoundWeather(round.id, parsed.temperatureC ?? null, parsed.windKph ?? null);
-  }
+  await updateRoundWeather(round.id, parsed.temperatureC ?? null, parsed.windKph ?? null);
   return "ok";
 }
 

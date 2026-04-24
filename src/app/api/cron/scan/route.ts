@@ -78,7 +78,7 @@ async function scanSource(
     const results: RoundResult[] = [];
     for (const e of parsed.entries) {
       const p = matchPlayer(e.rawName, roster, e.username);
-      if (p) results.push({ playerId: p.id, position: e.position, score: e.score });
+      if (p) results.push({ playerId: p.id, position: e.position, score: e.score, relativeScore: e.relativeScore });
     }
     if (results.length < 2) continue; // Require 2+ roster members
 

@@ -9,6 +9,7 @@ export type RoundResult = {
   playerId: string;
   position: number;
   score?: number;
+  relativeScore?: number;
   rating?: number;
 };
 

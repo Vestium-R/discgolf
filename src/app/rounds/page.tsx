@@ -42,6 +42,15 @@ export default async function RoundsPage({
           const winners = winnersOfRound(r).map((id) => byName.get(id) ?? id);
           const isLatest = idx === 0 && season === settings.currentSeason;
           const cond = rateConditions(r.temperatureC, r.windKph);
+          const playerInitials = [...r.results]
+            .sort((a, b) => a.position - b.position)
+            .map((x) => {
+              const name = byName.get(x.playerId) ?? "?";
+              const parts = name.split(/\s+/).filter(Boolean);
+              return parts.length >= 2
+                ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+                : parts[0]?.slice(0, 2).toUpperCase() ?? "?";
+            });
           return (
             <li key={r.id}>
               <Link
@@ -67,7 +76,7 @@ export default async function RoundsPage({
                       )}
                     </div>
                     <div className="text-sm text-forest-600">
-                      {r.results.length} players · Winner: {winners.join(", ")}
+                      <span className="font-mono tracking-wide">{playerInitials.join(" ")}</span> · Winner: {winners.join(", ")}
                       {r.counts === false && <span className="ml-1 text-purple-700">· history only</span>}
                     </div>
                   </div>

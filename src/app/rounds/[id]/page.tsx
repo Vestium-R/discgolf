@@ -4,7 +4,7 @@ import { getHistory, getRoster, getRounds } from "@/lib/store";
 import { badgeTimeline, pointsForRound } from "@/lib/scoring";
 import { fmtPoints, prettyDate } from "@/lib/format";
 import { isAdmin } from "@/lib/auth";
-import { deleteRoundAction, refetchRoundAction, updateRoundCountsAction, updateRoundScoresAction, updateRoundVariantAction, updateRoundWeatherAction } from "@/app/actions";
+import { deleteRoundAction, refetchRoundAction, updateRoundCountsAction, updateRoundVariantAction } from "@/app/actions";
 import { ShareSummary } from "@/components/ShareSummary";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
 import { Avatar } from "@/components/Avatar";
@@ -64,7 +64,7 @@ export default async function RoundDetail({
       name: byId.get(r.playerId)?.name ?? "?",
       points: pts.get(r.playerId) ?? 0,
       score: r.score,
-      rating: r.rating,
+      relativeScore: r.relativeScore,
     })),
   });
 
@@ -149,7 +149,6 @@ export default async function RoundDetail({
               <th className="py-2 px-3 text-left w-14">Pos</th>
               <th className="py-2 px-3 text-left">Player</th>
               <th className="py-2 px-3 text-right">Score</th>
-              <th className="py-2 px-3 text-right">Rating</th>
               <th className="py-2 px-3 text-right">Points</th>
             </tr>
           </thead>
@@ -169,8 +168,11 @@ export default async function RoundDetail({
                       )}
                     </div>
                   </td>
-                  <td className="py-2 px-3 text-right tabular-nums text-forest-700">{r.score ?? "—"}</td>
-                  <td className="py-2 px-3 text-right tabular-nums text-forest-700">{r.rating ?? "—"}</td>
+                  <td className="py-2 px-3 text-right tabular-nums text-forest-700">
+                    {r.relativeScore != null
+                      ? `${r.relativeScore > 0 ? "+" : ""}${r.relativeScore}${r.score != null ? ` (${r.score})` : ""}`
+                      : r.score ?? "—"}
+                  </td>
                   <td className="py-2 px-3 text-right font-semibold tabular-nums">{fmtPoints(pts.get(r.playerId) ?? 0)}</td>
                 </tr>
               );
@@ -202,55 +204,6 @@ export default async function RoundDetail({
             Variant is a label only — all rounds count by default. Use the checkbox below to exclude a round
             from standings/patch if you ever need to.
           </p>
-          <form action={updateRoundWeatherAction} className="flex flex-wrap items-center gap-2 pt-2 border-t border-forest-100">
-            <input type="hidden" name="id" value={round.id} />
-            <label className="text-sm text-forest-700">Conditions:</label>
-            <input
-              name="temperature"
-              type="number"
-              step="0.1"
-              defaultValue={round.temperatureC ?? ""}
-              placeholder="°C"
-              className="input-pill max-w-[90px]"
-            />
-            <input
-              name="windKph"
-              type="number"
-              defaultValue={round.windKph ?? ""}
-              placeholder="km/h"
-              className="input-pill max-w-[90px]"
-            />
-            <button className="btn-secondary">Save</button>
-          </form>
-          <form action={updateRoundScoresAction} className="space-y-2 pt-2 border-t border-forest-100">
-            <input type="hidden" name="id" value={round.id} />
-            <p className="text-sm text-forest-700">Scores &amp; ratings per player:</p>
-            <ul className="space-y-1">
-              {ordered.map((r) => {
-                const p = byId.get(r.playerId);
-                return (
-                  <li key={r.playerId} className="flex items-center gap-2 text-sm">
-                    <span className="flex-1 truncate text-forest-700">{p?.name ?? r.playerId}</span>
-                    <input
-                      name={`score_${r.playerId}`}
-                      type="number"
-                      defaultValue={r.score ?? ""}
-                      placeholder="score"
-                      className="input-pill max-w-[90px]"
-                    />
-                    <input
-                      name={`rating_${r.playerId}`}
-                      type="number"
-                      defaultValue={r.rating ?? ""}
-                      placeholder="rating"
-                      className="input-pill max-w-[90px]"
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-            <button className="btn-secondary">Save scores</button>
-          </form>
           <form action={updateRoundCountsAction} className="flex flex-wrap items-center gap-2 pt-2 border-t border-forest-100">
             <input type="hidden" name="id" value={round.id} />
             <label className="text-sm text-forest-700 inline-flex items-center gap-2">
@@ -266,7 +219,7 @@ export default async function RoundDetail({
                 Re-fetch from UDisc
               </button>
               <p className="text-xs text-forest-600 mt-1">
-                Pulls current scores &amp; weather from the saved UDisc link. Positions are not changed.
+                Rebuilds this round from the saved UDisc link — positions, scores, and weather.
               </p>
             </form>
           )}
@@ -287,7 +240,7 @@ function buildSummary(r: {
   courseName?: string;
   season: number;
   patchMsg: string;
-  results: { pos: number; name: string; points: number; score?: number; rating?: number }[];
+  results: { pos: number; name: string; points: number; score?: number; relativeScore?: number }[];
 }): string {
   const medals = ["🥇", "🥈", "🥉"];
   const lines: string[] = [];
@@ -295,8 +248,12 @@ function buildSummary(r: {
   for (const row of r.results) {
     const medal = medals[row.pos - 1] ?? `${row.pos}.`;
     const extras: string[] = [];
-    if (row.score != null) extras.push(`${row.score}`);
-    if (row.rating != null) extras.push(`${row.rating} rtg`);
+    if (row.relativeScore != null) {
+      const sign = row.relativeScore > 0 ? "+" : "";
+      extras.push(row.score != null ? `${sign}${row.relativeScore} (${row.score})` : `${sign}${row.relativeScore}`);
+    } else if (row.score != null) {
+      extras.push(`${row.score}`);
+    }
     extras.push(`+${fmtPoints(row.points)} pts`);
     lines.push(`${medal} ${row.name} (${extras.join(" · ")})`);
   }

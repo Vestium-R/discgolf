@@ -48,6 +48,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         playerId: suggestions.get(e.rawName)!,
         position: e.position,
         score: e.score,
+        relativeScore: e.relativeScore,
       }));
       const date = preview.date ?? new Date().toISOString().slice(0, 10);
       const round: Round = {
