@@ -1,33 +1,37 @@
-import { cookies } from "next/headers";
+import { supabaseSession } from "./supabase/server";
 
-const COOKIE = "kdg_admin";
+export type SessionUser = {
+  id: string;
+  email: string;
+};
+
+export async function getUser(): Promise<SessionUser | null> {
+  const supabase = await supabaseSession();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user?.email) return null;
+  return { id: data.user.id, email: data.user.email };
+}
+
+function adminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return adminEmails().includes(email.toLowerCase());
+}
 
 export async function isAdmin(): Promise<boolean> {
-  const c = await cookies();
-  const tok = c.get(COOKIE)?.value;
-  return !!tok && tok === expectedToken();
+  const user = await getUser();
+  return isAdminEmail(user?.email);
 }
 
-export function expectedToken(): string {
-  const pw = process.env.ADMIN_PASSWORD ?? "change-me";
-  return Buffer.from(`admin:${pw}`).toString("base64url");
-}
-
-export async function signInAdmin(password: string): Promise<boolean> {
-  const expect = process.env.ADMIN_PASSWORD ?? "change-me";
-  if (password !== expect) return false;
-  const c = await cookies();
-  c.set(COOKIE, expectedToken(), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
-  return true;
-}
-
-export async function signOutAdmin(): Promise<void> {
-  const c = await cookies();
-  c.delete(COOKIE);
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await getUser();
+  if (!user) throw new Error("Sign in required");
+  if (!isAdminEmail(user.email)) throw new Error("Not an admin");
+  return user;
 }

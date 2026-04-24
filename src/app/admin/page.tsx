@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { isAdmin } from "@/lib/auth";
-import { getRoster, getSettings, isUsingRedis } from "@/lib/store";
+import { getUser, isAdminEmail } from "@/lib/auth";
+import { getRoster, getSettings } from "@/lib/store";
 import {
   addPlayerAction,
-  loginAction,
-  logoutAction,
+  signOutAction,
   togglePlayerActiveAction,
   updatePlayerAction,
   updateSeasonAction,
 } from "@/app/actions";
+import { SignInForm } from "@/components/SignInForm";
 
 export default async function AdminPage({
   searchParams,
@@ -16,32 +16,37 @@ export default async function AdminPage({
   searchParams: Promise<{ err?: string }>;
 }) {
   const { err } = await searchParams;
-  const admin = await isAdmin();
+  const user = await getUser();
 
-  if (!admin) {
+  if (!user) {
     return (
       <div className="max-w-sm mx-auto mt-8">
         <div className="rounded-2xl border border-forest-100 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-forest-800">Admin login</h2>
+          <h2 className="text-lg font-semibold text-forest-800">Sign in</h2>
           <p className="text-sm text-forest-600 mb-3">
-            Enter the admin password to add rounds or manage the roster.
+            Enter your email — we&apos;ll send you a one-time sign-in link. No password needed.
           </p>
-          <form action={loginAction} className="space-y-2">
-            <input
-              name="password"
-              type="password"
-              autoFocus
-              autoComplete="current-password"
-              className="w-full rounded-lg border border-forest-200 px-3 py-2"
-              placeholder="Password"
-            />
-            {err && <p className="text-sm text-red-700">Wrong password.</p>}
-            <button
-              className="w-full rounded-lg bg-forest-600 px-3 py-2 text-sm font-semibold text-white hover:bg-forest-700"
-              type="submit"
-            >
-              Sign in
-            </button>
+          <SignInForm />
+          {err === "callback" && (
+            <p className="mt-2 text-sm text-red-700">That sign-in link expired. Try again.</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const admin = isAdminEmail(user.email);
+  if (!admin) {
+    return (
+      <div className="max-w-md mx-auto mt-8 space-y-3">
+        <div className="rounded-2xl border border-forest-100 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-forest-800">Signed in as {user.email}</h2>
+          <p className="mt-2 text-sm text-forest-700">
+            You&apos;re signed in, but only admins can add rounds or edit the roster. Ask Jeff to add
+            your email to the admin list.
+          </p>
+          <form action={signOutAction} className="mt-3">
+            <button className="text-sm text-forest-600 hover:underline">Sign out</button>
           </form>
         </div>
       </div>
@@ -49,23 +54,18 @@ export default async function AdminPage({
   }
 
   const [roster, settings] = await Promise.all([getRoster(), getSettings()]);
-  const usingRedis = isUsingRedis();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-forest-800">Admin</h2>
-        <form action={logoutAction}>
+        <div>
+          <h2 className="text-lg font-semibold text-forest-800">Admin</h2>
+          <p className="text-xs text-forest-600">Signed in as {user.email}</p>
+        </div>
+        <form action={signOutAction}>
           <button className="text-sm text-forest-600 hover:underline">Sign out</button>
         </form>
       </div>
-
-      {!usingRedis && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-          Using in-memory storage — data will reset on redeploy. Set <code>KV_REST_API_URL</code> and{" "}
-          <code>KV_REST_API_TOKEN</code> in Vercel to enable persistent storage.
-        </div>
-      )}
 
       <section className="rounded-2xl border border-forest-100 bg-white p-4 shadow-sm">
         <h3 className="font-semibold text-forest-800">Quick actions</h3>

@@ -1,119 +1,138 @@
-import { Redis } from "@upstash/redis";
+import { supabaseAdmin } from "./supabase/server";
 import type { Player, Round, SeasonHistory, Settings } from "./types";
-import { slug } from "./slug";
 
-const SEED_PLAYERS: Player[] = [
-  { name: "Jeffrey Rijkse" },
-  { name: "Joel Pinet" },
-  { name: "John Cormier" },
-  { name: "Kevin Belliveau", udiscHandle: "Theyellowdart" },
-  { name: "Marc Durette" },
-  { name: "Mathieu Jacob" },
-  { name: "Matthew McKeigan" },
-  { name: "Reginald Roth" },
-  { name: "Scott Brohm" },
-].map((p) => ({ id: slug(p.name), name: p.name, udiscHandle: p.udiscHandle, active: true }));
-
-const SEED_HISTORY: SeasonHistory[] = [
-  {
-    season: 2025,
-    championPlayerId: "jeffrey-rijkse",
-    championName: "Jeffrey Rijkse",
-    note: "No round-by-round stats recorded",
-  },
-];
-
-const SEED_SETTINGS: Settings = {
-  currentSeason: new Date().getFullYear(),
+type PlayerRow = {
+  id: string;
+  name: string;
+  udisc_handle: string | null;
+  active: boolean;
 };
 
-const KEYS = {
-  roster: "disc:roster",
-  rounds: "disc:rounds",
-  history: "disc:history",
-  settings: "disc:settings",
-} as const;
+type RoundRow = {
+  id: string;
+  date: string;
+  season: number;
+  source: "udisc" | "manual";
+  udisc_url: string | null;
+  course_name: string | null;
+  note: string | null;
+  results: { playerId: string; position: number }[];
+  created_at: string;
+};
 
-type Key = (typeof KEYS)[keyof typeof KEYS];
+type HistoryRow = {
+  season: number;
+  champion_player_id: string | null;
+  champion_name: string;
+  note: string | null;
+};
 
-let redisClient: Redis | null = null;
-function redis(): Redis | null {
-  if (redisClient) return redisClient;
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
-  if (!url || !token) return null;
-  redisClient = new Redis({ url, token });
-  return redisClient;
+type SettingsRow = { id: number; current_season: number };
+
+function mapPlayer(r: PlayerRow): Player {
+  return { id: r.id, name: r.name, udiscHandle: r.udisc_handle ?? undefined, active: r.active };
 }
 
-const memory: Record<string, unknown> = {};
-
-async function readKey<T>(key: Key, fallback: T): Promise<T> {
-  const r = redis();
-  if (r) {
-    const val = await r.get<T>(key);
-    if (val == null) {
-      await r.set(key, fallback);
-      return fallback;
-    }
-    return val;
-  }
-  if (memory[key] == null) memory[key] = fallback;
-  return memory[key] as T;
+function mapRound(r: RoundRow): Round {
+  return {
+    id: r.id,
+    date: r.date,
+    season: r.season,
+    source: r.source,
+    udiscUrl: r.udisc_url ?? undefined,
+    courseName: r.course_name ?? undefined,
+    note: r.note ?? undefined,
+    results: r.results,
+    createdAt: r.created_at,
+  };
 }
 
-async function writeKey<T>(key: Key, value: T): Promise<void> {
-  const r = redis();
-  if (r) {
-    await r.set(key, value);
-    return;
-  }
-  memory[key] = value;
+function mapHistory(r: HistoryRow): SeasonHistory {
+  return {
+    season: r.season,
+    championPlayerId: r.champion_player_id ?? undefined,
+    championName: r.champion_name,
+    note: r.note ?? undefined,
+  };
 }
 
 export async function getRoster(): Promise<Player[]> {
-  return readKey<Player[]>(KEYS.roster, SEED_PLAYERS);
+  const { data, error } = await supabaseAdmin()
+    .from("players")
+    .select("*")
+    .order("name");
+  if (error) throw error;
+  return (data as PlayerRow[]).map(mapPlayer);
 }
 
-export async function saveRoster(roster: Player[]): Promise<void> {
-  await writeKey(KEYS.roster, roster);
+export async function upsertPlayer(p: Player): Promise<void> {
+  const { error } = await supabaseAdmin().from("players").upsert({
+    id: p.id,
+    name: p.name,
+    udisc_handle: p.udiscHandle ?? null,
+    active: p.active,
+  });
+  if (error) throw error;
 }
 
 export async function getRounds(): Promise<Round[]> {
-  return readKey<Round[]>(KEYS.rounds, []);
+  const { data, error } = await supabaseAdmin()
+    .from("rounds")
+    .select("*")
+    .order("date", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data as RoundRow[]).map(mapRound);
 }
 
-export async function saveRounds(rounds: Round[]): Promise<void> {
-  await writeKey(KEYS.rounds, rounds);
-}
-
-export async function addRound(round: Round): Promise<void> {
-  const rounds = await getRounds();
-  rounds.push(round);
-  await saveRounds(rounds);
+export async function insertRound(r: Round): Promise<void> {
+  const { error } = await supabaseAdmin().from("rounds").insert({
+    id: r.id,
+    date: r.date,
+    season: r.season,
+    source: r.source,
+    udisc_url: r.udiscUrl ?? null,
+    course_name: r.courseName ?? null,
+    note: r.note ?? null,
+    results: r.results,
+  });
+  if (error) throw error;
 }
 
 export async function deleteRound(id: string): Promise<void> {
-  const rounds = await getRounds();
-  await saveRounds(rounds.filter((r) => r.id !== id));
+  const { error } = await supabaseAdmin().from("rounds").delete().eq("id", id);
+  if (error) throw error;
 }
 
 export async function getHistory(): Promise<SeasonHistory[]> {
-  return readKey<SeasonHistory[]>(KEYS.history, SEED_HISTORY);
-}
-
-export async function saveHistory(history: SeasonHistory[]): Promise<void> {
-  await writeKey(KEYS.history, history);
+  const { data, error } = await supabaseAdmin()
+    .from("season_history")
+    .select("*")
+    .order("season", { ascending: false });
+  if (error) throw error;
+  return (data as HistoryRow[]).map(mapHistory);
 }
 
 export async function getSettings(): Promise<Settings> {
-  return readKey<Settings>(KEYS.settings, SEED_SETTINGS);
+  const { data, error } = await supabaseAdmin()
+    .from("settings")
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    const fallback = { currentSeason: new Date().getFullYear() };
+    await supabaseAdmin()
+      .from("settings")
+      .upsert({ id: 1, current_season: fallback.currentSeason });
+    return fallback;
+  }
+  return { currentSeason: (data as SettingsRow).current_season };
 }
 
-export async function saveSettings(settings: Settings): Promise<void> {
-  await writeKey(KEYS.settings, settings);
-}
-
-export function isUsingRedis(): boolean {
-  return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+export async function saveSettings(s: Settings): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("settings")
+    .upsert({ id: 1, current_season: s.currentSeason });
+  if (error) throw error;
 }

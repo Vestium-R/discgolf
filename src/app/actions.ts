@@ -2,72 +2,57 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { isAdmin, signInAdmin, signOutAdmin } from "@/lib/auth";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { requireAdmin } from "@/lib/auth";
 import {
-  addRound,
   deleteRound,
   getRoster,
   getSettings,
-  saveRoster,
+  insertRound,
   saveSettings,
+  upsertPlayer,
 } from "@/lib/store";
 import type { Round, RoundResult } from "@/lib/types";
 import { slug } from "@/lib/slug";
 
-function requireAdminOrThrow(admin: boolean): void {
-  if (!admin) throw new Error("Not authorized");
-}
-
-export async function loginAction(formData: FormData): Promise<void> {
-  const pw = String(formData.get("password") ?? "");
-  const ok = await signInAdmin(pw);
-  if (!ok) redirect("/admin?err=1");
-  redirect("/admin");
-}
-
-export async function logoutAction(): Promise<void> {
-  await signOutAdmin();
-  redirect("/admin");
-}
-
 export async function addPlayerAction(formData: FormData): Promise<void> {
-  requireAdminOrThrow(await isAdmin());
+  await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   const udiscHandle = String(formData.get("udiscHandle") ?? "").trim();
   if (!name) return;
   const roster = await getRoster();
   const id = uniqueId(slug(name), roster.map((p) => p.id));
-  roster.push({ id, name, udiscHandle: udiscHandle || undefined, active: true });
-  await saveRoster(roster);
+  await upsertPlayer({ id, name, udiscHandle: udiscHandle || undefined, active: true });
   revalidatePath("/admin");
   revalidatePath("/");
 }
 
 export async function togglePlayerActiveAction(formData: FormData): Promise<void> {
-  requireAdminOrThrow(await isAdmin());
+  await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const roster = await getRoster();
-  const next = roster.map((p) => (p.id === id ? { ...p, active: !p.active } : p));
-  await saveRoster(next);
+  const p = roster.find((x) => x.id === id);
+  if (!p) return;
+  await upsertPlayer({ ...p, active: !p.active });
   revalidatePath("/admin");
   revalidatePath("/");
 }
 
 export async function updatePlayerAction(formData: FormData): Promise<void> {
-  requireAdminOrThrow(await isAdmin());
+  await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const udiscHandle = String(formData.get("udiscHandle") ?? "").trim();
   const roster = await getRoster();
-  const next = roster.map((p) =>
-    p.id === id ? { ...p, name: name || p.name, udiscHandle: udiscHandle || undefined } : p
-  );
-  await saveRoster(next);
+  const p = roster.find((x) => x.id === id);
+  if (!p) return;
+  await upsertPlayer({ ...p, name: name || p.name, udiscHandle: udiscHandle || undefined });
   revalidatePath("/admin");
 }
 
 export async function updateSeasonAction(formData: FormData): Promise<void> {
-  requireAdminOrThrow(await isAdmin());
+  await requireAdmin();
   const year = Number(formData.get("currentSeason") ?? 0);
   if (!year || year < 2000 || year > 2100) return;
   await saveSettings({ currentSeason: year });
@@ -76,15 +61,15 @@ export async function updateSeasonAction(formData: FormData): Promise<void> {
 }
 
 export async function previewUdiscAction(formData: FormData): Promise<void> {
-  requireAdminOrThrow(await isAdmin());
+  await requireAdmin();
   const url = String(formData.get("udiscUrl") ?? "").trim();
   redirect(`/admin/rounds/new?${new URLSearchParams({ udiscUrl: url }).toString()}`);
 }
 
 export async function submitRoundAction(formData: FormData): Promise<void> {
-  requireAdminOrThrow(await isAdmin());
+  await requireAdmin();
   const date = String(formData.get("date") ?? "").trim();
-  const source = (String(formData.get("source") ?? "manual") as "udisc" | "manual");
+  const source = String(formData.get("source") ?? "manual") as "udisc" | "manual";
   const udiscUrl = String(formData.get("udiscUrl") ?? "").trim() || undefined;
   const courseName = String(formData.get("courseName") ?? "").trim() || undefined;
   const note = String(formData.get("note") ?? "").trim() || undefined;
@@ -116,19 +101,39 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
     results,
     createdAt: new Date().toISOString(),
   };
-  await addRound(round);
+  await insertRound(round);
   revalidatePath("/");
   revalidatePath("/rounds");
   redirect(`/rounds/${id}`);
 }
 
 export async function deleteRoundAction(formData: FormData): Promise<void> {
-  requireAdminOrThrow(await isAdmin());
+  await requireAdmin();
   const id = String(formData.get("id") ?? "");
   await deleteRound(id);
   revalidatePath("/");
   revalidatePath("/rounds");
   redirect("/rounds");
+}
+
+type CookieToSet = { name: string; value: string; options?: Parameters<Awaited<ReturnType<typeof cookies>>["set"]>[2] };
+
+export async function signOutAction(): Promise<void> {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (all: CookieToSet[]) => {
+          for (const c of all) cookieStore.set(c.name, c.value, c.options);
+        },
+      },
+    }
+  );
+  await supabase.auth.signOut();
+  redirect("/admin");
 }
 
 function uniqueId(base: string, taken: string[]): string {
