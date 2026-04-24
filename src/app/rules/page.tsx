@@ -58,19 +58,67 @@ export default function RulesPage() {
         </ul>
       </section>
 
-      <section className="card p-5 space-y-3">
+      <section className="card p-5 space-y-4">
         <h3 className="font-display font-bold text-forest-800">📊 Scoring</h3>
-        <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
-          <li>
-            <strong>Wins</strong> are the primary standings metric.
-          </li>
-          <li>
-            <strong>Points</strong> (N − position + 1) break ties when two players have the same win count.
-          </li>
-          <li>
-            Tied for 1st in a round: both get a win, the win points are split.
-          </li>
-        </ul>
+
+        <div className="space-y-2">
+          <h4 className="font-semibold text-forest-800">Wins come first</h4>
+          <p className="text-sm text-forest-700">
+            Standings are sorted by <strong>total wins</strong>. Finish 1st in a round → 1 win. That&apos;s all that matters at year end —
+            the player with the most wins keeps the patch.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="font-semibold text-forest-800">Points are the tiebreaker</h4>
+          <p className="text-sm text-forest-700">
+            When two players have the same number of wins, <strong>points</strong> decide who&apos;s ahead. Points reward good finishes
+            even when you don&apos;t win.
+          </p>
+          <p className="text-sm text-forest-700">
+            The formula is <strong className="font-mono">N − position + 1</strong>, where <strong>N</strong> is how many players
+            were in that round:
+          </p>
+          <div className="overflow-x-auto">
+            <table className="text-sm border border-forest-200 rounded w-full">
+              <thead className="bg-forest-50 text-forest-700">
+                <tr>
+                  <th className="py-1.5 px-3 text-left">Players (N)</th>
+                  <th className="py-1.5 px-3 text-right">1st</th>
+                  <th className="py-1.5 px-3 text-right">2nd</th>
+                  <th className="py-1.5 px-3 text-right">3rd</th>
+                  <th className="py-1.5 px-3 text-right">4th</th>
+                  <th className="py-1.5 px-3 text-right">5th</th>
+                </tr>
+              </thead>
+              <tbody className="text-forest-800 tabular-nums">
+                <tr className="border-t border-forest-100"><td className="py-1.5 px-3">2</td><td className="py-1.5 px-3 text-right font-semibold">2</td><td className="py-1.5 px-3 text-right">1</td><td /><td /><td /></tr>
+                <tr className="border-t border-forest-100"><td className="py-1.5 px-3">3</td><td className="py-1.5 px-3 text-right font-semibold">3</td><td className="py-1.5 px-3 text-right">2</td><td className="py-1.5 px-3 text-right">1</td><td /><td /></tr>
+                <tr className="border-t border-forest-100"><td className="py-1.5 px-3">4</td><td className="py-1.5 px-3 text-right font-semibold">4</td><td className="py-1.5 px-3 text-right">3</td><td className="py-1.5 px-3 text-right">2</td><td className="py-1.5 px-3 text-right">1</td><td /></tr>
+                <tr className="border-t border-forest-100"><td className="py-1.5 px-3">5</td><td className="py-1.5 px-3 text-right font-semibold">5</td><td className="py-1.5 px-3 text-right">4</td><td className="py-1.5 px-3 text-right">3</td><td className="py-1.5 px-3 text-right">2</td><td className="py-1.5 px-3 text-right">1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-forest-600">
+            Winning a 5-player round is worth more points than winning a 2-player round — it&apos;s a tougher field.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="font-semibold text-forest-800">Ties</h4>
+          <p className="text-sm text-forest-700">
+            If two players tie for 1st, <strong>both get a win</strong> and they split the combined points for the positions
+            they cover. Example: tied 1st in a 5-player round = (5 + 4) / 2 = <strong>4.5 points each</strong>.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="font-semibold text-forest-800">Non-players</h4>
+          <p className="text-sm text-forest-700">
+            If you didn&apos;t play, you don&apos;t earn points or a win for that round. The round still happens, the patch can
+            still move (if the current holder was there), and everyone who played racks up.
+          </p>
+        </div>
       </section>
 
       <section className="card p-5 space-y-3">
