@@ -150,37 +150,40 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
 
   if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");
 
-  // Hole coordinates. Turbo-stream encodes lat/lng pairs in two shapes:
-  //   1. Keyed (course center): `"latitude",46.099,"longitude",-64.679`
-  //   2. Compact (per hole): `},46.0987,-64.6781,"teeSign"` — bare floats
-  //      following a closing brace, aligned with the schema's lat/lng slots.
-  // Grab the course center first, then accept other pairs only if they're
-  // inside a ~10 km box around it — otherwise we pick up distances and other
-  // bare decimals as bogus coordinates.
+  // Tee and basket coordinates per hole. Stream pattern per hole:
+  //   ...{teePadObj},TEE_LAT,TEE_LNG,"teeSign",{...},"optimizedUrl",...
+  //   ...,{basketObj},BASKET_LAT,BASKET_LNG,"targetPosition",{...}...
+  // Anchoring on "teeSign" and "targetPosition" keeps us from picking up
+  // distances, custom-distance fields, etc.
+  const tees: { lat: number; lng: number }[] = [];
+  const baskets: { lat: number; lng: number }[] = [];
+  const teeRe = /\},(-?\d+\.\d+),(-?\d+\.\d+),"teeSign"/g;
+  const basketRe = /\},(-?\d+\.\d+),(-?\d+\.\d+),"targetPosition"/g;
+  const inGeoRange = (lat: number, lng: number) => Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+  for (const m of payload.matchAll(teeRe)) {
+    const lat = Number(m[1]);
+    const lng = Number(m[2]);
+    if (inGeoRange(lat, lng)) tees.push({ lat, lng });
+  }
+  for (const m of payload.matchAll(basketRe)) {
+    const lat = Number(m[1]);
+    const lng = Number(m[2]);
+    if (inGeoRange(lat, lng)) baskets.push({ lat, lng });
+  }
+  // Interleave tee/basket/tee/basket per hole so a polyline traces the
+  // actual play sequence: hole-1-tee → hole-1-basket → hole-2-tee → …
   const coords: { lat: number; lng: number }[] = [];
   const seen = new Set<string>();
-  let geoAnchor: { lat: number; lng: number } | null = null;
-
-  const tryPair = (a: number, b: number) => {
-    let lat: number, lng: number;
-    if (Math.abs(a) <= 90 && Math.abs(b) <= 180) { lat = a; lng = b; }
-    else if (Math.abs(b) <= 90 && Math.abs(a) <= 180) { lat = b; lng = a; }
-    else return;
-    if (lat === 0 && lng === 0) return;
-    if (geoAnchor && (Math.abs(lat - geoAnchor.lat) > 0.1 || Math.abs(lng - geoAnchor.lng) > 0.1)) return;
-    const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    coords.push({ lat, lng });
-    if (!geoAnchor) geoAnchor = { lat, lng };
-  };
-
-  // Keyed course-center pair always comes first in the payload — use it as anchor
-  const keyedCoordRe = /"latitude",(-?\d+(?:\.\d+)?),"longitude",(-?\d+(?:\.\d+)?)/g;
-  for (const m of payload.matchAll(keyedCoordRe)) tryPair(Number(m[1]), Number(m[2]));
-  // Then compact pairs (tees + baskets) filtered to within ~10 km of anchor
-  const compactCoordRe = /\},(-?\d{1,3}\.\d{3,}),(-?\d{1,3}\.\d{3,})/g;
-  for (const m of payload.matchAll(compactCoordRe)) tryPair(Number(m[1]), Number(m[2]));
+  const holes = Math.max(tees.length, baskets.length);
+  for (let i = 0; i < holes; i++) {
+    for (const c of [tees[i], baskets[i]]) {
+      if (!c) continue;
+      const key = `${c.lat.toFixed(6)},${c.lng.toFixed(6)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      coords.push(c);
+    }
+  }
 
   const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;
   return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries, coords: coords.length ? coords : undefined };

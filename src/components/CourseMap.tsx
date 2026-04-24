@@ -8,7 +8,7 @@
 // parser behaviour). Baked into the src URL so both Vercel's edge cache
 // and browser caches miss and re-fetch. Lives here so you don't have to
 // touch the cache headers themselves.
-const MAP_RENDER_VERSION = 2;
+const MAP_RENDER_VERSION = 3;
 
 export function CourseMap({ udiscUrl, title }: { udiscUrl: string; title?: string }) {
   if (!process.env.MAPBOX_ACCESS_TOKEN) return null;
