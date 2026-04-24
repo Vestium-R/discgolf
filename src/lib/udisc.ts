@@ -20,7 +20,7 @@ export type UdiscParseResult = {
   temperatureC?: number;
   windKph?: number;
   entries: ParsedEntry[];
-  coords?: { lat: number; lng: number }[]; // hole tees + baskets
+  courseMapUrl?: string;
   warning?: string;
 };
 
@@ -150,43 +150,13 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
 
   if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");
 
-  // Tee and basket coordinates per hole. Stream pattern per hole:
-  //   ...{teePadObj},TEE_LAT,TEE_LNG,"teeSign",{...},"optimizedUrl",...
-  //   ...,{basketObj},BASKET_LAT,BASKET_LNG,"targetPosition",{...}...
-  // Anchoring on "teeSign" and "targetPosition" keeps us from picking up
-  // distances, custom-distance fields, etc.
-  const tees: { lat: number; lng: number }[] = [];
-  const baskets: { lat: number; lng: number }[] = [];
-  const teeRe = /\},(-?\d+\.\d+),(-?\d+\.\d+),"teeSign"/g;
-  const basketRe = /\},(-?\d+\.\d+),(-?\d+\.\d+),"targetPosition"/g;
-  const inGeoRange = (lat: number, lng: number) => Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-  for (const m of payload.matchAll(teeRe)) {
-    const lat = Number(m[1]);
-    const lng = Number(m[2]);
-    if (inGeoRange(lat, lng)) tees.push({ lat, lng });
-  }
-  for (const m of payload.matchAll(basketRe)) {
-    const lat = Number(m[1]);
-    const lng = Number(m[2]);
-    if (inGeoRange(lat, lng)) baskets.push({ lat, lng });
-  }
-  // Interleave tee/basket/tee/basket per hole so a polyline traces the
-  // actual play sequence: hole-1-tee → hole-1-basket → hole-2-tee → …
-  const coords: { lat: number; lng: number }[] = [];
-  const seen = new Set<string>();
-  const holes = Math.max(tees.length, baskets.length);
-  for (let i = 0; i < holes; i++) {
-    for (const c of [tees[i], baskets[i]]) {
-      if (!c) continue;
-      const key = `${c.lat.toFixed(6)},${c.lng.toFixed(6)}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      coords.push(c);
-    }
-  }
+  // UDisc's own rendered course map lives at /courses/<slug>/v2/course-map.
+  // Slug appears in the stream as /courses/<slug> or /courses/<slug>/layouts/...
+  const slug = payload.match(/\/courses\/([a-zA-Z0-9-]+)/)?.[1];
+  const courseMapUrl = slug ? `https://udisc.com/courses/${slug}/v2/course-map` : undefined;
 
   const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;
-  return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries, coords: coords.length ? coords : undefined };
+  return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries, courseMapUrl };
 }
 
 function extractStream(html: string): string | null {
