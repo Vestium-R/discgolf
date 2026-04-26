@@ -25,13 +25,11 @@ export type UdiscParseResult = {
 };
 
 /**
- * UDisc scorecards are rendered by React Router. The round data ships as a
- * turbo-stream payload embedded in `window.__reactRouterContext.streamController.enqueue("...")`.
- * Rather than implementing the full turbo-stream decoder, we pull the raw
- * string and extract player records via regex. The stream contains two shapes:
- *   1. Keyed: "username","X","name","Y",...,"totalScore",N (first record)
- *   2. Compact: "X","Y","Z","img","img",score,["D",t],["D",t],place,toPar (subsequent)
- * If compact records lack `place`, we derive it by sorting on totalScore.
+ * UDisc scorecards embed round data as a turbo-stream payload in
+ * streamController.enqueue("..."). The payload is a JSON array where each
+ * scorecard entry is a reference object using _N keys (key index → value index).
+ * We decode the array, find all entry objects by locating their playerData +
+ * totalScore fields, and derive finish positions by sorting on totalScore.
  */
 export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   const fail = (warning: string): UdiscParseResult => ({ ok: false, url, entries: [], warning });
@@ -40,8 +38,7 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
     const res = await fetch(url, {
       redirect: "follow",
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)",
+        "User-Agent": "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)",
         Accept: "text/html,application/xhtml+xml",
       },
     });
@@ -52,113 +49,139 @@ export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
   }
 
   const payload = extractStream(html);
-  if (!payload) return fail("Could not find scorecard data on page. Enter positions manually.");
+  if (!payload) return fail("Could not find scorecard data on page.");
 
-  const courseName = payload.match(/"courseName","([^"]+)"/)?.[1];
+  // Metadata: still available as inline strings in the payload
+  const courseNameRaw = payload.match(/"courseName","([^"]+)"/)?.[1];
   const layoutName = payload.match(/"layoutName","([^"]+)"/)?.[1];
   const dateMs = payload.match(/"endDate",\["D",(\d+)\]/)?.[1];
   const date = dateMs ? new Date(Number(dateMs)).toISOString().slice(0, 10) : undefined;
 
-  // Weather: UDisc always ships temperature in Kelvin and wind speed in m/s,
-  // regardless of the user's display unit preference.
-  // "temperature",280.21,"humidity",...,"speed",1.54,"direction",...
+  // Weather: UDisc stores temperature in Kelvin and wind in m/s.
   const tempK = Number(payload.match(/"temperature",(-?\d+(?:\.\d+)?)/)?.[1]);
   const windMps = Number(payload.match(/"wind",\{[^}]+\},"speed",(-?\d+(?:\.\d+)?)/)?.[1]);
   const temperatureC = Number.isFinite(tempK) ? Math.round((tempK - 273.15) * 10) / 10 : undefined;
   const windKph = Number.isFinite(windMps) ? Math.round(windMps * 3.6) : undefined;
 
-  type Rec = { username: string; name?: string; score?: number; place?: number; toPar?: number; avatarUrl?: string };
-  const players = new Map<string, Rec>();
+  // Parse the turbo-stream array and extract player entries
+  const rawEntries = extractEntriesFromTurboStream(payload);
 
-  // Keyed form: "username","X" window has "name","Y" and "totalScore",N nearby
-  const keyedRe = /"username","([^"]+)"/g;
-  let km: RegExpExecArray | null;
-  while ((km = keyedRe.exec(payload)) !== null) {
-    const uname = km[1];
-    const win = payload.slice(km.index, km.index + 3000);
-    const nameM = win.match(/"name","([^"]+)"/);
-    const scoreM = win.match(/"totalScore",(-?\d+)/);
-    // "thumbnailImage","<hash>_T_Player-YYYYMMDD_HHMMSS.jpg","image","<hash>_Player-..."
-    const thumbM = win.match(/"thumbnailImage","([^"]+\.(?:jpg|jpeg|png|webp))"/);
-    const fullM = win.match(/"image","([^"]+\.(?:jpg|jpeg|png|webp))"/);
-    const rec: Rec = { username: uname };
-    if (nameM) rec.name = nameM[1];
-    if (scoreM) rec.score = Number(scoreM[1]);
-    const avatarFile = thumbM?.[1] ?? fullM?.[1];
-    if (avatarFile) rec.avatarUrl = UDISC_CDN + avatarFile;
-    if (rec.name || rec.score != null || rec.avatarUrl) players.set(uname, rec);
+  if (rawEntries.length < 2) {
+    return fail("Could not identify players in scorecard — link shows fewer than 2 players.");
   }
 
-  // Compact form (permissive image-filename class). Captures:
-  //   score, position, relativeScore (to par)
-  const compactRe =
-    /"([a-zA-Z0-9_.]{3,40})","([^"]*)","([^"]*)","([^"]+\.(?:jpg|jpeg|png|webp|gif))","([^"]+\.(?:jpg|jpeg|png|webp|gif))",(-?\d+),\["D",\d+\],\["D",\d+\],(\d+),(-?\d+)/g;
-  let cm: RegExpExecArray | null;
-  while ((cm = compactRe.exec(payload)) !== null) {
-    const [, uname, display, , thumbFile, , score, place, toPar] = cm;
-    const cur = players.get(uname) ?? { username: uname };
-    players.set(uname, {
-      username: uname,
-      name: cur.name || display || uname,
-      score: cur.score ?? Number(score),
-      place: Number(place),
-      toPar: Number(toPar),
-      avatarUrl: cur.avatarUrl ?? (thumbFile ? UDISC_CDN + thumbFile : undefined),
-    });
-  }
+  // Derive finish positions by sorting totalScore ascending (lower = better in disc golf).
+  // Handle ties: tied players share the lower position number.
+  const withScores = rawEntries.filter((e) => Number.isFinite(e.score));
+  withScores.sort((a, b) => (a.score as number) - (b.score as number));
 
-  const arr = [...players.values()];
-
-  // Derive missing toPar: if any entry has both score + toPar, course par = score - toPar.
-  // Fill in toPar for other entries with known score.
-  const anchor = arr.find((p) => p.score != null && p.toPar != null);
-  if (anchor) {
-    const par = (anchor.score as number) - (anchor.toPar as number);
-    for (const p of arr) {
-      if (p.toPar == null && p.score != null) p.toPar = (p.score as number) - par;
+  let lastScore: number | null = null;
+  let lastPos = 0;
+  for (let i = 0; i < withScores.length; i++) {
+    if (withScores[i].score === lastScore) {
+      withScores[i].position = lastPos;
+    } else {
+      withScores[i].position = i + 1;
+      lastPos = withScores[i].position;
+      lastScore = withScores[i].score as number;
     }
   }
 
-  // Derive missing positions from totalScore (ascending = better)
-  if (arr.some((p) => p.place == null)) {
-    const ranked = arr
-      .filter((p) => Number.isFinite(p.score))
-      .sort((a, b) => (a.score as number) - (b.score as number));
-    let lastScore: number | null = null;
-    let lastPlace = 0;
-    ranked.forEach((p, i) => {
-      if (p.score === lastScore) p.place = lastPlace;
-      else {
-        p.place = i + 1;
-        lastPlace = p.place;
-        lastScore = p.score as number;
-      }
-    });
+  // Entries without a score go at the end (shouldn't happen for complete rounds)
+  let tailPos = withScores.length + 1;
+  for (const e of rawEntries) {
+    if (!Number.isFinite(e.score)) e.position = tailPos++;
   }
 
-  const entries: ParsedEntry[] = arr
-    .filter((p) => p.place)
-    .sort((a, b) => (a.place as number) - (b.place as number))
-    .map((p) => ({
-      rawName: p.name ?? p.username,
-      username: p.username,
-      position: p.place as number,
-      score: p.score,
-      relativeScore: p.toPar,
-      avatarUrl: p.avatarUrl,
-    }));
+  const entries = rawEntries.slice().sort((a, b) => a.position - b.position);
 
-  if (entries.length < 2) return fail("Could not identify players in scorecard. Enter positions manually.");
-
-  // UDisc's own rendered course map lives at /courses/<slug>/v2/course-map.
-  // Slug appears in the rendered HTML's <a href="/courses/<slug>"> links.
-  // Filter out the generic /courses/add and /courses/ci/... region pages.
+  // Course map URL from rendered HTML slug
   const slugMatches = [...html.matchAll(/\/courses\/([a-z0-9]+(?:-[a-zA-Z0-9]+)+)/g)];
   const slug = slugMatches.map((m) => m[1]).find((s) => s !== "add");
   const courseMapUrl = slug ? `https://udisc.com/courses/${slug}/v2/course-map` : undefined;
 
-  const course = courseName ? courseName + (layoutName ? ` — ${layoutName}` : "") : undefined;
-  return { ok: true, url, courseName: course, layoutName, date, temperatureC, windKph, entries, courseMapUrl };
+  const courseName = courseNameRaw
+    ? courseNameRaw + (layoutName ? ` — ${layoutName}` : "")
+    : undefined;
+
+  return { ok: true, url, courseName, layoutName, date, temperatureC, windKph, entries, courseMapUrl };
+}
+
+/**
+ * Decode the turbo-stream JSON array and find scorecard entry objects.
+ *
+ * The payload is a JSON array. Each entry in a scorecard is stored as a
+ * reference object like {"_126": 127, "_142": 143, ...} where:
+ *   - The key index (e.g. 126) points to the string "playerData" in the array
+ *   - The value index (e.g. 127) points to the playerData sub-object
+ * We scan all array elements for objects that have both "playerData" (with a
+ * "name" field) and "totalScore" (a number). This finds all players including
+ * guests who have no UDisc account.
+ */
+function extractEntriesFromTurboStream(payload: string): ParsedEntry[] {
+  let arr: unknown[];
+  try {
+    arr = JSON.parse(payload) as unknown[];
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(arr)) return [];
+
+  /**
+   * Read a named field from a turbo-stream ref object (or a plain object).
+   * Ref objects use numeric-keyed strings like "_N" where arr[N] is the key name
+   * and the value is an index into arr (or -5=false, -7=null).
+   */
+  const getField = (obj: Record<string, unknown>, fieldName: string): unknown => {
+    // Plain object (e.g. guest playerData: {"name":"Matt 1"})
+    if (Object.prototype.hasOwnProperty.call(obj, fieldName)) return obj[fieldName];
+    // Reference object: scan _N keys
+    for (const [k, v] of Object.entries(obj)) {
+      if (k.charCodeAt(0) !== 95) continue; // '_'
+      const keyIdx = parseInt(k.slice(1), 10);
+      if (arr[keyIdx] === fieldName) {
+        if (typeof v === "number") {
+          return v >= 0 ? arr[v] : v === -5 ? false : v === -7 ? null : v;
+        }
+        return v;
+      }
+    }
+    return undefined;
+  };
+
+  const results: ParsedEntry[] = [];
+
+  for (const item of arr) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const obj = item as Record<string, unknown>;
+
+    const pdVal = getField(obj, "playerData");
+    const tsVal = getField(obj, "totalScore");
+
+    if (!pdVal || typeof pdVal !== "object" || Array.isArray(pdVal)) continue;
+    if (typeof tsVal !== "number") continue;
+
+    const pd = pdVal as Record<string, unknown>;
+    const name = getField(pd, "name");
+    if (!name || typeof name !== "string") continue;
+
+    const username = getField(pd, "username");
+    const thumbFile = getField(pd, "thumbnailImage");
+    const avatarUrl = typeof thumbFile === "string" ? UDISC_CDN + thumbFile : undefined;
+
+    const rsVal = getField(obj, "relativeScore");
+
+    results.push({
+      rawName: name,
+      username: typeof username === "string" ? username : undefined,
+      position: 0, // filled in by caller
+      score: tsVal,
+      relativeScore: typeof rsVal === "number" ? rsVal : undefined,
+      avatarUrl,
+    });
+  }
+
+  return results;
 }
 
 function extractStream(html: string): string | null {

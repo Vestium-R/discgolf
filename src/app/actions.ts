@@ -12,6 +12,7 @@ import {
   getSettings,
   insertRound,
   saveSettings,
+  setPlayerActive,
   setPlayerAvatarIfMissing,
   updateRoundCounts,
   updateRoundResults,
@@ -21,7 +22,7 @@ import {
 } from "@/lib/store";
 import type { Round, RoundResult, RoundVariant } from "@/lib/types";
 import { slug } from "@/lib/slug";
-import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
+import { parseUdiscUrl, matchPlayer, type ParsedEntry } from "@/lib/udisc";
 
 type CookieToSet = { name: string; value: string; options?: Parameters<Awaited<ReturnType<typeof cookies>>["set"]>[2] };
 
@@ -89,6 +90,85 @@ export async function submitRoundAction(formData: FormData): Promise<void> {
   revalidatePath("/");
   revalidatePath("/rounds");
   redirect(`/rounds/${finalId}?new=1`);
+}
+
+export async function submitLinkedRoundAction(formData: FormData): Promise<void> {
+  const scorecardId = String(formData.get("scorecardId") ?? "").trim();
+  const udiscUrl = String(formData.get("udiscUrl") ?? "").trim() || undefined;
+  const date = String(formData.get("date") ?? "").trim() || new Date().toISOString().slice(0, 10);
+  const courseName = String(formData.get("courseName") ?? "").trim() || undefined;
+  const tempRaw = String(formData.get("temperatureC") ?? "").trim();
+  const windRaw = String(formData.get("windKph") ?? "").trim();
+  const temperatureC = tempRaw && Number.isFinite(Number(tempRaw)) ? Number(tempRaw) : undefined;
+  const windKph = windRaw && Number.isFinite(Number(windRaw)) ? Number(windRaw) : undefined;
+  const entriesJson = String(formData.get("entriesJson") ?? "");
+
+  let entries: ParsedEntry[];
+  try {
+    entries = JSON.parse(entriesJson);
+  } catch {
+    redirect("/add?err=bad");
+    return;
+  }
+
+  const [roster, settings, existing] = await Promise.all([getRoster(), getSettings(), getRounds()]);
+
+  if (existing.some((r) => r.id === scorecardId)) {
+    redirect(`/rounds/${scorecardId}?dup=1`);
+  }
+
+  // Build a mutable roster copy so new players added mid-loop are visible
+  const liveRoster = [...roster];
+  const results: RoundResult[] = [];
+
+  for (const e of entries) {
+    const formKey = `link_${encodeURIComponent(e.rawName)}`;
+    const assignedId = String(formData.get(formKey) ?? "").trim();
+    const autoMatch = matchPlayer(e.rawName, liveRoster, e.username);
+
+    let playerId: string | null = null;
+
+    if (assignedId === "__new__") {
+      // Create a fresh roster player with the UDisc display name
+      const newId = uniqueId(slug(e.rawName), liveRoster.map((p) => p.id));
+      await upsertPlayer({ id: newId, name: e.rawName, active: true });
+      liveRoster.push({ id: newId, name: e.rawName, active: true });
+      playerId = newId;
+    } else if (assignedId) {
+      playerId = assignedId;
+    } else if (autoMatch) {
+      playerId = autoMatch.id;
+    }
+
+    if (!playerId) continue;
+
+    results.push({ playerId, position: e.position, score: e.score, relativeScore: e.relativeScore });
+    if (e.avatarUrl) await setPlayerAvatarIfMissing(playerId, e.avatarUrl);
+    const p = liveRoster.find((x) => x.id === playerId);
+    if (p && !p.active) await setPlayerActive(p.id, true);
+  }
+
+  if (results.length < 2) redirect("/add?err=toofew");
+
+  const season = Number(date.slice(0, 4)) || settings.currentSeason;
+  const round: Round = {
+    id: scorecardId || `${date}-${Math.random().toString(36).slice(2, 8)}`,
+    date,
+    season,
+    source: "linked",
+    udiscUrl,
+    courseName,
+    variant: "standard",
+    counts: true,
+    temperatureC,
+    windKph,
+    results,
+    createdAt: new Date().toISOString(),
+  };
+  await insertRound(round);
+  revalidatePath("/");
+  revalidatePath("/rounds");
+  redirect(`/rounds/${round.id}?new=1`);
 }
 
 // ────────────────────────────────

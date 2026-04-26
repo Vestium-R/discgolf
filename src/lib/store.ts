@@ -13,7 +13,7 @@ type RoundRow = {
   id: string;
   date: string;
   season: number;
-  source: "udisc" | "manual";
+  source: "udisc" | "manual" | "linked";
   udisc_url: string | null;
   course_name: string | null;
   note: string | null;

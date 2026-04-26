@@ -178,7 +178,7 @@ export default async function RoundDetail({
             {round.note && <p className="text-sm text-forest-700 mt-1 italic">&ldquo;{round.note}&rdquo;</p>}
           </div>
         </div>
-        {round.source === "udisc" && round.udiscUrl && (
+        {(round.source === "udisc" || round.source === "linked") && round.udiscUrl && (
           <a
             href={round.udiscUrl}
             target="_blank"

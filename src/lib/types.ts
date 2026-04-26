@@ -20,7 +20,7 @@ export type Round = {
   id: string;
   date: string;
   season: number;
-  source: "udisc" | "manual";
+  source: "udisc" | "manual" | "linked";
   udiscUrl?: string;
   courseName?: string;
   note?: string;

@@ -53,9 +53,11 @@ export default function SetupPage() {
           <li>Tap <strong>+</strong> to create a new shortcut.</li>
           <li>Tap <strong>Add Action</strong> → search <strong>Open URLs</strong>.</li>
           <li>
-            In the URL field paste:
-            <pre className="mt-1 bg-forest-50 rounded p-2 text-xs overflow-x-auto select-all">https://discgolf-eight.vercel.app/add?auto=1&udiscUrl=[Shortcut Input]</pre>
-            (tap &quot;Shortcut Input&quot; to insert the variable where the brackets show.)
+            In the URL field, paste this — <strong>stop before the brackets</strong>:
+            <pre className="mt-1 bg-forest-50 rounded p-2 text-xs overflow-x-auto select-all">https://discgolf-eight.vercel.app/add?auto=1&udiscUrl=</pre>
+            Then — <em>do not type the brackets</em> — tap the blue <strong>Shortcut Input</strong> token
+            that appears in the row above the keyboard. It inserts as a blue bubble after the = sign.
+            That&apos;s the right look.
           </li>
           <li>Tap the shortcut&apos;s settings → rename it <strong>The Patch</strong>.</li>
           <li>

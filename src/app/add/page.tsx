@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getRoster, getRounds, getSettings, insertRound, setPlayerActive, setPlayerAvatarIfMissing } from "@/lib/store";
+import {
+  getRoster,
+  getRounds,
+  getSettings,
+  insertRound,
+  setPlayerActive,
+  setPlayerAvatarIfMissing,
+} from "@/lib/store";
 import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 import { PasteUdiscBox } from "@/components/PasteUdiscBox";
+import { submitRoundAction, submitLinkedRoundAction } from "@/app/actions";
 import type { Round, RoundResult } from "@/lib/types";
 
 type Params = {
@@ -14,7 +22,6 @@ type Params = {
 
 export default async function AddPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
-  // Android Web Share Target may pass the URL in `text` instead of `udiscUrl`
   const sharedText = params.text ?? "";
   const sharedMatch = sharedText.match(/https?:\/\/udisc\.com\/scorecards\/[A-Za-z0-9_-]+[^\s]*/);
   const udiscUrl = (params.udiscUrl ?? sharedMatch?.[0] ?? "").trim();
@@ -24,6 +31,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
   let preview: Awaited<ReturnType<typeof parseUdiscUrl>> | null = null;
   const suggestions = new Map<string, string | null>();
   let scorecardId: string | null = null;
+
   if (udiscUrl) {
     preview = await parseUdiscUrl(udiscUrl);
     scorecardId = udiscUrl.match(/\/scorecards\/([A-Za-z0-9_-]+)/)?.[1] ?? null;
@@ -34,9 +42,12 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
     }
   }
 
-  // Auto-submit every UDisc paste. Skip duplicates. Unmatched players are dropped —
-  // admin can fix the roster and re-fetch.
-  if (preview?.ok && scorecardId) {
+  const unmatched = preview?.ok ? preview.entries.filter((e) => !suggestions.get(e.rawName)) : [];
+  const matchedCount = preview?.ok ? preview.entries.filter((e) => suggestions.get(e.rawName)).length : 0;
+  const allMatched = preview?.ok && unmatched.length === 0;
+
+  // Auto-submit only when every parsed player is on the roster (zero unmatched)
+  if (allMatched && scorecardId && preview?.ok) {
     const rounds = await getRounds();
     if (rounds.some((r) => r.id === scorecardId)) {
       redirect(`/rounds/${scorecardId}?dup=1`);
@@ -45,12 +56,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
     for (const e of preview.entries) {
       const pid = suggestions.get(e.rawName);
       if (!pid) continue;
-      results.push({
-        playerId: pid,
-        position: e.position,
-        score: e.score,
-        relativeScore: e.relativeScore,
-      });
+      results.push({ playerId: pid, position: e.position, score: e.score, relativeScore: e.relativeScore });
       if (e.avatarUrl) await setPlayerAvatarIfMissing(pid, e.avatarUrl);
       const p = roster.find((x) => x.id === pid);
       if (p && !p.active) await setPlayerActive(pid, true);
@@ -76,12 +82,8 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
     }
   }
 
-  const unmatched = preview?.ok
-    ? preview.entries.filter((e) => !suggestions.get(e.rawName))
-    : [];
-  const matchedCount = preview?.ok
-    ? preview.entries.filter((e) => suggestions.get(e.rawName)).length
-    : 0;
+  const activeRoster = roster.filter((p) => p.active);
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="space-y-6">
@@ -97,28 +99,157 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         {params.err === "nourl" && (
           <p className="mt-2 text-sm text-red-700">Paste a UDisc URL first.</p>
         )}
+        {params.err === "toofew" && (
+          <p className="mt-2 text-sm text-red-700">Need at least 2 players — fill in more positions below.</p>
+        )}
+        {params.err === "bad" && (
+          <p className="mt-2 text-sm text-red-700">Something went wrong — try again.</p>
+        )}
       </section>
 
+      {/* Parse failed → show error + manual entry */}
       {preview && !preview.ok && (
-        <div className="card p-4 border-red-200 bg-red-50">
-          <p className="text-sm text-red-800">
-            <strong>Couldn&apos;t parse that link.</strong> {preview.warning ?? "Double-check the URL is a public UDisc scorecard and try again."}
-          </p>
-        </div>
+        <>
+          <div className="card p-4 border-red-200 bg-red-50">
+            <p className="text-sm text-red-800">
+              <strong>Couldn&apos;t parse that link.</strong>{" "}
+              {preview.warning ?? "Double-check the URL is a public UDisc scorecard and try again."}
+            </p>
+          </div>
+
+          <section className="card p-5 space-y-4 border-amber-200 bg-amber-50">
+            <h3 className="font-display font-bold text-forest-800">Enter positions manually</h3>
+            <form action={submitRoundAction} className="space-y-4">
+              <input type="hidden" name="source" value="manual" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-forest-700 block mb-1">Date *</label>
+                  <input
+                    type="date"
+                    name="date"
+                    required
+                    defaultValue={today}
+                    className="w-full border border-forest-300 rounded px-2 py-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-forest-700 block mb-1">Course</label>
+                  <input
+                    type="text"
+                    name="courseName"
+                    placeholder="optional"
+                    className="w-full border border-forest-300 rounded px-2 py-1 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-forest-700">
+                  Finishing position — leave blank if didn&apos;t play
+                </p>
+                {activeRoster.map((p) => (
+                  <div key={p.id} className="flex items-center gap-3">
+                    <span className="text-sm text-forest-800 w-40 shrink-0">{p.name}</span>
+                    <input
+                      type="number"
+                      name={`pos_${p.id}`}
+                      min={1}
+                      max={20}
+                      placeholder="—"
+                      className="w-16 border border-forest-300 rounded px-2 py-1 text-sm text-center"
+                    />
+                  </div>
+                ))}
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-forest-700 text-white rounded py-2 text-sm font-semibold hover:bg-forest-800"
+              >
+                Save Round
+              </button>
+            </form>
+          </section>
+        </>
       )}
 
-      {preview?.ok && matchedCount < 2 && (
-        <div className="card p-4 border-amber-200 bg-amber-50 space-y-2">
-          <p className="text-sm text-amber-900">
-            <strong>Not enough roster players in this scorecard.</strong> We need at least two matched players to save.
-          </p>
-          <p className="text-sm text-amber-900">
-            Unmatched: {unmatched.map((e) => e.rawName).join(", ") || "—"}
-          </p>
-          <p className="text-sm text-amber-900">
-            Ask an admin to add them to the <Link href="/admin" className="underline font-semibold">roster</Link> (UDisc handles match automatically), then paste the link again.
-          </p>
-        </div>
+      {/* Parse succeeded but some players unmatched → link form */}
+      {preview?.ok && unmatched.length > 0 && (
+        <section className="card p-5 space-y-4">
+          <div>
+            <h3 className="font-display font-bold text-forest-800">Who played?</h3>
+            {preview.courseName && (
+              <p className="text-sm text-forest-600">
+                {preview.courseName}
+                {preview.date ? ` · ${preview.date}` : ""}
+              </p>
+            )}
+            <p className="text-sm text-amber-800 mt-1">
+              {unmatched.length === 1
+                ? "1 player wasn't recognised — pick who it is, add them as new, or skip."
+                : `${unmatched.length} players weren't recognised — match each one below.`}
+            </p>
+          </div>
+
+          <form action={submitLinkedRoundAction} className="space-y-3">
+            <input type="hidden" name="scorecardId" value={scorecardId ?? ""} />
+            <input type="hidden" name="udiscUrl" value={udiscUrl} />
+            <input type="hidden" name="date" value={preview.date ?? today} />
+            <input type="hidden" name="courseName" value={preview.courseName ?? ""} />
+            <input type="hidden" name="temperatureC" value={preview.temperatureC ?? ""} />
+            <input type="hidden" name="windKph" value={preview.windKph ?? ""} />
+            <input type="hidden" name="entriesJson" value={JSON.stringify(preview.entries)} />
+
+            <div className="divide-y divide-forest-100">
+              {preview.entries
+                .sort((a, b) => a.position - b.position)
+                .map((e) => {
+                  const matchedPlayer = roster.find((p) => p.id === suggestions.get(e.rawName));
+                  return (
+                    <div key={e.rawName} className="flex items-center gap-3 py-2">
+                      <span className="text-xs text-forest-400 w-6 text-right shrink-0">{e.position}.</span>
+                      <span className="text-sm font-medium text-forest-800 w-32 shrink-0 truncate">
+                        {e.rawName}
+                      </span>
+                      {matchedPlayer ? (
+                        <span className="text-sm text-forest-600 flex-1">
+                          → {matchedPlayer.name}{" "}
+                          <span className="text-green-600 font-semibold">✓</span>
+                        </span>
+                      ) : (
+                        <select
+                          name={`link_${encodeURIComponent(e.rawName)}`}
+                          className="flex-1 border border-amber-400 rounded px-2 py-1 text-sm bg-amber-50"
+                          defaultValue=""
+                        >
+                          <option value="">— Skip this player —</option>
+                          <option value="__new__">➕ Add as new player: &quot;{e.rawName}&quot;</option>
+                          <optgroup label="Link to existing">
+                            {roster.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        </select>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+
+            {matchedCount < 2 && (
+              <p className="text-xs text-amber-700">
+                Link at least {2 - matchedCount} more player{2 - matchedCount !== 1 ? "s" : ""} to save.
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-forest-700 text-white rounded py-2 text-sm font-semibold hover:bg-forest-800"
+            >
+              Save Round
+            </button>
+          </form>
+        </section>
       )}
     </div>
   );
