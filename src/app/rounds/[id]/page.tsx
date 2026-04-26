@@ -205,10 +205,10 @@ export default async function RoundDetail({
         <table className="w-full text-sm">
           <thead className="bg-forest-50 text-forest-700">
             <tr>
-              <th className="py-2 px-3 text-left w-14">Pos</th>
+              <th className="py-2 px-3 text-left w-12">Pos</th>
               <th className="py-2 px-3 text-left">Player</th>
               <th className="py-2 px-3 text-right">Score</th>
-              <th className="py-2 px-3 text-right">Points</th>
+              <th className="py-2 px-3 text-right">Pts</th>
             </tr>
           </thead>
           <tbody>
@@ -227,10 +227,15 @@ export default async function RoundDetail({
                       )}
                     </div>
                   </td>
-                  <td className="py-2 px-3 text-right tabular-nums text-forest-700">
-                    {r.relativeScore != null
-                      ? `${r.relativeScore > 0 ? "+" : ""}${r.relativeScore}${r.score != null ? ` (${r.score})` : ""}`
-                      : r.score ?? "—"}
+                  <td className="py-2 px-3 text-right tabular-nums text-forest-700 whitespace-nowrap">
+                    {r.relativeScore != null ? (
+                      <>
+                        {r.relativeScore > 0 ? "+" : ""}{r.relativeScore}
+                        {r.score != null && (
+                          <span className="hidden sm:inline text-forest-500"> ({r.score})</span>
+                        )}
+                      </>
+                    ) : (r.score ?? "—")}
                   </td>
                   <td className="py-2 px-3 text-right font-semibold tabular-nums">{fmtPoints(pts.get(r.playerId) ?? 0)}</td>
                 </tr>

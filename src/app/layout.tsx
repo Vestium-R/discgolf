@@ -26,14 +26,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full badge-crown text-sm">🥏</span>
               The Patch
             </Link>
-            <nav className="flex gap-1 text-sm overflow-x-auto">
+            <nav className="flex gap-1 text-sm">
               <NavLink href="/">Home</NavLink>
               <NavLink href="/rounds">Rounds</NavLink>
               <NavLink href="/stats">Stats</NavLink>
-              <NavLink href="/seasons">Seasons</NavLink>
-              <NavLink href="/courses">Courses</NavLink>
-              <NavLink href="/rules">Rules</NavLink>
-              <NavLink href="/setup">Setup</NavLink>
+              <NavLink href="/seasons" mobileHidden>Seasons</NavLink>
+              <NavLink href="/courses" mobileHidden>Courses</NavLink>
+              <NavLink href="/rules" mobileHidden>Rules</NavLink>
+              <NavLink href="/setup" mobileHidden>Setup</NavLink>
               <NavLink href="/admin">⚙</NavLink>
             </nav>
           </div>
@@ -49,11 +49,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   );
 }
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function NavLink({ href, children, mobileHidden }: { href: string; children: React.ReactNode; mobileHidden?: boolean }) {
   return (
     <Link
       href={href}
-      className="rounded-full px-3 py-1.5 text-forest-700 hover:bg-forest-50 transition-colors"
+      className={`rounded-full px-3 py-2 text-forest-700 hover:bg-forest-50 transition-colors${mobileHidden ? " hidden sm:inline-flex" : ""}`}
     >
       {children}
     </Link>

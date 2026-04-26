@@ -178,7 +178,7 @@ export default async function HomePage() {
                 <th className="py-2 px-3 text-left w-12">#</th>
                 <th className="py-2 px-3 text-left">Player</th>
                 <th className="py-2 px-3 text-right">Wins</th>
-                <th className="py-2 px-3 text-right hidden sm:table-cell">Pts</th>
+                <th className="py-2 px-3 text-right">Pts</th>
                 <th className="py-2 px-3 text-right hidden sm:table-cell">Rds</th>
                 <th className="py-2 px-3 text-right w-10"></th>
               </tr>
@@ -200,7 +200,7 @@ export default async function HomePage() {
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2 min-w-0">
                         <Avatar playerId={s.player.id} name={s.player.name} size="sm" imageUrl={s.player.udiscAvatarUrl} />
-                        <Link href={`/players/${s.player.id}`} className={`hover:underline truncate ${dim}`}>
+                        <Link href={`/players/${s.player.id}`} className={`hover:underline truncate flex-1 min-w-0 ${dim}`}>
                           {s.player.name}
                         </Link>
                         {isBadge && <BadgeCrown size="xs" imageUrl={badgeImage} />}
@@ -208,7 +208,7 @@ export default async function HomePage() {
                       </div>
                     </td>
                     <td className={`py-2 px-3 text-right font-bold text-lg tabular-nums ${dim}`}>{s.wins}</td>
-                    <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{fmtPoints(s.points)}</td>
+                    <td className={`py-2 px-3 text-right tabular-nums ${dim}`}>{fmtPoints(s.points)}</td>
                     <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.roundsPlayed}</td>
                     <td className="py-2 px-3 text-right"><RankDelta delta={deltas.get(s.player.id) ?? null} /></td>
                   </tr>
