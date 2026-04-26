@@ -24,10 +24,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold text-forest-800 shrink-0">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full badge-crown text-sm">🥏</span>
-              <span className="hidden xs:inline">The Patch</span>
+              The Patch
             </Link>
-            {/* Scrollable nav — all items always accessible */}
-            <nav className="flex gap-1 text-sm overflow-x-auto scrollbar-none flex-1 justify-end">
+            {/* Top nav — desktop only; mobile uses the bottom tab bar */}
+            <nav className="hidden sm:flex gap-1 text-sm overflow-x-auto scrollbar-none flex-1 justify-end">
               <NavLink href="/">Home</NavLink>
               <NavLink href="/rounds">Rounds</NavLink>
               <NavLink href="/stats">Stats</NavLink>
