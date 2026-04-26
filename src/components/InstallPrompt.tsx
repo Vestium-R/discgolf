@@ -31,7 +31,7 @@ export function InstallPrompt() {
   if (!evt) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-40 sm:inset-x-auto sm:right-4 sm:max-w-sm rounded-2xl border border-forest-200 bg-white p-3 shadow-lg flex items-center gap-3">
+    <div className="fixed inset-x-3 bottom-16 z-50 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:max-w-sm rounded-2xl border border-forest-200 bg-white p-3 shadow-lg flex items-center gap-3">
       <span className="text-2xl">🥏</span>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold text-forest-800">Install the app</div>
