@@ -172,14 +172,47 @@ export default async function HomePage() {
             <h2 className="font-display font-bold text-forest-800">Standings</h2>
             <span className="text-xs text-forest-600">{rs.length} round{rs.length === 1 ? "" : "s"}</span>
           </div>
-          <table className="w-full text-sm">
+
+          {/* Mobile: card list */}
+          <ul className="sm:hidden divide-y divide-forest-100">
+            {standings.map((s, i) => {
+              const isBadge = s.player.id === badgeId;
+              const rank = i + 1;
+              const dim = s.roundsPlayed === 0 ? "opacity-40" : "";
+              const hotStreak = currentStreak(rounds, season, s.player.id);
+              return (
+                <li key={s.player.id} className={isBadge ? "bg-amber-50/40" : ""}>
+                  <Link href={`/players/${s.player.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-forest-50">
+                    <span className={`w-6 text-center shrink-0 ${dim}`}>
+                      {s.roundsPlayed > 0 ? <MedalBadge position={rank} /> : <span className="text-xs text-forest-400">{rank}</span>}
+                    </span>
+                    <Avatar playerId={s.player.id} name={s.player.name} size="sm" imageUrl={s.player.udiscAvatarUrl} />
+                    <div className={`flex-1 min-w-0 ${dim}`}>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="font-semibold text-forest-800 truncate">{s.player.name}</span>
+                        {isBadge && <BadgeCrown size="xs" imageUrl={badgeImage} />}
+                        {hotStreak >= 2 && <span className="text-xs">🔥</span>}
+                      </div>
+                      <div className="text-xs text-forest-500 tabular-nums">
+                        {s.wins}W · {fmtPoints(s.points)} pts · {s.roundsPlayed} rounds
+                      </div>
+                    </div>
+                    <RankDelta delta={deltas.get(s.player.id) ?? null} />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Desktop: table */}
+          <table className="hidden sm:table w-full text-sm">
             <thead className="bg-forest-50 text-forest-700">
               <tr>
                 <th className="py-2 px-3 text-left w-12">#</th>
                 <th className="py-2 px-3 text-left">Player</th>
                 <th className="py-2 px-3 text-right">Wins</th>
                 <th className="py-2 px-3 text-right">Pts</th>
-                <th className="py-2 px-3 text-right hidden sm:table-cell">Rds</th>
+                <th className="py-2 px-3 text-right">Rds</th>
                 <th className="py-2 px-3 text-right w-10"></th>
               </tr>
             </thead>
@@ -190,10 +223,7 @@ export default async function HomePage() {
                 const dim = s.roundsPlayed === 0 ? "text-forest-400" : "";
                 const hotStreak = currentStreak(rounds, season, s.player.id);
                 return (
-                  <tr
-                    key={s.player.id}
-                    className={`border-t border-forest-100 ${isBadge ? "bg-amber-50/40" : ""}`}
-                  >
+                  <tr key={s.player.id} className={`border-t border-forest-100 ${isBadge ? "bg-amber-50/40" : ""}`}>
                     <td className="py-2 px-3">
                       {s.roundsPlayed > 0 ? <MedalBadge position={rank} /> : <span className="text-forest-400 text-xs">{rank}</span>}
                     </td>
@@ -209,13 +239,14 @@ export default async function HomePage() {
                     </td>
                     <td className={`py-2 px-3 text-right font-bold text-lg tabular-nums ${dim}`}>{s.wins}</td>
                     <td className={`py-2 px-3 text-right tabular-nums ${dim}`}>{fmtPoints(s.points)}</td>
-                    <td className={`py-2 px-3 text-right tabular-nums hidden sm:table-cell ${dim}`}>{s.roundsPlayed}</td>
+                    <td className={`py-2 px-3 text-right tabular-nums ${dim}`}>{s.roundsPlayed}</td>
                     <td className="py-2 px-3 text-right"><RankDelta delta={deltas.get(s.player.id) ?? null} /></td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+
           <p className="text-xs text-forest-500 p-3 border-t border-forest-100">
             Wins decide the season. Points (N − pos + 1) are a tiebreak. Arrows show last-round rank change.
           </p>
