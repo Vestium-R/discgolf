@@ -61,7 +61,10 @@ export default function SetupPage() {
           </li>
           <li>Tap the shortcut&apos;s settings → rename it <strong>The Patch</strong>.</li>
           <li>
-            Same settings → <strong>Use with Share Sheet</strong> → turn ON. Accept types: URLs only.
+            Same settings → <strong>Use with Share Sheet</strong> → turn ON.{" "}
+            <span className="font-semibold text-red-700">Set accepted types to URLs only</span>{" "}
+            — tap the types listed and deselect everything except URLs. If you skip this,
+            UDisc sends the wrong data and you&apos;ll get a &ldquo;couldn&apos;t parse&rdquo; error.
           </li>
           <li>
             Done. Now in UDisc: ⋮ → Share Card Cast → <strong>The Patch</strong> → saved.
