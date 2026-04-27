@@ -7,7 +7,10 @@ export function ShareStandings({ text, url }: { text: string; url: string }) {
   const payload = `${text}\n\n${url}`;
 
   async function share() {
-    if (navigator.share) {
+    // On mobile, use native share sheet so Messenger appears directly.
+    // On desktop, skip the share dialog (it strips the text) and just copy.
+    const isMobile = typeof navigator !== "undefined" && /Mobi|Android/i.test(navigator.userAgent);
+    if (isMobile && navigator.share) {
       try {
         await navigator.share({ text, url });
         return;
