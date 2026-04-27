@@ -1,4 +1,4 @@
-import type { Player, PlayerStats, Round } from "./types";
+import type { Player, PlayerStats, Round, SeasonHistory } from "./types";
 
 /**
  * N - position + 1 with ties splitting points.
@@ -288,17 +288,17 @@ export function courseLeaders(
   return out;
 }
 
-/** Per-player "patch thefts" (rounds where they won and a different player was the prior holder). */
-export function patchThefts(rounds: Round[], season?: number): Map<string, number> {
-  const counting = countingRounds(rounds);
-  const rs = season != null ? seasonRounds(counting, season) : [...counting].sort((a, b) => a.date.localeCompare(b.date));
+/** Per-player patch thefts — uses badgeTimeline so the initial holder is correctly accounted for. */
+export function patchThefts(rounds: Round[], history: SeasonHistory[]): Map<string, number> {
+  const seasons = [...new Set(rounds.map((r) => r.season))];
   const out = new Map<string, number>();
-  let prev: string | null = null;
-  for (const r of rs) {
-    const w = r.results.find((x) => x.position === 1)?.playerId;
-    if (!w) continue;
-    if (prev && w !== prev) out.set(w, (out.get(w) ?? 0) + 1);
-    prev = w;
+  for (const season of seasons) {
+    const initialHolder = history.find((h) => h.season === season)?.initialBadgeHolderPlayerId ?? null;
+    for (const event of badgeTimeline(rounds, season, initialHolder)) {
+      if (event.kind === "stolen") {
+        out.set(event.holderId, (out.get(event.holderId) ?? 0) + 1);
+      }
+    }
   }
   return out;
 }

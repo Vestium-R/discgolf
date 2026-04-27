@@ -32,7 +32,7 @@ export default async function StatsPage() {
       if (res.position <= 3) allTimePodiums.set(res.playerId, (allTimePodiums.get(res.playerId) ?? 0) + 1);
     }
   }
-  const thefts = patchThefts(rounds);
+  const thefts = patchThefts(rounds, history);
   const monthly = roundsByMonth(rounds);
 
   const activePlayers = roster.filter((p) => (allTimeRounds.get(p.id) ?? 0) > 0);
@@ -68,8 +68,8 @@ export default async function StatsPage() {
         <Tile label="Since" value={firstRound ? prettyDate(firstRound.date) : "—"} />
       </section>
 
-      {/* ACTIVITY PER MONTH */}
-      {monthly.size > 0 && (
+      {/* ACTIVITY PER MONTH — only meaningful once there's a few months of history */}
+      {monthly.size >= 3 && (
         <section className="card p-4">
           <h3 className="font-display font-bold text-forest-800 mb-3">Rounds per month</h3>
           <div className="flex items-end gap-1 h-28">
