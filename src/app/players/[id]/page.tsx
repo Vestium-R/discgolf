@@ -283,8 +283,11 @@ export default async function PlayerPage({
                       title={`${pct}% wins vs ${r.opponent!.name}`}
                     />
                   </div>
-                  <div className="text-xs tabular-nums w-20 text-right text-forest-700">
-                    {r.wins}W-{r.losses}L · {pct}%
+                  <div className="text-xs tabular-nums w-20 text-right">
+                    <span className="font-semibold text-emerald-700">{r.wins}W</span>
+                    <span className="text-forest-400">-</span>
+                    <span className="font-semibold text-red-600">{r.losses}L</span>
+                    <span className="text-forest-400"> · {pct}%</span>
                   </div>
                 </li>
               );

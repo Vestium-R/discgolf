@@ -6,6 +6,7 @@ import {
   badgeTimeline,
   computeStandings,
   currentBadgeHolder,
+  headToHead,
   rankDeltas,
   seasonRounds,
   currentStreak,
@@ -45,19 +46,52 @@ export default async function HomePage() {
     .filter((h) => h.season < season && h.championName)
     .sort((a, b) => b.season - a.season);
 
-  // Tightest rivalry: smallest points gap between adjacent ranks in top 3.
-  // Only meaningful once there's a real field — at least 3 contenders and both
-  // involved have played a few rounds. Otherwise it's just restating the standings.
-  const top3 = standings.slice(0, 3).filter((s) => s.roundsPlayed >= 2);
-  let tightest: { lead: typeof top3[0]; chaser: typeof top3[0]; gap: number } | null = null;
-  if (top3.length >= 3) {
-    for (let i = 0; i < top3.length - 1; i++) {
-      const gap = top3[i].points - top3[i + 1].points;
-      if (gap >= 0 && (!tightest || gap < tightest.gap)) {
-        tightest = { lead: top3[i], chaser: top3[i + 1], gap };
+  // Build rotating insight candidates — one is picked at random on each page load.
+  type Insight = { emoji: string; text: string };
+  const insights: Insight[] = [];
+
+  // Points gaps between adjacent standings
+  const contenders = standings.filter((s) => s.roundsPlayed >= 2);
+  for (let i = 0; i < contenders.length - 1; i++) {
+    const gap = contenders[i].points - contenders[i + 1].points;
+    if (gap >= 0) {
+      const pts = fmtPoints(gap);
+      insights.push({ emoji: "⚔️", text: `${contenders[i].player.name} leads ${contenders[i + 1].player.name} by ${pts} pt${gap === 1 ? "" : "s"}.` });
+    }
+  }
+
+  // Hot win streaks
+  for (const s of standings) {
+    const streak = currentStreak(rounds, season, s.player.id);
+    if (streak >= 2) insights.push({ emoji: "🔥", text: `${s.player.name} has won ${streak} rounds in a row.` });
+  }
+
+  // Patch hold streak
+  if (held >= 2 && badgeHolder) {
+    insights.push({ emoji: "🧥", text: `${badgeHolder.name} has held the patch for ${held} rounds without losing it.` });
+  }
+
+  // H2H dominance (top 4 players only, avoid too many combos)
+  for (const s of standings.slice(0, 4)) {
+    const h2h = headToHead(rounds, s.player.id);
+    for (const [pid, stats] of h2h) {
+      if (stats.rounds >= 3 && stats.wins / stats.rounds >= 0.7) {
+        const opp = roster.find((p) => p.id === pid);
+        if (opp) insights.push({ emoji: "📊", text: `${s.player.name} has beaten ${opp.name} in ${stats.wins} of their ${stats.rounds} rounds together.` });
       }
     }
   }
+
+  // Winless player with most rounds played (adds drama)
+  const winless = standings.filter((s) => s.roundsPlayed >= 3 && s.wins === 0);
+  if (winless.length > 0) {
+    const p = winless[0];
+    insights.push({ emoji: "👀", text: `${p.player.name} has played ${p.roundsPlayed} rounds this season without a win. The drought continues.` });
+  }
+
+  const insight: Insight | null = insights.length > 0
+    ? insights[Math.floor(Math.random() * insights.length)]
+    : null;
 
   const playedRoster = standings.filter((s) => s.roundsPlayed > 0);
 
@@ -130,19 +164,10 @@ export default async function HomePage() {
             </p>
           </div>
         </div>
-        {tightest && tightest.chaser.roundsPlayed > 0 && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-2xl">⚔️</span>
-              <div className="min-w-0 text-sm">
-                <span className="font-semibold text-amber-900">{tightest.lead.player.name}</span>
-                <span className="text-amber-800"> leads </span>
-                <span className="font-semibold text-amber-900">{tightest.chaser.player.name}</span>
-                <span className="text-amber-800"> by </span>
-                <span className="font-semibold text-amber-900 tabular-nums">{fmtPoints(tightest.gap)} pt{tightest.gap === 1 ? "" : "s"}</span>
-              </div>
-            </div>
-            <Avatar playerId={tightest.chaser.player.id} name={tightest.chaser.player.name} size="sm" imageUrl={tightest.chaser.player.udiscAvatarUrl} />
+        {insight && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-center gap-3">
+            <span className="text-2xl shrink-0">{insight.emoji}</span>
+            <p className="text-sm text-amber-900">{insight.text}</p>
           </div>
         )}
         {last && (
