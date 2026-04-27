@@ -35,6 +35,8 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
     scorecardRe.exec(rawText)?.[0] ??
     rawParam
   );
+  // Detect when the shortcut passed an image object instead of a URL
+  const gotImage = !udiscUrl || udiscUrl === "Image" || !udiscUrl.startsWith("http");
 
   const [roster, settings] = await Promise.all([getRoster(), getSettings()]);
 
@@ -116,6 +118,24 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
           <p className="mt-2 text-sm text-red-700">Something went wrong — try again.</p>
         )}
       </section>
+
+      {/* Shortcut sent an image instead of a URL */}
+      {gotImage && !preview && (
+        <div className="card p-4 border-amber-200 bg-amber-50 space-y-2">
+          <p className="text-sm font-semibold text-amber-900">Your shortcut shared an image, not a link.</p>
+          <p className="text-sm text-amber-800">
+            UDisc&apos;s Card Cast shares a screenshot. You need to share the <strong>link</strong> instead:
+          </p>
+          <ol className="text-sm text-amber-800 space-y-1 pl-4 list-decimal">
+            <li>Open the round in UDisc.</li>
+            <li>Tap <strong>⋮</strong> → <strong>Share</strong> → <strong>Copy Link</strong>.</li>
+            <li>Come back here and paste it in the box above.</li>
+          </ol>
+          <p className="text-xs text-amber-700 mt-1">
+            Or update your shortcut — see <a href="/setup" className="underline font-semibold">Setup</a> for the fix.
+          </p>
+        </div>
+      )}
 
       {/* Parse failed → show error + manual entry */}
       {preview && !preview.ok && (

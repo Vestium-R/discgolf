@@ -51,13 +51,15 @@ export default function SetupPage() {
         <ol className="text-sm text-forest-700 space-y-2 pl-5 list-decimal">
           <li>Open the <strong>Shortcuts</strong> app.</li>
           <li>Tap <strong>+</strong> to create a new shortcut.</li>
+          <li>
+            Tap <strong>Add Action</strong> → search <strong>Get URLs from Input</strong> and add it.
+            This pulls the scorecard link out of whatever UDisc shares (UDisc sends an image + link together).
+          </li>
           <li>Tap <strong>Add Action</strong> → search <strong>Open URLs</strong>.</li>
           <li>
-            In the URL field, paste this — <strong>stop before the brackets</strong>:
+            In the URL field, paste this — <strong>stop at the = sign</strong>:
             <pre className="mt-1 bg-forest-50 rounded p-2 text-xs overflow-x-auto select-all">https://discgolf-eight.vercel.app/add?auto=1&udiscUrl=</pre>
-            Then — <em>do not type the brackets</em> — tap the blue <strong>Shortcut Input</strong> token
-            that appears in the row above the keyboard. It inserts as a blue bubble after the = sign.
-            That&apos;s the right look.
+            Then tap the blue <strong>URLs</strong> token (from the previous step) to insert it after the = sign.
           </li>
           <li>Tap the shortcut&apos;s settings icon (top right) → rename it <strong>The Patch</strong>.</li>
           <li>
