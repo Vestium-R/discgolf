@@ -16,6 +16,7 @@ import { Avatar } from "@/components/Avatar";
 import { RankDelta } from "@/components/RankDelta";
 import { PasteUdiscBox } from "@/components/PasteUdiscBox";
 import { SeasonPicker } from "@/components/SeasonPicker";
+import { ShareStandings } from "@/components/ShareStandings";
 import { fmtPoints, prettyDate } from "@/lib/format";
 
 export default async function HomePage() {
@@ -94,6 +95,19 @@ export default async function HomePage() {
     : null;
 
   const playedRoster = standings.filter((s) => s.roundsPlayed > 0);
+
+  // Standings share text
+  const medals = ["🥇", "🥈", "🥉"];
+  const standingsText = [
+    `🥏 The Patch — Season ${season} Standings`,
+    ...standings
+      .filter((s) => s.roundsPlayed > 0)
+      .map((s, i) => {
+        const medal = medals[i] ?? `${i + 1}.`;
+        return `${medal} ${s.player.name} — ${s.wins}W · ${fmtPoints(s.points)} pts`;
+      }),
+    ...(badgeHolder ? [`\n🧥 Patch: ${badgeHolder.name}`] : []),
+  ].join("\n");
 
   return (
     <div className="space-y-8">
@@ -195,7 +209,12 @@ export default async function HomePage() {
         <section className="lg:col-span-3 card overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-forest-100">
             <h2 className="font-display font-bold text-forest-800">Standings</h2>
-            <span className="text-xs text-forest-600">{rs.length} round{rs.length === 1 ? "" : "s"}</span>
+            <div className="flex items-center gap-3">
+              {playedRoster.length > 0 && (
+                <ShareStandings text={standingsText} url="https://discgolf-eight.vercel.app" />
+              )}
+              <span className="text-xs text-forest-600">{rs.length} round{rs.length === 1 ? "" : "s"}</span>
+            </div>
           </div>
 
           {/* Mobile: card list */}
