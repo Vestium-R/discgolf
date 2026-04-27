@@ -160,7 +160,7 @@ export default async function HomePage() {
       <section className="card p-5">
         <div className="mb-3">
           <h2 className="font-display text-lg font-bold text-forest-800">Add a round</h2>
-          <p className="text-sm text-forest-600">Paste a UDisc scorecard. Whoever wins takes the patch.</p>
+          <p className="text-sm text-forest-600">Paste a UDisc scorecard link to save the round.</p>
         </div>
         <PasteUdiscBox action="/api/preview" />
       </section>
