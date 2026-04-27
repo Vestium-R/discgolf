@@ -22,9 +22,19 @@ type Params = {
 
 export default async function AddPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
-  const sharedText = params.text ?? "";
-  const sharedMatch = sharedText.match(/https?:\/\/udisc\.com\/scorecards\/[A-Za-z0-9_-]+[^\s]*/);
-  const udiscUrl = (params.udiscUrl ?? sharedMatch?.[0] ?? "").trim();
+  // Extract a scorecard URL from wherever it arrives:
+  //   - params.udiscUrl  (iOS shortcut passing URL directly, or passing whole text)
+  //   - params.text      (Android Web Share Target)
+  // UDisc's share sheet sends the whole share text (e.g. "Round at X\nhttps://udisc.com/…")
+  // so we pull the scorecard URL out of whichever param has it.
+  const scorecardRe = /https?:\/\/udisc\.com\/scorecards\/[A-Za-z0-9_-]+/;
+  const rawParam = (params.udiscUrl ?? "").trim();
+  const rawText  = (params.text ?? "").trim();
+  const udiscUrl = (
+    scorecardRe.exec(rawParam)?.[0] ??
+    scorecardRe.exec(rawText)?.[0] ??
+    rawParam
+  );
 
   const [roster, settings] = await Promise.all([getRoster(), getSettings()]);
 

@@ -62,11 +62,10 @@ export default function SetupPage() {
           <li>Tap the shortcut&apos;s settings icon (top right) → rename it <strong>The Patch</strong>.</li>
           <li>
             At the top of your shortcut you&apos;ll see a block that says{" "}
-            <strong>&ldquo;Receive [something] from Share Sheet&rdquo;</strong>.
-            Tap the blue text (e.g. <em>&ldquo;Apps and 18 more&rdquo;</em>) and{" "}
-            <span className="font-semibold text-red-700">deselect everything except URLs</span>.{" "}
-            This is the critical step — if other types are left on, UDisc sends the
-            wrong data and you&apos;ll get a &ldquo;couldn&apos;t parse&rdquo; error.
+            <strong>&ldquo;Receive [something] from Share Sheet&rdquo;</strong>.{" "}
+            Leave it accepting <strong>multiple types</strong> (the default &ldquo;Apps and 18 more&rdquo; is fine) —
+            UDisc shares as text, so restricting to URLs only will hide The Patch from the share sheet.
+            The site automatically extracts the scorecard link from whatever UDisc sends.
           </li>
           <li>
             Done. Now in UDisc: ⋮ → Share Card Cast → <strong>The Patch</strong> → saved.
