@@ -88,21 +88,67 @@ export default async function RoundDetail({
     }
   }
 
-  // Head-to-head between top-2 in THIS round, using the full rounds history.
+  // Build rotating insight candidates for this round.
+  type Insight = { emoji: string; text: string };
+  const roundInsights: Insight[] = [];
+
   const p1 = ordered[0]?.playerId;
   const p2 = ordered[1]?.playerId;
-  let h2hBanner: { winnerName: string; loserName: string; wins: number; total: number } | null = null;
+  const p1Name = byId.get(p1 ?? "")?.name;
+
+  // H2H between winner and runner-up
   if (p1 && p2 && p1 !== p2) {
     const h2h = headToHead(rounds, p1).get(p2);
     if (h2h && h2h.rounds >= 2) {
-      h2hBanner = {
-        winnerName: byId.get(p1)?.name ?? "?",
-        loserName: byId.get(p2)?.name ?? "?",
-        wins: h2h.wins,
-        total: h2h.rounds,
-      };
+      roundInsights.push({ emoji: "📊", text: `${byId.get(p1)?.name} has beaten ${byId.get(p2)?.name} in ${h2h.wins} of their ${h2h.rounds} rounds together.` });
+    }
+    const h2hFlip = headToHead(rounds, p2).get(p1);
+    if (h2hFlip && h2hFlip.wins > 0 && h2hFlip.rounds >= 2) {
+      roundInsights.push({ emoji: "📊", text: `${byId.get(p2)?.name} has beaten ${byId.get(p1)?.name} ${h2hFlip.wins} time${h2hFlip.wins === 1 ? "" : "s"} in ${h2hFlip.rounds} rounds — but not today.` });
     }
   }
+
+  // Win streak of the winner (excluding this round to see prior streak)
+  if (p1 && p1Name) {
+    const priorRounds = rounds.filter((r) => r.id !== round.id);
+    const { currentStreak: cs } = await import("@/lib/scoring");
+    const streak = cs(priorRounds, round.season, p1);
+    if (streak >= 1) roundInsights.push({ emoji: "🔥", text: `${p1Name} now has ${streak + 1} wins in a row this season.` });
+  }
+
+  // First win ever
+  if (p1 && p1Name) {
+    const priorWins = rounds.filter((r) => r.id !== round.id && r.results.some((x) => x.playerId === p1 && x.position === 1));
+    if (priorWins.length === 0) roundInsights.push({ emoji: "🏆", text: `First ever win for ${p1Name}!` });
+  }
+
+  // Course record: did anyone set their best score at this course?
+  if (round.courseName) {
+    for (const r of ordered) {
+      if (r.relativeScore == null) continue;
+      const player = byId.get(r.playerId);
+      if (!player) continue;
+      const prior = rounds
+        .filter((x) => x.id !== round.id && x.courseName === round.courseName)
+        .flatMap((x) => x.results)
+        .filter((x) => x.playerId === r.playerId && x.relativeScore != null);
+      const prevBest = prior.length > 0 ? Math.min(...prior.map((x) => x.relativeScore as number)) : null;
+      if (prevBest != null && r.relativeScore < prevBest) {
+        const sign = r.relativeScore > 0 ? "+" : "";
+        roundInsights.push({ emoji: "🎯", text: `${player.name} set a new personal best at ${round.courseName}: ${sign}${r.relativeScore}.` });
+      }
+    }
+  }
+
+  // Closest finish (small score gap between 1st and 2nd)
+  const r1 = ordered[0], r2 = ordered[1];
+  if (r1?.score != null && r2?.score != null && r2.score - r1.score <= 2) {
+    roundInsights.push({ emoji: "😤", text: `Tight one — ${byId.get(r1.playerId)?.name} edged ${byId.get(r2.playerId)?.name} by just ${r2.score - r1.score} stroke${r2.score - r1.score === 1 ? "" : "s"}.` });
+  }
+
+  const roundInsight: Insight | null = roundInsights.length > 0
+    ? roundInsights[Math.floor(Math.random() * roundInsights.length)]
+    : null;
 
   const summary = buildSummary({
     date: round.date,
@@ -192,12 +238,10 @@ export default async function RoundDetail({
         )}
       </header>
 
-      {h2hBanner && (
+      {roundInsight && (
         <div className="rounded-2xl border border-forest-200 bg-white px-4 py-2 text-sm text-forest-700 flex items-center gap-2">
-          <span>📊</span>
-          <span>
-            <strong>{h2hBanner.winnerName}</strong> has beaten <strong>{h2hBanner.loserName}</strong> in <strong>{h2hBanner.wins} of their last {h2hBanner.total}</strong> rounds.
-          </span>
+          <span className="shrink-0">{roundInsight.emoji}</span>
+          <span>{roundInsight.text}</span>
         </div>
       )}
 
