@@ -59,12 +59,14 @@ export default function SetupPage() {
             that appears in the row above the keyboard. It inserts as a blue bubble after the = sign.
             That&apos;s the right look.
           </li>
-          <li>Tap the shortcut&apos;s settings → rename it <strong>The Patch</strong>.</li>
+          <li>Tap the shortcut&apos;s settings icon (top right) → rename it <strong>The Patch</strong>.</li>
           <li>
-            Same settings → <strong>Use with Share Sheet</strong> → turn ON.{" "}
-            <span className="font-semibold text-red-700">Set accepted types to URLs only</span>{" "}
-            — tap the types listed and deselect everything except URLs. If you skip this,
-            UDisc sends the wrong data and you&apos;ll get a &ldquo;couldn&apos;t parse&rdquo; error.
+            At the top of your shortcut you&apos;ll see a block that says{" "}
+            <strong>&ldquo;Receive [something] from Share Sheet&rdquo;</strong>.
+            Tap the blue text (e.g. <em>&ldquo;Apps and 18 more&rdquo;</em>) and{" "}
+            <span className="font-semibold text-red-700">deselect everything except URLs</span>.{" "}
+            This is the critical step — if other types are left on, UDisc sends the
+            wrong data and you&apos;ll get a &ldquo;couldn&apos;t parse&rdquo; error.
           </li>
           <li>
             Done. Now in UDisc: ⋮ → Share Card Cast → <strong>The Patch</strong> → saved.
