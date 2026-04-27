@@ -32,7 +32,10 @@ export type UdiscParseResult = {
  * totalScore fields, and derive finish positions by sorting on totalScore.
  */
 export async function parseUdiscUrl(url: string): Promise<UdiscParseResult> {
-  const fail = (warning: string): UdiscParseResult => ({ ok: false, url, entries: [], warning });
+  const fail = (warning: string): UdiscParseResult => {
+    console.error("[udisc] parse failed", { url, warning });
+    return { ok: false, url, entries: [], warning };
+  };
   let html: string;
   try {
     const res = await fetch(url, {
