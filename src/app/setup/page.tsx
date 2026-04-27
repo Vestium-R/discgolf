@@ -11,60 +11,60 @@ export default function SetupPage() {
       </header>
 
       {/* ANDROID */}
-      <section className="card p-5 space-y-3">
+      <section className="card p-5 space-y-4">
         <h3 className="font-display font-bold text-forest-800">🤖 Android</h3>
 
-        <div className="text-xs uppercase tracking-widest text-forest-600 font-semibold">One-time setup</div>
-        <ol className="text-sm text-forest-700 space-y-1 pl-5 list-decimal">
-          <li>In Chrome, open <Link href="/" className="underline">this site</Link>.</li>
-          <li>Tap <strong>⋮ → Install app</strong> (or <strong>Add to Home screen</strong>).</li>
-        </ol>
+        <div>
+          <p className="text-xs uppercase tracking-widest text-forest-600 font-semibold mb-1">One-time setup</p>
+          <ol className="text-sm text-forest-700 space-y-1 pl-5 list-decimal">
+            <li>Open this site in Chrome.</li>
+            <li>Tap <strong>⋮ → Install app</strong> (or <strong>Add to Home screen</strong>).</li>
+          </ol>
+        </div>
 
-        <div className="text-xs uppercase tracking-widest text-forest-600 font-semibold pt-2">After every round</div>
-        <ol className="text-sm text-forest-700 space-y-1 pl-5 list-decimal">
-          <li>Open the round in UDisc.</li>
-          <li>Tap <strong>⋮ → Share Card Cast → The Patch</strong>.</li>
-          <li>Done — round saves automatically.</li>
-        </ol>
+        <div>
+          <p className="text-xs uppercase tracking-widest text-forest-600 font-semibold mb-1">After every round</p>
+          <ol className="text-sm text-forest-700 space-y-1 pl-5 list-decimal">
+            <li>Open the round in UDisc.</li>
+            <li>Tap <strong>⋮ → Share Card Cast → The Patch</strong>.</li>
+            <li>Done — saves automatically.</li>
+          </ol>
+        </div>
       </section>
 
       {/* IPHONE */}
-      <section className="card p-5 space-y-3">
+      <section className="card p-5 space-y-4">
         <h3 className="font-display font-bold text-forest-800">📱 iPhone</h3>
         <p className="text-sm text-forest-700">
-          If Card Cast isn&apos;t working from your shortcut, use <strong>Copy Link</strong> instead —
-          it&apos;s more reliable on iPhone.
+          Card Cast on iPhone sends a screenshot image instead of a link, so it doesn&apos;t work.
+          Use <strong>Copy Link</strong> instead — set up the shortcut below to make it one tap.
         </p>
 
-        <div className="text-xs uppercase tracking-widest text-forest-600 font-semibold">After every round</div>
-        <ol className="text-sm text-forest-700 space-y-1 pl-5 list-decimal">
-          <li>Open the round in UDisc.</li>
-          <li>Tap <strong>⋮ → Share → Copy Link</strong>.</li>
-          <li>Open <strong>The Patch</strong> — the link pastes automatically on the Add page.</li>
-        </ol>
-
-        <div className="text-xs uppercase tracking-widest text-forest-600 font-semibold pt-2">
-          One-tap shortcut (optional — saves the paste step)
+        <div>
+          <p className="text-xs uppercase tracking-widest text-forest-600 font-semibold mb-1">One-time shortcut setup</p>
+          <ol className="text-sm text-forest-700 space-y-3 pl-5 list-decimal">
+            <li>Open the <strong>Shortcuts</strong> app → tap <strong>+</strong>.</li>
+            <li>Tap <strong>Add Action</strong> → search <strong>Open URLs</strong>.</li>
+            <li>
+              In the URL field paste:
+              <pre className="mt-1 bg-forest-50 rounded p-2 text-xs overflow-x-auto select-all">https://discgolf-eight.vercel.app/add?auto=1&udiscUrl=</pre>
+              Then — cursor after the <code>=</code> — tap the blue <strong>Shortcut Input</strong> chip
+              above the keyboard. It appears as a blue bubble. That&apos;s correct.
+            </li>
+            <li>Tap the settings icon (top right) → rename it <strong>The Patch</strong>.</li>
+            <li>Turn on <strong>Use with Share Sheet</strong>. Leave accepted types as-is.</li>
+          </ol>
         </div>
-        <ol className="text-sm text-forest-700 space-y-3 pl-5 list-decimal">
-          <li>Open <strong>Shortcuts</strong> → tap <strong>+</strong>.</li>
-          <li>Tap <strong>Add Action</strong> → search <strong>Open URLs</strong>.</li>
-          <li>
-            In the URL field paste:
-            <pre className="mt-1 bg-forest-50 rounded p-2 text-xs overflow-x-auto select-all">https://discgolf-eight.vercel.app/add?auto=1&udiscUrl=</pre>
-            Then with your cursor after the <code>=</code>, tap the blue{" "}
-            <strong>Shortcut Input</strong> token above the keyboard (blue bubble — that&apos;s correct).
-          </li>
-          <li>Tap settings (top right) → rename it <strong>The Patch</strong>.</li>
-          <li>
-            Turn on <strong>Use with Share Sheet</strong>.
-            Leave accepted types as-is — restricting to URLs only will make it disappear.
-          </li>
-          <li>
-            Now: in UDisc tap <strong>⋮ → Share → Copy Link</strong>, then pick{" "}
-            <strong>The Patch</strong> from the share sheet. Saves automatically.
-          </li>
-        </ol>
+
+        <div>
+          <p className="text-xs uppercase tracking-widest text-forest-600 font-semibold mb-1">After every round</p>
+          <ol className="text-sm text-forest-700 space-y-1 pl-5 list-decimal">
+            <li>Open the round in UDisc.</li>
+            <li>Tap <strong>⋮ → Share → Copy Link</strong>.</li>
+            <li>In the share sheet, pick <strong>The Patch</strong>.</li>
+            <li>Done — saves automatically.</li>
+          </ol>
+        </div>
       </section>
 
       <section className="card p-5 space-y-2">
