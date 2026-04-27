@@ -63,9 +63,10 @@ export default function SetupPage() {
           <li>
             At the top of your shortcut you&apos;ll see a block that says{" "}
             <strong>&ldquo;Receive [something] from Share Sheet&rdquo;</strong>.{" "}
-            Leave it accepting <strong>multiple types</strong> (the default &ldquo;Apps and 18 more&rdquo; is fine) —
-            UDisc shares as text, so restricting to URLs only will hide The Patch from the share sheet.
-            The site automatically extracts the scorecard link from whatever UDisc sends.
+            <strong>Leave it exactly as-is</strong> — do not change the accepted types.
+            UDisc shares its own app format (not a plain URL), so restricting to fewer
+            types will make The Patch disappear from UDisc&apos;s share sheet.
+            The site handles pulling the scorecard link out automatically.
           </li>
           <li>
             Done. Now in UDisc: ⋮ → Share Card Cast → <strong>The Patch</strong> → saved.
