@@ -36,7 +36,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
     rawParam
   );
   // Detect when the shortcut passed an image object instead of a URL
-  const gotImage = !udiscUrl || udiscUrl === "Image" || !udiscUrl.startsWith("http");
+  const gotImage = !!rawParam && !udiscUrl.startsWith("http");
 
   const [roster, settings] = await Promise.all([getRoster(), getSettings()]);
 
