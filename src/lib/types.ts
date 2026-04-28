@@ -72,6 +72,8 @@ export type BagDisc = {
   turn?: number;
   fade?: number;
   plastic?: string;
+  color?: string;
+  weightG?: number;
   notes?: string;
   createdAt: string;
 };

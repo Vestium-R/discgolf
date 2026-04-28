@@ -1,9 +1,9 @@
 import { getUser } from "@/lib/auth";
 import { getBagDiscs } from "@/lib/store";
 import { SignInForm } from "@/components/SignInForm";
-import { BagChart } from "@/components/BagChart";
 import { AddDiscForm } from "@/components/AddDiscForm";
 import { BagList } from "@/components/BagList";
+import { BagInteractive } from "@/components/BagInteractive";
 import type { BagDisc, DiscType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -12,24 +12,24 @@ function analyzeBag(discs: BagDisc[]): string[] {
   if (discs.length === 0) return [];
   const gaps: string[] = [];
   const byType = (t: DiscType) => discs.filter((d) => d.type === t);
-  const putters = byType("putter");
-  const mids = byType("midrange");
+  const putters  = byType("putter");
+  const mids     = byType("midrange");
   const fairways = byType("fairway_driver");
   const distance = byType("distance_driver");
 
-  if (putters.length === 0) gaps.push("No putter — essential for close-range and basket shots.");
-  if (mids.length === 0) gaps.push("No midrange — great for control and wooded courses.");
+  if (putters.length === 0)  gaps.push("No putter — essential for close-range and basket shots.");
+  if (mids.length === 0)     gaps.push("No midrange — great for control and wooded courses.");
   if (fairways.length === 0 && distance.length === 0) gaps.push("No driver — add a fairway driver to start.");
 
   const drivers = [...fairways, ...distance];
   if (drivers.length >= 2) {
     const stabs = drivers.map((d) => (d.turn ?? 0) + (d.fade ?? 0));
-    if (!stabs.some((s) => s < -0.5)) gaps.push("All drivers are overstable or neutral — an understable driver adds distance and flex shots.");
-    if (!stabs.some((s) => s > 1)) gaps.push("No overstable driver — useful for headwind shots and reliable fades.");
-    if (!stabs.some((s) => s >= -0.5 && s <= 1)) gaps.push("No neutral driver — a straight flyer helps with controlled distance shots.");
+    if (!stabs.some((s) => s < -0.5))       gaps.push("All drivers are overstable or neutral — add an understable driver for max distance and flex shots.");
+    if (!stabs.some((s) => s > 1))          gaps.push("No overstable driver — important for headwind and controlled fade shots.");
+    if (!stabs.some((s) => s >= -0.5 && s <= 1)) gaps.push("No neutral driver — a straight flyer gives you more lines.");
   }
   if (fairways.length === 0 && distance.length > 0) gaps.push("No fairway driver — easier to control on tight holes.");
-  if (putters.length >= 1 && mids.length === 0 && drivers.length >= 1) gaps.push("Gap between putter and driver — a midrange fills the range nicely.");
+  if (putters.length >= 1 && mids.length === 0 && drivers.length >= 1) gaps.push("Gap between putter and driver — a midrange fills the approach range.");
 
   return gaps;
 }
@@ -42,7 +42,7 @@ export default async function BagPage() {
       <div className="space-y-6 max-w-sm mx-auto pt-6">
         <header>
           <h2 className="font-display text-2xl font-bold text-forest-800">My Bag</h2>
-          <p className="text-sm text-forest-600 mt-1">Sign in to track your discs and spot gaps in your bag.</p>
+          <p className="text-sm text-forest-600 mt-1">Sign in to track your discs, spot bag gaps, and get AI recommendations.</p>
         </header>
         <div className="card p-5">
           <p className="text-sm font-semibold text-forest-800 mb-3">Sign in with your email</p>
@@ -69,16 +69,13 @@ export default async function BagPage() {
 
       {discs.length > 0 && <BagList discs={discs} />}
 
-      {discs.length >= 2 && (
-        <section className="card p-4 space-y-3">
-          <h3 className="font-display font-bold text-forest-800">Bag chart</h3>
-          <BagChart discs={discs} />
-        </section>
-      )}
+      {/* Chart + settings — all client-side interactive */}
+      {discs.length >= 2 && <BagInteractive discs={discs} />}
 
+      {/* Rule-based gaps */}
       {gaps.length > 0 && (
         <section className="card p-4 space-y-3">
-          <h3 className="font-display font-bold text-forest-800">Bag gaps</h3>
+          <h3 className="font-display font-bold text-forest-800">Quick gaps</h3>
           <ul className="space-y-2">
             {gaps.map((g, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-forest-700">

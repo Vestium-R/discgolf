@@ -111,6 +111,20 @@ export function AddDiscForm() {
           <label className="text-xs font-semibold text-forest-700 block mb-1">Plastic</label>
           <input name="plastic" placeholder="e.g. Star, ESP" className="input-pill text-sm" />
         </div>
+        <div>
+          <label className="text-xs font-semibold text-forest-700 block mb-1">Color</label>
+          <select name="color" className="input-pill text-sm">
+            <option value="">—</option>
+            {["red","orange","yellow","green","blue","purple","pink","white","black","grey","teal"].map(c=>(
+              <option key={c} value={c}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-forest-700 block mb-1">Weight (g)</label>
+          <input name="weight" type="number" min={130} max={180} step={1} placeholder="175"
+            className="input-pill text-sm" />
+        </div>
       </div>
 
       <div>

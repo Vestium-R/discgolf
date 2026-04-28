@@ -259,6 +259,8 @@ type BagDiscRow = {
   turn: number | null;
   fade: number | null;
   plastic: string | null;
+  color: string | null;
+  weight_g: number | null;
   notes: string | null;
   created_at: string;
 };
@@ -275,6 +277,8 @@ function rowToDisc(r: BagDiscRow): BagDisc {
     turn: r.turn != null ? Number(r.turn) : undefined,
     fade: r.fade != null ? Number(r.fade) : undefined,
     plastic: r.plastic ?? undefined,
+    color: r.color ?? undefined,
+    weightG: r.weight_g ?? undefined,
     notes: r.notes ?? undefined,
     createdAt: r.created_at,
   };
@@ -304,8 +308,31 @@ export async function addBagDisc(userId: string, disc: Omit<BagDisc, "id" | "use
       turn: disc.turn ?? null,
       fade: disc.fade ?? null,
       plastic: disc.plastic ?? null,
+      color: disc.color ?? null,
+      weight_g: disc.weightG ?? null,
       notes: disc.notes ?? null,
     });
+  if (error) throw error;
+}
+
+export async function updateBagDisc(id: string, userId: string, disc: Partial<Omit<BagDisc, "id" | "userId" | "createdAt">>): Promise<void> {
+  const patch: Record<string, unknown> = {};
+  if (disc.discName !== undefined)    patch.disc_name    = disc.discName;
+  if (disc.manufacturer !== undefined) patch.manufacturer = disc.manufacturer ?? null;
+  if (disc.type !== undefined)        patch.type         = disc.type;
+  if (disc.speed !== undefined)       patch.speed        = disc.speed;
+  if (disc.glide !== undefined)       patch.glide        = disc.glide ?? null;
+  if (disc.turn !== undefined)        patch.turn         = disc.turn ?? null;
+  if (disc.fade !== undefined)        patch.fade         = disc.fade ?? null;
+  if (disc.plastic !== undefined)     patch.plastic      = disc.plastic ?? null;
+  if (disc.color !== undefined)       patch.color        = disc.color ?? null;
+  if (disc.weightG !== undefined)     patch.weight_g     = disc.weightG ?? null;
+  if (disc.notes !== undefined)       patch.notes        = disc.notes ?? null;
+  const { error } = await supabaseAdmin()
+    .from("bag_discs")
+    .update(patch)
+    .eq("id", id)
+    .eq("user_id", userId);
   if (error) throw error;
 }
 
