@@ -309,7 +309,7 @@ export const DISC_DB: DiscRecord[] = [
   // ── More Latitude 64 ─────────────────────────────────────────────────────
   { manufacturer: "Latitude 64", name: "Burner", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
   { manufacturer: "Latitude 64", name: "Compass", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
-  { manufacturer: "Latitude 64", name: "Gauntlet", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 4 },
+  { manufacturer: "Latitude 64", name: "Gauntlet", type: "putter", speed: 2, glide: 4, turn: 0, fade: 1 },
   { manufacturer: "Latitude 64", name: "Halo", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
   { manufacturer: "Latitude 64", name: "Raketen", type: "distance_driver", speed: 14, glide: 4, turn: 0, fade: 3 },
   { manufacturer: "Latitude 64", name: "Sapphire", type: "distance_driver", speed: 11, glide: 6, turn: -3, fade: 2 },
@@ -449,8 +449,38 @@ export const DISC_DB: DiscRecord[] = [
   // ── Mint Discs (confirmed) ────────────────────────────────────────────────
   { manufacturer: "Mint Discs", name: "Lobster", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
 
-  // ── Latitude 64 (confirmed) ───────────────────────────────────────────────
+  // ── Latitude 64 (confirmed via discgolfdojo.com) ─────────────────────────
   { manufacturer: "Latitude 64", name: "Ballista Pro", type: "distance_driver", speed: 14, glide: 5, turn: -0.5, fade: 3 },
+  // Putters
+  { manufacturer: "Latitude 64", name: "Beetle", type: "putter", speed: 1, glide: 7, turn: -1, fade: 0 },
+  { manufacturer: "Latitude 64", name: "Caltrop", type: "putter", speed: 2, glide: 2, turn: 0, fade: 0 },
+  { manufacturer: "Latitude 64", name: "Macana", type: "putter", speed: 2, glide: 5, turn: 0, fade: 1 },
+  { manufacturer: "Latitude 64", name: "Mercy", type: "putter", speed: 2, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "Latitude 64", name: "Peak", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
+  // Midranges
+  { manufacturer: "Latitude 64", name: "Anchor", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Latitude 64", name: "Core", type: "midrange", speed: 6, glide: 5, turn: -0.5, fade: 1 },
+  { manufacturer: "Latitude 64", name: "Gobi", type: "midrange", speed: 6, glide: 5, turn: -0.5, fade: 1 },
+  { manufacturer: "Latitude 64", name: "Mace", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "Latitude 64", name: "Medius", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Latitude 64", name: "Pain", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 3 },
+  // Fairway drivers
+  { manufacturer: "Latitude 64", name: "Honor", type: "fairway_driver", speed: 9, glide: 5, turn: 0, fade: 2.5 },
+  { manufacturer: "Latitude 64", name: "Spark", type: "fairway_driver", speed: 7, glide: 4, turn: -0.5, fade: 3 },
+  { manufacturer: "Latitude 64", name: "Striker", type: "fairway_driver", speed: 8, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "Latitude 64", name: "Sweep", type: "fairway_driver", speed: 9, glide: 6, turn: -0.5, fade: 2 },
+  { manufacturer: "Latitude 64", name: "Trident", type: "fairway_driver", speed: 6, glide: 4, turn: -0.5, fade: 3 },
+  { manufacturer: "Latitude 64", name: "Vision", type: "fairway_driver", speed: 8, glide: 6, turn: -1, fade: 2 },
+  { manufacturer: "Latitude 64", name: "XXX", type: "fairway_driver", speed: 7, glide: 3, turn: 0, fade: 4 },
+  { manufacturer: "Latitude 64", name: "Zion", type: "fairway_driver", speed: 9, glide: 4, turn: -0.5, fade: 3 },
+
+  // ── Confirmed via discgolfdojo.com ────────────────────────────────────────
+  { manufacturer: "Axiom", name: "Tempo", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 2.5 },
+  { manufacturer: "Innova", name: "Fox", type: "midrange", speed: 5, glide: 6, turn: -2, fade: 1 },
+  { manufacturer: "Innova", name: "Savant", type: "fairway_driver", speed: 9, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Discmania", name: "Solar Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Streamline", name: "Turbulence", type: "fairway_driver", speed: 7, glide: 2, turn: 0, fade: 3.5 },
+  { manufacturer: "Westside Discs", name: "Prince", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
 
   // ── Dynamic Discs (confirmed) ─────────────────────────────────────────────
   { manufacturer: "Dynamic Discs", name: "Sockibomb Slammer", type: "midrange", speed: 5, glide: 3, turn: 0, fade: 3 },
