@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "./supabase/server";
-import type { Player, Round, RoundVariant, SeasonHistory, Settings } from "./types";
+import type { BagDisc, Player, Round, RoundVariant, SeasonHistory, Settings } from "./types";
 
 type PlayerRow = {
   id: string;
@@ -243,5 +243,77 @@ export async function saveSettings(s: Settings): Promise<void> {
   const { error } = await supabaseAdmin()
     .from("settings")
     .upsert({ id: 1, current_season: s.currentSeason });
+  if (error) throw error;
+}
+
+// ─── Bag ───────────────────────────────────────────────────────────────────
+
+type BagDiscRow = {
+  id: string;
+  user_id: string;
+  disc_name: string;
+  manufacturer: string | null;
+  type: string;
+  speed: number;
+  glide: number | null;
+  turn: number | null;
+  fade: number | null;
+  plastic: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+function rowToDisc(r: BagDiscRow): BagDisc {
+  return {
+    id: r.id,
+    userId: r.user_id,
+    discName: r.disc_name,
+    manufacturer: r.manufacturer ?? undefined,
+    type: r.type as BagDisc["type"],
+    speed: Number(r.speed),
+    glide: r.glide != null ? Number(r.glide) : undefined,
+    turn: r.turn != null ? Number(r.turn) : undefined,
+    fade: r.fade != null ? Number(r.fade) : undefined,
+    plastic: r.plastic ?? undefined,
+    notes: r.notes ?? undefined,
+    createdAt: r.created_at,
+  };
+}
+
+export async function getBagDiscs(userId: string): Promise<BagDisc[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("bag_discs")
+    .select("*")
+    .eq("user_id", userId)
+    .order("type")
+    .order("speed");
+  if (error) throw error;
+  return (data as BagDiscRow[]).map(rowToDisc);
+}
+
+export async function addBagDisc(userId: string, disc: Omit<BagDisc, "id" | "userId" | "createdAt">): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("bag_discs")
+    .insert({
+      user_id: userId,
+      disc_name: disc.discName,
+      manufacturer: disc.manufacturer ?? null,
+      type: disc.type,
+      speed: disc.speed,
+      glide: disc.glide ?? null,
+      turn: disc.turn ?? null,
+      fade: disc.fade ?? null,
+      plastic: disc.plastic ?? null,
+      notes: disc.notes ?? null,
+    });
+  if (error) throw error;
+}
+
+export async function removeBagDisc(id: string, userId: string): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("bag_discs")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", userId);
   if (error) throw error;
 }

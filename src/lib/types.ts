@@ -59,6 +59,37 @@ export type Settings = {
   currentSeason: number;
 };
 
+export type DiscType = "putter" | "midrange" | "fairway_driver" | "distance_driver";
+
+export type BagDisc = {
+  id: string;
+  userId: string;
+  discName: string;
+  manufacturer?: string;
+  type: DiscType;
+  speed: number;
+  glide?: number;
+  turn?: number;
+  fade?: number;
+  plastic?: string;
+  notes?: string;
+  createdAt: string;
+};
+
+export const DISC_TYPE_LABELS: Record<DiscType, string> = {
+  putter: "Putter",
+  midrange: "Midrange",
+  fairway_driver: "Fairway Driver",
+  distance_driver: "Distance Driver",
+};
+
+export const DISC_TYPE_COLORS: Record<DiscType, string> = {
+  putter: "#a855f7",
+  midrange: "#22c55e",
+  fairway_driver: "#3b82f6",
+  distance_driver: "#ef4444",
+};
+
 export type PlayerStats = {
   player: Player;
   roundsPlayed: number;

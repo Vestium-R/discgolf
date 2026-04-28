@@ -11,6 +11,7 @@ const primaryTabs = [
 ];
 
 const moreTabs = [
+  { href: "/bag",     label: "My Bag",  icon: "🎒" },
   { href: "/seasons", label: "Seasons", icon: "🏆" },
   { href: "/courses", label: "Courses", icon: "📍" },
   { href: "/rules",   label: "Rules",   icon: "📋" },
@@ -39,7 +40,7 @@ export function BottomNav() {
             className="absolute bottom-14 inset-x-0 bg-white border-t border-forest-200 shadow-xl rounded-t-2xl px-4 py-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="grid grid-cols-5 gap-1">
+            <div className="grid grid-cols-3 gap-1">
               {moreTabs.map((t) => {
                 const active = pathname.startsWith(t.href);
                 return (
