@@ -266,6 +266,165 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── Løkid Disc Golf ───────────────────────────────────────────────────────
   { manufacturer: "Løkid", name: "Loki", type: "putter", speed: 2, glide: 3, turn: 0, fade: 2 },
+
+  // ── More Innova ───────────────────────────────────────────────────────────
+  { manufacturer: "Innova", name: "Eagle", type: "fairway_driver", speed: 7, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Innova", name: "Eagle X", type: "fairway_driver", speed: 7, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Innova", name: "Gator", type: "midrange", speed: 6, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Innova", name: "Gator3", type: "midrange", speed: 6, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Innova", name: "Hawkteye", type: "fairway_driver", speed: 8, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Innova", name: "Lion", type: "midrange", speed: 4, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Innova", name: "Liger", type: "midrange", speed: 6, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Innova", name: "Mamba", type: "distance_driver", speed: 11, glide: 6, turn: -5, fade: 1 },
+  { manufacturer: "Innova", name: "Nova", type: "putter", speed: 2, glide: 4, turn: -1, fade: 0 },
+  { manufacturer: "Innova", name: "Orc", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Innova", name: "Phantom", type: "distance_driver", speed: 11, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Innova", name: "Pig", type: "putter", speed: 3, glide: 1, turn: 0, fade: 3 },
+  { manufacturer: "Innova", name: "Python", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Innova", name: "Stingray", type: "midrange", speed: 4, glide: 6, turn: -4, fade: 0 },
+  { manufacturer: "Innova", name: "TeeBird3", type: "fairway_driver", speed: 7, glide: 5, turn: 0, fade: 2 },
+
+  // ── More Discraft ─────────────────────────────────────────────────────────
+  { manufacturer: "Discraft", name: "Archer", type: "fairway_driver", speed: 6, glide: 4, turn: -2, fade: 2 },
+  { manufacturer: "Discraft", name: "Crank", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Discraft", name: "Cyclone", type: "distance_driver", speed: 13, glide: 5, turn: -3, fade: 2 },
+  { manufacturer: "Discraft", name: "Heat", type: "fairway_driver", speed: 9, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "Discraft", name: "Hades", type: "distance_driver", speed: 12, glide: 6, turn: -3, fade: 2 },
+  { manufacturer: "Discraft", name: "Hornet", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Discraft", name: "Mantis", type: "fairway_driver", speed: 10, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Discraft", name: "Nebula", type: "distance_driver", speed: 10, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Discraft", name: "Phantom", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Discraft", name: "Roach", type: "putter", speed: 2, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "Discraft", name: "Raptor", type: "fairway_driver", speed: 10, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Discraft", name: "Talon", type: "distance_driver", speed: 10, glide: 4, turn: -2, fade: 3 },
+  { manufacturer: "Discraft", name: "Typhoon", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 3 },
+
+  // ── More Dynamic Discs ────────────────────────────────────────────────────
+  { manufacturer: "Dynamic Discs", name: "Evidence", type: "midrange", speed: 4, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Dynamic Discs", name: "Getaway", type: "fairway_driver", speed: 9, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "Dynamic Discs", name: "Raider", type: "distance_driver", speed: 11, glide: 6, turn: -2, fade: 3 },
+  { manufacturer: "Dynamic Discs", name: "Suspect", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Dynamic Discs", name: "Token", type: "putter", speed: 2, glide: 4, turn: 0, fade: 1 },
+
+  // ── More Latitude 64 ─────────────────────────────────────────────────────
+  { manufacturer: "Latitude 64", name: "Burner", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Latitude 64", name: "Compass", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Latitude 64", name: "Gauntlet", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 4 },
+  { manufacturer: "Latitude 64", name: "Halo", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Latitude 64", name: "Raketen", type: "distance_driver", speed: 14, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Latitude 64", name: "Sapphire", type: "distance_driver", speed: 11, glide: 6, turn: -3, fade: 2 },
+  { manufacturer: "Latitude 64", name: "Scythe", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Latitude 64", name: "Spike", type: "fairway_driver", speed: 8, glide: 4, turn: -1, fade: 4 },
+  { manufacturer: "Latitude 64", name: "Underworld", type: "putter", speed: 3, glide: 4, turn: -1, fade: 2 },
+
+  // ── More MVP ──────────────────────────────────────────────────────────────
+  { manufacturer: "MVP", name: "Catalyst", type: "distance_driver", speed: 13, glide: 5.5, turn: -2, fade: 2 },
+  { manufacturer: "MVP", name: "Deflector", type: "distance_driver", speed: 12, glide: 5, turn: -3, fade: 1.5 },
+  { manufacturer: "MVP", name: "Dimension", type: "distance_driver", speed: 14, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "MVP", name: "Disc Soft Ion", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "MVP", name: "Electron Disc Ion", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "MVP", name: "Matrix", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "MVP", name: "Photon", type: "distance_driver", speed: 12, glide: 5, turn: -0.5, fade: 3 },
+  { manufacturer: "MVP", name: "Proxy", type: "putter", speed: 3, glide: 4, turn: -1, fade: 1 },
+  { manufacturer: "MVP", name: "Resistor", type: "fairway_driver", speed: 8, glide: 4, turn: 0, fade: 4 },
+  { manufacturer: "MVP", name: "Servo", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "MVP", name: "Spiral", type: "distance_driver", speed: 14, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "MVP", name: "Volt", type: "fairway_driver", speed: 9, glide: 5, turn: -1, fade: 2 },
+
+  // ── More Axiom ────────────────────────────────────────────────────────────
+  { manufacturer: "Axiom", name: "Disarray", type: "distance_driver", speed: 13, glide: 5, turn: -4, fade: 2 },
+  { manufacturer: "Axiom", name: "Fireball", type: "distance_driver", speed: 12, glide: 5, turn: -0.5, fade: 4 },
+  { manufacturer: "Axiom", name: "Mayhem", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Axiom", name: "Panic", type: "distance_driver", speed: 13.5, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Axiom", name: "Proxy", type: "putter", speed: 3, glide: 4, turn: -1, fade: 1 },
+  { manufacturer: "Axiom", name: "Rhythm", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
+  { manufacturer: "Axiom", name: "Vanish", type: "distance_driver", speed: 12, glide: 6, turn: -4, fade: 1 },
+
+  // ── More Streamline ───────────────────────────────────────────────────────
+  { manufacturer: "Streamline", name: "Escape", type: "distance_driver", speed: 11, glide: 5, turn: -3, fade: 2 },
+  { manufacturer: "Streamline", name: "Lift", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Streamline", name: "Pilot", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "Streamline", name: "Signal", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
+  { manufacturer: "Streamline", name: "Stabilizer", type: "distance_driver", speed: 12, glide: 5, turn: 0, fade: 4 },
+
+  // ── More Mint Discs ───────────────────────────────────────────────────────
+  { manufacturer: "Mint Discs", name: "Freetail", type: "distance_driver", speed: 13, glide: 6, turn: -3, fade: 2 },
+  { manufacturer: "Mint Discs", name: "Mamba", type: "fairway_driver", speed: 7, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Mint Discs", name: "Stingray", type: "midrange", speed: 4, glide: 5, turn: -2, fade: 1 },
+
+  // ── More Kastaplast ───────────────────────────────────────────────────────
+  { manufacturer: "Kastaplast", name: "Grym", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Kastaplast", name: "Grym X", type: "distance_driver", speed: 12, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Kastaplast", name: "Kaxe Z", type: "midrange", speed: 6, glide: 4, turn: -1, fade: 2 },
+  { manufacturer: "Kastaplast", name: "Stab", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
+
+  // ── More Discmania ────────────────────────────────────────────────────────
+  { manufacturer: "Discmania", name: "Active", type: "midrange", speed: 4, glide: 5, turn: -1, fade: 1 },
+  { manufacturer: "Discmania", name: "DD", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Discmania", name: "DD2", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Discmania", name: "DD3", type: "distance_driver", speed: 13, glide: 6, turn: -2, fade: 3 },
+  { manufacturer: "Discmania", name: "FD2", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Discmania", name: "Logic", type: "midrange", speed: 4, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Discmania", name: "MD4", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Discmania", name: "P1x", type: "putter", speed: 2, glide: 3, turn: 0, fade: 2 },
+  { manufacturer: "Discmania", name: "Sensei", type: "putter", speed: 2, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Discmania", name: "Tactic", type: "fairway_driver", speed: 7, glide: 5, turn: -1, fade: 2 },
+
+  // ── More Prodigy ──────────────────────────────────────────────────────────
+  { manufacturer: "Prodigy", name: "400 D4", type: "distance_driver", speed: 14, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Prodigy", name: "D4", type: "distance_driver", speed: 14, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Prodigy", name: "F2", type: "fairway_driver", speed: 10, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Prodigy", name: "H3 V2", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Prodigy", name: "M1", type: "midrange", speed: 4, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Prodigy", name: "P4", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+
+  // ── Clash Discs ───────────────────────────────────────────────────────────
+  { manufacturer: "Clash Discs", name: "Butter", type: "putter", speed: 2, glide: 5, turn: -1, fade: 1 },
+  { manufacturer: "Clash Discs", name: "Cherry", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Clash Discs", name: "Popcorn", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Clash Discs", name: "Spice", type: "putter", speed: 2, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Clash Discs", name: "Soda", type: "midrange", speed: 5, glide: 6, turn: -2, fade: 1 },
+
+  // ── Thought Space Athletics ───────────────────────────────────────────────
+  { manufacturer: "Thought Space Athletics", name: "Votum", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Ethos", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Arch", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Mantra", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
+
+  // ── Westside Discs (more) ─────────────────────────────────────────────────
+  { manufacturer: "Westside Discs", name: "Maiden", type: "putter", speed: 2, glide: 4, turn: -1, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Tournament", type: "distance_driver", speed: 11, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Westside Discs", name: "VIP Shield", type: "fairway_driver", speed: 7, glide: 5, turn: 0, fade: 3 },
+
+  // ── Legacy Discs ──────────────────────────────────────────────────────────
+  { manufacturer: "Legacy Discs", name: "Cannon", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Legacy Discs", name: "Ethos", type: "putter", speed: 2, glide: 4, turn: -1, fade: 1 },
+  { manufacturer: "Legacy Discs", name: "Icon", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Legacy Discs", name: "Outlaw", type: "distance_driver", speed: 13, glide: 6, turn: -2, fade: 3 },
+  { manufacturer: "Legacy Discs", name: "Protege", type: "fairway_driver", speed: 7, glide: 5, turn: -2, fade: 2 },
+
+  // ── Elevation Disc Golf ───────────────────────────────────────────────────
+  { manufacturer: "Elevation", name: "Rush", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Elevation", name: "Summit", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
+
+  // ── Guru Disc Golf ────────────────────────────────────────────────────────
+  { manufacturer: "Guru", name: "Shaman", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Guru", name: "Oracle", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
+
+  // ── Prodiscus ─────────────────────────────────────────────────────────────
+  { manufacturer: "Prodiscus", name: "Basic", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Prodiscus", name: "Minibird", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Prodiscus", name: "Superbird", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Prodiscus", name: "Ultrabrid", type: "fairway_driver", speed: 8, glide: 5, turn: -1, fade: 3 },
+
+  // ── Dino Discs ────────────────────────────────────────────────────────────
+  { manufacturer: "Dino Discs", name: "Protoceratops", type: "putter", speed: 2, glide: 4, turn: -1, fade: 1 },
+  { manufacturer: "Dino Discs", name: "Brachiosaurus", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
+
+  // ── Alfa Discs ────────────────────────────────────────────────────────────
+  { manufacturer: "Alfa Discs", name: "Koi", type: "putter", speed: 2, glide: 4, turn: -1, fade: 1 },
+  { manufacturer: "Alfa Discs", name: "Tern", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Alfa Discs", name: "Stal", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
 ];
 
 /** Return sorted matches for a search query (disc name or manufacturer). */

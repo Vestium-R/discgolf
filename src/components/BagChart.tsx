@@ -87,13 +87,16 @@ function ScatterPlot({ discs, hovered, setHovered, showNames }: {
 // Turn (negative number) → curves right → positive X
 // Fade (positive number) → fades left  → negative X
 
-const FW = 580, FH = 360, FPL = 40, FPT = 16, FPR = 40, FPB = 36;
+const FW = 580, FH = 360, FPL = 48, FPT = 16, FPR = 40, FPB = 36;
 const FPW = FW-FPL-FPR, FPH = FH-FPT-FPB;
-const LAT_RANGE = 40; // ±40 lateral units each side
+const LAT_RANGE = 60; // ±60 ft lateral each side
+
+// Realistic distance estimate (feet) per speed rating for an average player
+function speedToFeet(speed: number) { return Math.round(100 + (speed - 1) * (320 / 13)); }
 
 function toFx(lat: number) { return FPL + FPW/2 + (lat/LAT_RANGE)*FPW/2; }
-function toFy(dist: number, maxDist: number) {
-  return FPT + FPH - Math.min(dist/maxDist, 1)*FPH;
+function toFy(distFt: number, maxFt: number) {
+  return FPT + FPH - Math.min(distFt/maxFt, 1)*FPH;
 }
 
 function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
@@ -101,34 +104,32 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
   setHovered: (id:string|null)=>void; showNames: boolean; flipLateral: boolean;
 }) {
   if (discs.length===0) return null;
-  const maxDist = Math.max(...discs.map(d=>d.speed*12), 12);
+  const maxFt = Math.max(...discs.map(d=>speedToFeet(d.speed)), 150);
   const flip = flipLateral ? -1 : 1;
 
   const paths = discs.map(d=>{
     const turn=d.turn??0, fade=d.fade??0;
-    // Lateral: negative turn → right (+X); positive fade → left (-X)
-    const peakLat  = flip * (-(turn)*5);
-    const endLat   = flip * (-(turn)*3 - fade*8);
-    const dist     = d.speed*12;
-    // Cubic bezier control points
-    const x0=toFx(0),         y0=toFy(0,maxDist);
-    const c1x=toFx(peakLat),  c1y=toFy(dist*0.35,maxDist);
-    const c2x=toFx(peakLat*0.6+endLat*0.4), c2y=toFy(dist*0.65,maxDist);
-    const ex=toFx(endLat),    ey=toFy(dist,maxDist);
-    return { d, path:`M ${x0} ${y0} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${ex} ${ey}`, ex, ey };
+    const distFt = speedToFeet(d.speed);
+    // Lateral deviation in feet: negative turn → right (+X); positive fade → left (-X)
+    const peakLat  = flip * (-(turn) * 8);
+    const endLat   = flip * (-(turn) * 5 - fade * 14);
+    const x0=toFx(0),         y0=toFy(0,maxFt);
+    const c1x=toFx(peakLat),  c1y=toFy(distFt*0.35,maxFt);
+    const c2x=toFx(peakLat*0.5+endLat*0.5), c2y=toFy(distFt*0.65,maxFt);
+    const ex=toFx(endLat),    ey=toFy(distFt,maxFt);
+    return { d, path:`M ${x0} ${y0} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${ex} ${ey}`, ex, ey, distFt };
   });
 
   const centerX = toFx(0);
-  // Distance ticks on Y axis
-  const distTicks = [0,100,200,300,400].filter(v=>v<=maxDist);
+  const distTicks = [0,100,150,200,250,300,350,400].filter(v=>v<=maxFt);
 
   return (
     <svg viewBox={`0 0 ${FW} ${FH}`} className="w-full min-w-[300px] rounded-xl border border-forest-100 bg-white">
       {/* Grid */}
       {distTicks.map(v=>(
         <g key={v}>
-          <line x1={FPL} y1={toFy(v,maxDist)} x2={FPL+FPW} y2={toFy(v,maxDist)} stroke="#e5e7eb" strokeWidth={0.5}/>
-          <text x={FPL-4} y={toFy(v,maxDist)+4} textAnchor="end" fontSize={9} fill="#9ca3af">{v}</text>
+          <line x1={FPL} y1={toFy(v,maxFt)} x2={FPL+FPW} y2={toFy(v,maxFt)} stroke="#e5e7eb" strokeWidth={0.5}/>
+          <text x={FPL-4} y={toFy(v,maxFt)+4} textAnchor="end" fontSize={9} fill="#9ca3af">{v}</text>
         </g>
       ))}
 
@@ -138,7 +139,7 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
       {/* Left/right labels */}
       <text x={FPL+2} y={FPT+FPH-4} fontSize={8} fill="#d1d5db">{flipLateral ? "RIGHT" : "LEFT"}</text>
       <text x={FPL+FPW-2} y={FPT+FPH-4} textAnchor="end" fontSize={8} fill="#d1d5db">{flipLateral ? "LEFT" : "RIGHT"}</text>
-      <text x={FPL-4} y={FPT+10} textAnchor="end" fontSize={9} fill="#9ca3af">dist</text>
+      <text x={FPL-4} y={FPT+10} textAnchor="end" fontSize={9} fill="#9ca3af">ft est.</text>
 
       {/* Throw origin */}
       <circle cx={centerX} cy={FPT+FPH} r={4} fill="#374151"/>

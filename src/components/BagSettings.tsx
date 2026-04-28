@@ -10,7 +10,7 @@ export type BagPrefs = {
 
 const DEFAULTS: BagPrefs = {
   throwStyle: "RHBH",
-  showNamesChart: false,
+  showNamesChart: true,
   showNamesFlight: true,
   distanceUnit: "ft",
 };
