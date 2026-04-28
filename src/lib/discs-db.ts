@@ -425,6 +425,57 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Alfa Discs", name: "Koi", type: "putter", speed: 2, glide: 4, turn: -1, fade: 1 },
   { manufacturer: "Alfa Discs", name: "Tern", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Alfa Discs", name: "Stal", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
+
+  // ── Axiom (more) — popular putters & drivers ─────────────────────────────
+  { manufacturer: "Axiom", name: "Pixel", type: "putter", speed: 2.5, glide: 4, turn: 0, fade: 0.5 },
+  { manufacturer: "Axiom", name: "Alias", type: "putter", speed: 2, glide: 4, turn: -1, fade: 0.5 },
+  { manufacturer: "Axiom", name: "Envy", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Axiom", name: "Crave", type: "fairway_driver", speed: 8, glide: 5.5, turn: -2, fade: 2 },
+  { manufacturer: "Axiom", name: "Rhythm", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
+  { manufacturer: "Axiom", name: "Theory", type: "distance_driver", speed: 10, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Axiom", name: "Tantrum", type: "distance_driver", speed: 14, glide: 6, turn: -1, fade: 3 },
+  { manufacturer: "Axiom", name: "Wrath", type: "distance_driver", speed: 14, glide: 6, turn: -2, fade: 3 },
+
+  // ── Discraft (more popular releases) ─────────────────────────────────────
+  { manufacturer: "Discraft", name: "Time Lapse", type: "distance_driver", speed: 14, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Discraft", name: "Buzzz SS", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Discraft", name: "Zone OS", type: "putter", speed: 4, glide: 3, turn: 0, fade: 4 },
+  { manufacturer: "Discraft", name: "Malta", type: "fairway_driver", speed: 8, glide: 6, turn: -2, fade: 1 },
+  { manufacturer: "Discraft", name: "Reaper", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Discraft", name: "Tide", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Discraft", name: "Passion", type: "distance_driver", speed: 10, glide: 5, turn: -3, fade: 1 },
+  { manufacturer: "Discraft", name: "Sparkle", type: "distance_driver", speed: 12, glide: 6, turn: -3, fade: 2 },
+
+  // ── Mint Discs (confirmed) ────────────────────────────────────────────────
+  { manufacturer: "Mint Discs", name: "Lobster", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
+
+  // ── Latitude 64 (confirmed) ───────────────────────────────────────────────
+  { manufacturer: "Latitude 64", name: "Ballista Pro", type: "distance_driver", speed: 14, glide: 5, turn: -0.5, fade: 3 },
+
+  // ── Dynamic Discs (confirmed) ─────────────────────────────────────────────
+  { manufacturer: "Dynamic Discs", name: "Sockibomb Slammer", type: "midrange", speed: 5, glide: 3, turn: 0, fade: 3 },
+  { manufacturer: "Dynamic Discs", name: "Lucid Enforcer", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+
+  // ── Discmania (confirmed) ────────────────────────────────────────────────
+  { manufacturer: "Discmania", name: "P1x", type: "putter", speed: 2, glide: 3, turn: 0, fade: 2 },
+  { manufacturer: "Discmania", name: "Sky God", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+
+  // ── MVP (confirmed) ───────────────────────────────────────────────────────
+  { manufacturer: "MVP", name: "Trail", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "MVP", name: "Wave", type: "distance_driver", speed: 12, glide: 5, turn: -3, fade: 2 },
+  { manufacturer: "MVP", name: "Relativity", type: "distance_driver", speed: 14, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "MVP", name: "Ohm", type: "midrange", speed: 4, glide: 5, turn: 0, fade: 1 },
+
+  // ── Westside (confirmed) ─────────────────────────────────────────────────
+  { manufacturer: "Westside Discs", name: "King", type: "distance_driver", speed: 13, glide: 6, turn: -1, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Sword", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2 },
+
+  // ── Kastaplast (confirmed) ────────────────────────────────────────────────
+  { manufacturer: "Kastaplast", name: "Reko", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "Kastaplast", name: "Reko X", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
+
+  // ── Thought Space Athletics (confirmed) ───────────────────────────────────
+  { manufacturer: "Thought Space Athletics", name: "Omen", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 2 },
 ];
 
 /** Return sorted matches for a search query (disc name or manufacturer). */
