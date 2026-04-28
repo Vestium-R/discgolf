@@ -68,7 +68,7 @@ function ScatterPlot({ discs, hovered, setHovered, showNames }: {
         return (
           <g key={d.id} style={{cursor:"pointer"}}
             onMouseEnter={()=>setHovered(d.id)} onMouseLeave={()=>setHovered(null)}>
-            <circle cx={x} cy={y} r={isHov?10:7} fill={col} stroke="white" strokeWidth={2} opacity={isHov?1:0.85}/>
+            <circle cx={x} cy={y} r={isHov?10:7} fill={col} stroke={strokeFor(col)} strokeWidth={isHov?2.5:2} opacity={isHov?1:0.85}/>
             <text x={x} y={y+3.5} textAnchor="middle" fontSize={7} fill="white" fontWeight="700" pointerEvents="none">{d.speed}</text>
             {(showNames||isHov) && (
               <text x={x} y={y-13} textAnchor="middle" fontSize={9} fill="#111827" fontWeight={isHov?"700":"500"}
@@ -153,7 +153,7 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
           <g key={d.id} style={{cursor:"pointer"}}
             onMouseEnter={()=>setHovered(d.id)} onMouseLeave={()=>setHovered(null)}>
             <path d={path} fill="none" stroke={col} strokeWidth={isHov?2.5:1.5} opacity={isHov?1:0.55}/>
-            <circle cx={ex} cy={ey} r={isHov?6:4} fill={col} stroke="white" strokeWidth={1.5}/>
+            <circle cx={ex} cy={ey} r={isHov?6:4} fill={col} stroke={strokeFor(col)} strokeWidth={1.5}/>
             {(showNames||isHov) && (
               <text x={ex+8} y={ey+4} fontSize={10} fill={col} fontWeight={isHov?"700":"500"}
                 stroke="white" strokeWidth={3} paintOrder="stroke">{d.discName}</text>
@@ -169,11 +169,19 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
 
 const COLOR_MAP: Record<string, string> = {
   red:"#ef4444", orange:"#f97316", yellow:"#eab308", green:"#22c55e",
-  blue:"#3b82f6", purple:"#a855f7", pink:"#ec4899", white:"#e5e7eb",
-  black:"#374151", grey:"#9ca3af", gray:"#9ca3af", teal:"#14b8a6",
+  blue:"#3b82f6", purple:"#a855f7", pink:"#ec4899", white:"#e0e0e0",
+  black:"#374151", grey:"#6b7280", gray:"#6b7280", teal:"#14b8a6",
 };
 function colorToHex(color: string): string {
   return COLOR_MAP[color.toLowerCase()] ?? DISC_TYPE_COLORS["midrange"];
+}
+// Returns a contrasting stroke colour so light discs stay visible on white bg
+function strokeFor(hex: string): string {
+  const r = parseInt(hex.slice(1,3), 16) || 0;
+  const g = parseInt(hex.slice(3,5), 16) || 0;
+  const b = parseInt(hex.slice(5,7), 16) || 0;
+  const luminance = (r*0.299 + g*0.587 + b*0.114);
+  return luminance > 160 ? "#374151" : "white";
 }
 
 // ── Main component ────────────────────────────────────────────────────────────

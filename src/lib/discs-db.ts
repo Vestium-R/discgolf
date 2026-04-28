@@ -108,7 +108,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Discraft", name: "Undertaker", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Discraft", name: "XS", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
 
-  { manufacturer: "Discraft", name: "Anax", type: "distance_driver", speed: 13, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Discraft", name: "Anax", type: "distance_driver", speed: 10, glide: 6, turn: 0, fade: 3 },
   { manufacturer: "Discraft", name: "APX", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 3 },
   { manufacturer: "Discraft", name: "Crank SS", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Discraft", name: "ESP Force", type: "distance_driver", speed: 12, glide: 5, turn: -0.5, fade: 3 },
@@ -253,12 +253,18 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Westside Discs", name: "World", type: "distance_driver", speed: 14, glide: 5, turn: -1, fade: 3 },
   { manufacturer: "Westside Discs", name: "Burst", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
 
-  // ── Mint Discs ────────────────────────────────────────────────────────────
-  { manufacturer: "Mint Discs", name: "Jackalope", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  // ── Mint Discs (confirmed via atlanticdiscgolf.com) ──────────────────────
+  { manufacturer: "Mint Discs", name: "Pickle", type: "putter", speed: 2, glide: 3.5, turn: 0, fade: 1.5 },
+  { manufacturer: "Mint Discs", name: "Lasso", type: "putter", speed: 3, glide: 3, turn: 0, fade: 2 },
   { manufacturer: "Mint Discs", name: "Longhorn", type: "putter", speed: 2, glide: 4, turn: -1, fade: 1 },
-  { manufacturer: "Mint Discs", name: "Mustang", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Mint Discs", name: "Lobster", type: "midrange", speed: 5, glide: 5, turn: -3, fade: 1 },
+  { manufacturer: "Mint Discs", name: "Mustang", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "Mint Discs", name: "Bobcat", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 2.5 },
+  { manufacturer: "Mint Discs", name: "Goat", type: "distance_driver", speed: 12, glide: 4, turn: -1, fade: 3 },
+  { manufacturer: "Mint Discs", name: "Jackalope", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Mint Discs", name: "Alpha", type: "fairway_driver", speed: 8, glide: 4, turn: 0, fade: 2 },
   { manufacturer: "Mint Discs", name: "Rattler", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Mint Discs", name: "Bobcat", type: "distance_driver", speed: 11, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Mint Discs", name: "Freetail", type: "fairway_driver", speed: 10, glide: 5, turn: -4, fade: 1 },
 
   // ── Elevation Disc Golf ───────────────────────────────────────────────────
   { manufacturer: "Elevation", name: "Alpenglow", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
@@ -447,7 +453,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Discraft", name: "Sparkle", type: "distance_driver", speed: 12, glide: 6, turn: -3, fade: 2 },
 
   // ── Mint Discs (confirmed) ────────────────────────────────────────────────
-  { manufacturer: "Mint Discs", name: "Lobster", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
+  // (see main Mint Discs section above — all confirmed via atlanticdiscgolf.com)
 
   // ── Latitude 64 (confirmed via discgolfdojo.com) ─────────────────────────
   { manufacturer: "Latitude 64", name: "Ballista Pro", type: "distance_driver", speed: 14, glide: 5, turn: -0.5, fade: 3 },
@@ -506,6 +512,58 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── Thought Space Athletics (confirmed) ───────────────────────────────────
   { manufacturer: "Thought Space Athletics", name: "Omen", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 2 },
+
+  // ── Westside Discs (confirmed via atlanticdiscgolf.com) ───────────────────
+  { manufacturer: "Westside Discs", name: "Adder", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 4 },
+  { manufacturer: "Westside Discs", name: "Ahti", type: "fairway_driver", speed: 9, glide: 3, turn: 0, fade: 4 },
+  { manufacturer: "Westside Discs", name: "Albatross", type: "distance_driver", speed: 14, glide: 6, turn: -2, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Alva", type: "distance_driver", speed: 11, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Bear", type: "fairway_driver", speed: 8, glide: 6, turn: -0.5, fade: 2.5 },
+  { manufacturer: "Westside Discs", name: "Boatman", type: "distance_driver", speed: 11, glide: 5, turn: 0, fade: 2 },
+
+  // ── Latitude 64 (confirmed via atlanticdiscgolf.com) ─────────────────────
+  { manufacturer: "Latitude 64", name: "Aztec", type: "distance_driver", speed: 10, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Latitude 64", name: "Ballista", type: "distance_driver", speed: 14, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Latitude 64", name: "Brave", type: "fairway_driver", speed: 7, glide: 6, turn: -1, fade: 2 },
+
+  // ── MVP (confirmed via atlanticdiscgolf.com) ──────────────────────────────
+  { manufacturer: "MVP", name: "Amp", type: "fairway_driver", speed: 8, glide: 5, turn: -1.5, fade: 1 },
+  { manufacturer: "MVP", name: "Bokeh", type: "fairway_driver", speed: 7, glide: 6, turn: 0, fade: 1 },
+
+  // ── Streamline (confirmed via atlanticdiscgolf.com) ───────────────────────
+  { manufacturer: "Streamline", name: "Boost", type: "distance_driver", speed: 10, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Streamline", name: "Turbulence", type: "fairway_driver", speed: 7, glide: 2, turn: 0, fade: 3.5 },
+
+  // ── Innova (confirmed via atlanticdiscgolf.com) ───────────────────────────
+  { manufacturer: "Innova", name: "Alien", type: "putter", speed: 4, glide: 2, turn: 0, fade: 1 },
+  { manufacturer: "Innova", name: "Centurion", type: "fairway_driver", speed: 7, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Innova", name: "Cheetah", type: "fairway_driver", speed: 6, glide: 4, turn: -2, fade: 2 },
+  { manufacturer: "Innova", name: "Fox", type: "midrange", speed: 5, glide: 6, turn: -2, fade: 1 },
+  { manufacturer: "Innova", name: "Mako3", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 0 },
+  { manufacturer: "Innova", name: "Savant", type: "fairway_driver", speed: 9, glide: 5, turn: -1, fade: 2 },
+
+  // ── Discraft (confirmed via atlanticdiscgolf.com) ─────────────────────────
+  { manufacturer: "Discraft", name: "Athena", type: "fairway_driver", speed: 7, glide: 5, turn: 0, fade: 2 },
+
+  // ── Discmania (confirmed via atlanticdiscgolf.com) ────────────────────────
+  { manufacturer: "Discmania", name: "Solar Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },
+
+  // ── Axiom (confirmed via atlanticdiscgolf.com) ────────────────────────────
+  { manufacturer: "Axiom", name: "Tempo", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 2.5 },
+
+  // ── AGL (Above Ground Level) ──────────────────────────────────────────────
+  { manufacturer: "AGL Discs", name: "Acacia", type: "putter", speed: 3, glide: 4, turn: 0, fade: 0 },
+  { manufacturer: "AGL Discs", name: "Beech", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 3 },
+
+  // ── Lone Star Disc (confirmed) ────────────────────────────────────────────
+  { manufacturer: "Lone Star Disc", name: "Bayonet", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Lone Star Disc", name: "Brazos", type: "fairway_driver", speed: 7, glide: 5, turn: 0, fade: 3 },
+
+  // ── Divergent Discs ───────────────────────────────────────────────────────
+  { manufacturer: "Divergent Discs", name: "Basilisk", type: "distance_driver", speed: 12, glide: 6, turn: -5, fade: 1 },
+
+  // ── Prodigy (confirmed) ───────────────────────────────────────────────────
+  { manufacturer: "Prodigy", name: "A2", type: "putter", speed: 4, glide: 2, turn: 0, fade: 4 },
 ];
 
 /** Return sorted matches for a search query (disc name or manufacturer). */
