@@ -353,16 +353,18 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Streamline", name: "Signal", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
   { manufacturer: "Streamline", name: "Stabilizer", type: "distance_driver", speed: 12, glide: 5, turn: 0, fade: 4 },
 
-  // ── More Mint Discs ───────────────────────────────────────────────────────
-  { manufacturer: "Mint Discs", name: "Freetail", type: "distance_driver", speed: 13, glide: 6, turn: -3, fade: 2 },
-  { manufacturer: "Mint Discs", name: "Mamba", type: "fairway_driver", speed: 7, glide: 5, turn: -1, fade: 2 },
-  { manufacturer: "Mint Discs", name: "Stingray", type: "midrange", speed: 4, glide: 5, turn: -2, fade: 1 },
+  // ── More Mint Discs (confirmed via atlanticdiscgolf.com/collections/mint-discs) ─
+  // (see primary Mint Discs section — Freetail, Lobster, Bobcat, etc. corrected there)
 
-  // ── More Kastaplast ───────────────────────────────────────────────────────
-  { manufacturer: "Kastaplast", name: "Grym", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+  // ── Kastaplast (confirmed via atlanticdiscgolf.com/collections/kastaplast) ─
+  { manufacturer: "Kastaplast", name: "Grym", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "Kastaplast", name: "Grym X", type: "distance_driver", speed: 12, glide: 5, turn: 0, fade: 3 },
-  { manufacturer: "Kastaplast", name: "Kaxe Z", type: "midrange", speed: 6, glide: 4, turn: -1, fade: 2 },
-  { manufacturer: "Kastaplast", name: "Stab", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Kastaplast", name: "Jarn", type: "midrange", speed: 4.5, glide: 3, turn: 0, fade: 3 },
+  { manufacturer: "Kastaplast", name: "Kaxe", type: "midrange", speed: 6, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Kastaplast", name: "Kaxe Z", type: "midrange", speed: 6, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "Kastaplast", name: "Krut", type: "distance_driver", speed: 12, glide: 4, turn: 0, fade: 4 },
+  { manufacturer: "Kastaplast", name: "Svea", type: "midrange", speed: 5, glide: 6, turn: -1, fade: 0 },
+  { manufacturer: "Kastaplast", name: "Vass", type: "distance_driver", speed: 12, glide: 5, turn: -1.5, fade: 2 },
 
   // ── More Discmania ────────────────────────────────────────────────────────
   { manufacturer: "Discmania", name: "Active", type: "midrange", speed: 4, glide: 5, turn: -1, fade: 1 },
@@ -443,7 +445,6 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Axiom", name: "Wrath", type: "distance_driver", speed: 14, glide: 6, turn: -2, fade: 3 },
 
   // ── Discraft (more popular releases) ─────────────────────────────────────
-  { manufacturer: "Discraft", name: "Time Lapse", type: "distance_driver", speed: 14, glide: 6, turn: -2, fade: 2 },
   { manufacturer: "Discraft", name: "Buzzz SS", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 1 },
   { manufacturer: "Discraft", name: "Zone OS", type: "putter", speed: 4, glide: 3, turn: 0, fade: 4 },
   { manufacturer: "Discraft", name: "Malta", type: "fairway_driver", speed: 8, glide: 6, turn: -2, fade: 1 },
@@ -481,7 +482,6 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Latitude 64", name: "Zion", type: "fairway_driver", speed: 9, glide: 4, turn: -0.5, fade: 3 },
 
   // ── Confirmed via discgolfdojo.com ────────────────────────────────────────
-  { manufacturer: "Axiom", name: "Tempo", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 2.5 },
   { manufacturer: "Innova", name: "Fox", type: "midrange", speed: 5, glide: 6, turn: -2, fade: 1 },
   { manufacturer: "Innova", name: "Savant", type: "fairway_driver", speed: 9, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "Discmania", name: "Solar Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },
@@ -489,6 +489,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Westside Discs", name: "Prince", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
 
   // ── Dynamic Discs (confirmed) ─────────────────────────────────────────────
+  { manufacturer: "Dynamic Discs", name: "Warrant", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 0 },
   { manufacturer: "Dynamic Discs", name: "Sockibomb Slammer", type: "midrange", speed: 5, glide: 3, turn: 0, fade: 3 },
   { manufacturer: "Dynamic Discs", name: "Lucid Enforcer", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
 
@@ -548,8 +549,11 @@ export const DISC_DB: DiscRecord[] = [
   // ── Discmania (confirmed via atlanticdiscgolf.com) ────────────────────────
   { manufacturer: "Discmania", name: "Solar Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },
 
-  // ── Axiom (confirmed via atlanticdiscgolf.com) ────────────────────────────
-  { manufacturer: "Axiom", name: "Tempo", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 2.5 },
+  // ── Axiom (confirmed via axiomdiscs.com and atlanticdiscgolf.com) ──────────
+  { manufacturer: "Axiom", name: "Pyro", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 2.5 },
+  { manufacturer: "Axiom", name: "Time Lapse", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Axiom", name: "Illusion", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2.5 },
+  { manufacturer: "Axiom", name: "Impetus", type: "fairway_driver", speed: 9, glide: 6, turn: -2, fade: 2 },
 
   // ── AGL (Above Ground Level) ──────────────────────────────────────────────
   { manufacturer: "AGL Discs", name: "Acacia", type: "putter", speed: 3, glide: 4, turn: 0, fade: 0 },

@@ -62,15 +62,20 @@ export default async function BagPage() {
         <p className="text-sm text-forest-600">{discs.length} disc{discs.length !== 1 ? "s" : ""} · {user.email}</p>
       </header>
 
-      <section className="card p-5 space-y-4">
-        <h3 className="font-display font-bold text-forest-800">Add a disc</h3>
-        <AddDiscForm />
-      </section>
+      <AddDiscForm />
 
-      {discs.length > 0 && <BagList discs={discs} />}
+      {discs.filter(d => !d.inStorage).length > 0 && (
+        <BagList discs={discs.filter(d => !d.inStorage)} title="In Bag" showStorage />
+      )}
 
-      {/* Chart + settings — all client-side interactive */}
-      {discs.length >= 2 && <BagInteractive discs={discs} />}
+      {discs.filter(d => d.inStorage).length > 0 && (
+        <BagList discs={discs.filter(d => d.inStorage)} title="Storage" showStorage />
+      )}
+
+      {/* Chart only shows bag discs (not storage) */}
+      {discs.filter(d => !d.inStorage).length >= 2 && (
+        <BagInteractive discs={discs.filter(d => !d.inStorage)} />
+      )}
 
       {/* Rule-based gaps */}
       {gaps.length > 0 && (

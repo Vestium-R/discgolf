@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/auth";
-import { addBagDisc, removeBagDisc, updateBagDisc } from "@/lib/store";
+import { addBagDisc, removeBagDisc, toggleBagStorage, updateBagDisc } from "@/lib/store";
 import type { DiscType } from "@/lib/types";
 
 export async function addDiscAction(formData: FormData): Promise<void> {
@@ -34,6 +34,16 @@ export async function removeDiscAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   await removeBagDisc(id, user.id);
+  revalidatePath("/bag");
+}
+
+export async function toggleStorageAction(formData: FormData): Promise<void> {
+  const user = await getUser();
+  if (!user) return;
+  const id = String(formData.get("id") ?? "");
+  const inStorage = formData.get("inStorage") === "1";
+  if (!id) return;
+  await toggleBagStorage(id, user.id, inStorage);
   revalidatePath("/bag");
 }
 

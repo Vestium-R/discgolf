@@ -262,6 +262,7 @@ type BagDiscRow = {
   color: string | null;
   weight_g: number | null;
   notes: string | null;
+  in_storage: boolean;
   created_at: string;
 };
 
@@ -280,6 +281,7 @@ function rowToDisc(r: BagDiscRow): BagDisc {
     color: r.color ?? undefined,
     weightG: r.weight_g ?? undefined,
     notes: r.notes ?? undefined,
+    inStorage: r.in_storage,
     createdAt: r.created_at,
   };
 }
@@ -331,6 +333,15 @@ export async function updateBagDisc(id: string, userId: string, disc: Partial<Om
   const { error } = await supabaseAdmin()
     .from("bag_discs")
     .update(patch)
+    .eq("id", id)
+    .eq("user_id", userId);
+  if (error) throw error;
+}
+
+export async function toggleBagStorage(id: string, userId: string, inStorage: boolean): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("bag_discs")
+    .update({ in_storage: inStorage })
     .eq("id", id)
     .eq("user_id", userId);
   if (error) throw error;

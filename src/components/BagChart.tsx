@@ -110,9 +110,10 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
   const paths = discs.map(d=>{
     const turn=d.turn??0, fade=d.fade??0;
     const distFt = speedToFeet(d.speed);
-    // Lateral deviation in feet: negative turn → right (+X); positive fade → left (-X)
-    const peakLat  = flip * (-(turn) * 8);
-    const endLat   = flip * (-(turn) * 5 - fade * 14);
+    // Lateral deviation: negative turn → right (+X); positive fade → left (-X)
+    // Scale is realistic: turn -3 peaks ~25ft right, fade 3 ends ~30ft left
+    const peakLat  = flip * (-(turn) * 9);
+    const endLat   = flip * (-(turn) * 4 - fade * 10);
     const x0=toFx(0),         y0=toFy(0,maxFt);
     const c1x=toFx(peakLat),  c1y=toFy(distFt*0.35,maxFt);
     const c2x=toFx(peakLat*0.5+endLat*0.5), c2y=toFy(distFt*0.65,maxFt);

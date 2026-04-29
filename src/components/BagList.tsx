@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import type { BagDisc, DiscType } from "@/lib/types";
 import { DISC_TYPE_COLORS, DISC_TYPE_LABELS } from "@/lib/types";
-import { removeDiscAction, updateDiscAction } from "@/app/bag/actions";
+import { removeDiscAction, toggleStorageAction, updateDiscAction } from "@/app/bag/actions";
 
 type SortKey = "type" | "speed" | "manufacturer" | "stability";
 
@@ -144,8 +144,8 @@ function EditForm({ disc, onDone }: { disc: BagDisc; onDone: () => void }) {
 
 // ── Disc row ─────────────────────────────────────────────────────────────────
 
-function DiscRow({ d, editing, onEdit, onStopEdit }: {
-  d: BagDisc; editing: boolean; onEdit: () => void; onStopEdit: () => void;
+function DiscRow({ d, editing, onEdit, onStopEdit, showStorage }: {
+  d: BagDisc; editing: boolean; onEdit: () => void; onStopEdit: () => void; showStorage?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const { label, cls } = stabLabel(d);
@@ -156,6 +156,15 @@ function DiscRow({ d, editing, onEdit, onStopEdit }: {
       const fd = new FormData();
       fd.set("id", d.id);
       await removeDiscAction(fd);
+    });
+  }
+
+  function toggleStorage() {
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", d.id);
+      fd.set("inStorage", d.inStorage ? "0" : "1");
+      await toggleStorageAction(fd);
     });
   }
 
@@ -180,6 +189,12 @@ function DiscRow({ d, editing, onEdit, onStopEdit }: {
           {d.notes && <span className="text-[10px] text-forest-400 italic">{d.notes}</span>}
         </div>
       </div>
+      {showStorage && (
+        <button onClick={toggleStorage} disabled={pending} title={d.inStorage ? "Move to bag" : "Move to storage"}
+          className="text-xs text-forest-400 hover:text-forest-700 px-1 transition-colors shrink-0">
+          {d.inStorage ? "🎒" : "📦"}
+        </button>
+      )}
       <button onClick={onEdit} className="text-xs text-forest-400 hover:text-forest-700 px-1 transition-colors shrink-0">✏</button>
       <button onClick={remove} disabled={pending} className="text-xs text-forest-300 hover:text-red-600 px-1 transition-colors shrink-0">✕</button>
     </li>
@@ -188,7 +203,7 @@ function DiscRow({ d, editing, onEdit, onStopEdit }: {
 
 // ── BagList ───────────────────────────────────────────────────────────────────
 
-export function BagList({ discs }: { discs: BagDisc[] }) {
+export function BagList({ discs, title, showStorage }: { discs: BagDisc[]; title?: string; showStorage?: boolean }) {
   const [sort, setSort] = useState<SortKey>("type");
   const [editId, setEditId] = useState<string|null>(null);
 
@@ -197,6 +212,7 @@ export function BagList({ discs }: { discs: BagDisc[] }) {
   return (
     <section className="card overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-forest-100 flex-wrap">
+        {title && <span className="text-sm font-semibold text-forest-800 shrink-0 mr-1">{title}</span>}
         <span className="text-xs text-forest-500 shrink-0">Sort</span>
         {(Object.keys(SORT_LABELS) as SortKey[]).map(k=>(
           <button key={k} onClick={()=>setSort(k)}
@@ -219,7 +235,7 @@ export function BagList({ discs }: { discs: BagDisc[] }) {
             </div>
             <ul className="divide-y divide-forest-50">
               {group.discs.map(d=>(
-                <DiscRow key={d.id} d={d} editing={editId===d.id}
+                <DiscRow key={d.id} d={d} editing={editId===d.id} showStorage={showStorage}
                   onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>
               ))}
             </ul>
@@ -234,7 +250,7 @@ export function BagList({ discs }: { discs: BagDisc[] }) {
             </div>
             <ul className="divide-y divide-forest-50">
               {group.discs.map(d=>(
-                <DiscRow key={d.id} d={d} editing={editId===d.id}
+                <DiscRow key={d.id} d={d} editing={editId===d.id} showStorage={showStorage}
                   onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>
               ))}
             </ul>

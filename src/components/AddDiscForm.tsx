@@ -6,7 +6,8 @@ import { addDiscAction } from "@/app/bag/actions";
 
 const TYPE_ORDER: DiscType[] = ["distance_driver", "fairway_driver", "midrange", "putter"];
 
-export function AddDiscForm() {
+export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<DiscRecord[]>([]);
   const [selected, setSelected] = useState<DiscRecord | null>(null);
@@ -32,11 +33,28 @@ export function AddDiscForm() {
       setSelected(null);
       setResults([]);
       formRef.current?.reset();
+      setOpen(false);
     });
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="btn-primary w-full"
+      >
+        + Add disc
+      </button>
+    );
   }
 
   return (
     <form ref={formRef} action={handleSubmit} className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-forest-800">Add a disc</span>
+        <button type="button" onClick={() => setOpen(false)} className="text-xs text-forest-400 hover:text-forest-700">✕ Cancel</button>
+      </div>
       {/* Disc search */}
       <div className="relative">
         <label className="text-xs font-semibold text-forest-700 block mb-1">
