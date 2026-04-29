@@ -262,7 +262,7 @@ type BagDiscRow = {
   color: string | null;
   weight_g: number | null;
   notes: string | null;
-  in_storage: boolean;
+  in_storage: boolean | null;
   created_at: string;
 };
 
@@ -281,7 +281,7 @@ function rowToDisc(r: BagDiscRow): BagDisc {
     color: r.color ?? undefined,
     weightG: r.weight_g ?? undefined,
     notes: r.notes ?? undefined,
-    inStorage: r.in_storage,
+    inStorage: r.in_storage ?? false,
     createdAt: r.created_at,
   };
 }

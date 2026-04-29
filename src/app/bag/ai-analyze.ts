@@ -46,7 +46,7 @@ async function gemini(prompt: string): Promise<string> {
   const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) throw new Error("AI analysis not configured — add GOOGLE_AI_KEY to Vercel env vars.");
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   const result = await model.generateContent(prompt);
   return result.response.text();
 }
@@ -77,6 +77,26 @@ Pick 2-3 discs from their bag by name. For each: why it fits, suggested release 
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
+}
+
+async function fetchUdiscCourseBySlug(slug: string): Promise<string> {
+  try {
+    const res = await fetch(`https://udisc.com/courses/${slug}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)", Accept: "text/html" },
+    });
+    if (!res.ok) return "";
+    const html = await res.text();
+    const nextData = html.match(/<script id="__NEXT_DATA__" type="application\/json">([^<]+)<\/script>/)?.[1];
+    if (!nextData) return "";
+    const str = JSON.stringify(JSON.parse(nextData));
+    const holes: string[] = [];
+    for (const m of str.matchAll(/"holeNumber":(\d+)[^}]*?"distance":(\d+)/g)) {
+      holes.push(`Hole ${m[1]}: ${m[2]}ft`);
+    }
+    return holes.length > 0
+      ? `UDisc data:\n${holes.slice(0, 18).join("\n")}`
+      : `Found course (slug: ${slug}) but hole distances not available.`;
+  } catch { return ""; }
 }
 
 async function fetchUdiscCourseData(courseName: string): Promise<string> {
@@ -123,6 +143,7 @@ async function fetchUdiscCourseData(courseName: string): Promise<string> {
 export async function planCourseAction(
   courseName: string,
   conditions: string,
+  courseSlug?: string,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Sign in required" };
@@ -135,8 +156,10 @@ export async function planCourseAction(
   const bagList = allDiscs.filter((d) => !d.inStorage).map(fmt).join("\n");
   const storeList = allDiscs.filter((d) => d.inStorage).map(fmt).join("\n");
 
-  // Try to get real course data from UDisc
-  const courseData = await fetchUdiscCourseData(courseName);
+  // Fetch real course data: use known slug directly, or search by name
+  const courseData = courseSlug
+    ? await fetchUdiscCourseBySlug(courseSlug)
+    : await fetchUdiscCourseData(courseName);
 
   const prompt = `You're a disc golf caddy preparing a bag for tomorrow's round.
 
@@ -179,7 +202,7 @@ export async function analyzeBagAction(): Promise<{ ok: true; text: string } | {
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(buildPrompt(discs));
     const text = result.response.text();
     return { ok: true, text };
