@@ -211,7 +211,7 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
           </div>
 
           {loadingHoles && <p className="text-xs text-forest-500 text-center">Loading holes from UDisc…</p>}
-          {holeErr && <p className="text-xs text-red-600">{holeErr} — use General mode instead.</p>}
+          {holeErr && <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{holeErr}</p>}
 
           {holes.length > 0 && (
             <div>
