@@ -42,20 +42,30 @@ Analyze this bag honestly. Consider:
 Format: short paragraphs (not bullet points). Be direct and practical. Under 300 words. Don't pad.`;
 }
 
+// Model names to try in order — Google keeps changing availability by API version
+const GEMINI_MODELS = [
+  { model: "gemini-1.5-flash",   apiVersion: "v1"     },
+  { model: "gemini-1.5-flash",   apiVersion: "v1beta" },
+  { model: "gemini-1.5-flash-8b",apiVersion: "v1"     },
+  { model: "gemini-1.5-flash-8b",apiVersion: "v1beta" },
+];
+
 async function gemini(prompt: string): Promise<string> {
   const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) throw new Error("AI analysis not configured — add GOOGLE_AI_KEY to Vercel env vars.");
   const genAI = new GoogleGenerativeAI(apiKey);
-  // Try v1 API first (gemini-1.5-flash), fall back to gemini-pro on v1beta
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: "v1" });
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  } catch {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+  let lastError: Error = new Error("No models available");
+  for (const { model, apiVersion } of GEMINI_MODELS) {
+    try {
+      const m = genAI.getGenerativeModel({ model }, { apiVersion });
+      const result = await m.generateContent(prompt);
+      return result.response.text();
+    } catch (e) {
+      lastError = e as Error;
+      if (!(e as Error).message?.includes("404")) throw e; // only retry on 404
+    }
   }
+  throw lastError;
 }
 
 export async function recommendThrowAction(

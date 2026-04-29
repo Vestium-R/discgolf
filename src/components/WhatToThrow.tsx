@@ -7,13 +7,13 @@ import { recommendThrowAction } from "@/app/bag/ai-analyze";
 type Wind = "calm" | "light-headwind" | "strong-headwind" | "light-tailwind" | "strong-tailwind" | "crosswind-right" | "crosswind-left";
 
 const WIND_OPTIONS: { value: Wind; label: string; hint: string; group?: "head" | "tail" }[] = [
-  { value: "calm",            label: "Calm",             hint: "< 5 mph" },
-  { value: "light-headwind",  label: "Light headwind",   hint: "5–12 mph",  group: "head" },
-  { value: "strong-headwind", label: "Strong headwind",  hint: "13+ mph",   group: "head" },
-  { value: "light-tailwind",  label: "Light tailwind",   hint: "5–12 mph",  group: "tail" },
-  { value: "strong-tailwind", label: "Strong tailwind",  hint: "13+ mph",   group: "tail" },
-  { value: "crosswind-right", label: "Right crosswind",  hint: "left→right" },
-  { value: "crosswind-left",  label: "Left crosswind",   hint: "right→left" },
+  { value: "calm",            label: "Calm",              hint: "< 5 mph" },
+  { value: "light-headwind",  label: "Light headwind",    hint: "5–12 mph",  group: "head" },
+  { value: "strong-headwind", label: "Strong headwind",   hint: "13+ mph",   group: "head" },
+  { value: "light-tailwind",  label: "Light tailwind",    hint: "5–12 mph",  group: "tail" },
+  { value: "strong-tailwind", label: "Strong tailwind",   hint: "13+ mph",   group: "tail" },
+  { value: "crosswind-right", label: "Crosswind L → R",   hint: "left-to-right" },
+  { value: "crosswind-left",  label: "Crosswind R → L",   hint: "right-to-left" },
 ];
 
 const WIND_DESC: Record<Wind, string> = {
@@ -66,21 +66,38 @@ function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>): { di
     .sort((a, b) => a.score - b.score)
     .slice(0, 3);
 
+  const crossRight = winds.has("crosswind-right");
+  const crossLeft  = winds.has("crosswind-left");
+
   return scored.map(({ disc }) => {
     const s = stab(disc);
     const stabDesc = s > 1.5 ? "overstable" : s < -0.5 ? "understable" : "neutral";
-    const windNote = hasStrongHead ? "holds up into the wind"
-      : hasLightHead ? "stays stable in the headwind"
-      : hasStrongTail ? "extra distance with the tailwind"
-      : hasCross ? "fade holds the line in the crosswind"
-      : "";
     const distFeet = speedToFeet(disc.speed);
     const distNote = distFeet > distFt + 40 ? "throw at 70–80% power"
       : distFeet < distFt - 40 ? "full power needed" : "";
-    const parts = [`${stabDesc} · ${distFeet}ft range`];
-    if (windNote) parts.push(windNote);
-    if (distNote) parts.push(distNote);
-    return { disc, reason: parts.join(" · ") };
+
+    const notes: string[] = [`${stabDesc} · ${distFeet}ft range`];
+
+    // Wind-specific guidance
+    if (hasStrongHead) notes.push("holds up into strong headwind");
+    else if (hasLightHead) notes.push("stable in headwind");
+
+    if (hasStrongTail) notes.push("extra distance with tailwind");
+    else if (winds.has("light-tailwind")) notes.push("tailwind boost");
+
+    if (crossRight) {
+      // L→R wind: disc gets pushed right; use more fade to push back left, or aim left
+      const crossNote = s > 1 ? "overstable fade fights the L→R push" : "aim further left to compensate L→R wind";
+      notes.push(crossNote);
+    }
+    if (crossLeft) {
+      // R→L wind: disc gets pushed left; understable turn + wind combo, or aim right
+      const crossNote = s < 0 ? "understable + R→L wind — extra right flex shot" : "aim right to compensate R→L wind";
+      notes.push(crossNote);
+    }
+
+    if (distNote) notes.push(distNote);
+    return { disc, reason: notes.join(" · ") };
   });
 }
 
