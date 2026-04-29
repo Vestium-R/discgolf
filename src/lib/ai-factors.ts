@@ -31,4 +31,14 @@ export const AI_FACTORS = {
     "Max distance / skill level",
     "Years playing",
   ],
+  discRecommender: [
+    "Your current bag (avoids duplicates)",
+    "Gaps in your existing stability spread",
+    "Play style & throw style",
+    "Max distance / skill level",
+    "Selected type & stability filter",
+    "Brand preference (if given)",
+    "Description of what you need",
+    "400+ disc database for options",
+  ],
 } as const;

@@ -5,6 +5,8 @@ import { getBagDiscs, getUserPrefs } from "@/lib/store";
 import type { BagDisc } from "@/lib/types";
 import { DISC_TYPE_LABELS } from "@/lib/types";
 import { plasticStabOffset } from "@/lib/plastics-db";
+import { DISC_DB } from "@/lib/discs-db";
+import type { DiscType } from "@/lib/types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -234,6 +236,76 @@ Pick 2-3 discs from their bag by name. For each:
 - Release angle (flat/hyzer/anhyzer) given their style
 - Power level
 Be direct. Under 130 words total.`;
+
+  try {
+    return { ok: true, text: await gemini(prompt) };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+export async function recommendDiscAction(opts: {
+  type?: DiscType | "";
+  stab?: string;
+  brand?: string;
+  description?: string;
+}): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  const user = await getUser();
+  if (!user) return { ok: false, error: "Sign in required" };
+
+  const [userDiscs, prefs] = await Promise.all([getBagDiscs(user.id), getUserPrefs(user.id)]);
+  const apiKey = process.env.GOOGLE_AI_KEY;
+  if (!apiKey) return { ok: false, error: "AI not configured." };
+
+  // Filter the disc database based on selections
+  const stabFilter = (stab: number) => {
+    if (opts.stab === "os") return stab > 1;
+    if (opts.stab === "neutral") return stab >= -0.5 && stab <= 1;
+    if (opts.stab === "us") return stab < -0.5;
+    return true;
+  };
+
+  const candidates = DISC_DB
+    .filter(d => !opts.type || d.type === opts.type)
+    .filter(d => stabFilter((d.turn ?? 0) + (d.fade ?? 0)))
+    .filter(d => !opts.brand || d.manufacturer.toLowerCase().includes(opts.brand.toLowerCase()))
+    .slice(0, 40)
+    .map(d => `• ${d.name} (${d.manufacturer}) — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide}/${d.turn}/${d.fade}`)
+    .join("\n");
+
+  const owned = userDiscs.filter(d => !d.inStorage).map(d => `${d.discName} (${d.manufacturer ?? ""})`).join(", ");
+  const stored = userDiscs.filter(d => d.inStorage).map(d => `${d.discName}`).join(", ");
+
+  const stab = (d: BagDisc) => (d.turn ?? 0) + (d.fade ?? 0);
+  const os = userDiscs.filter(d => stab(d) > 1).length;
+  const us = userDiscs.filter(d => stab(d) < -0.5).length;
+  const neu = userDiscs.filter(d => stab(d) >= -0.5 && stab(d) <= 1).length;
+
+  const prompt = `You're a disc golf shop expert helping a player find a disc to buy. Recommend 2-3 specific discs they don't already own.
+
+Player profile:
+${playStyleNote(prefs.playStyle, prefs.throwStyle)}
+${skillNote(prefs.maxDistFt ?? 300)}
+
+Current bag: ${owned || "(empty)"}
+Storage: ${stored || "(none)"}
+Bag stability spread: ${os} overstable | ${neu} neutral | ${us} understable
+
+What they're looking for:
+Type: ${opts.type ? DISC_TYPE_LABELS[opts.type as DiscType] : "Any"}
+Stability: ${opts.stab || "any"}
+Brand preference: ${opts.brand || "no preference"}
+Description: ${opts.description || "not specified"}
+
+Discs available matching those filters (from a database of 400+):
+${candidates || "(no exact matches — broaden your filters)"}
+
+Recommend 2-3 discs from the list above. For each:
+1. Name, manufacturer, flight numbers
+2. Why it fits their style, skill level, and the gap they described
+3. One sentence on how to throw it given their play style
+
+Don't recommend anything they already own. Be specific and practical. Under 200 words.`;
 
   try {
     return { ok: true, text: await gemini(prompt) };
