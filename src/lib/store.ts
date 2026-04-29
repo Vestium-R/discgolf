@@ -248,19 +248,25 @@ export type UserPrefs = {
   yearsPlaying?: number;
 };
 
+const DEFAULT_USER_PREFS: UserPrefs = { maxDistFt: 300, throwStyle: "RHBH", playStyle: "flat" };
+
 export async function getUserPrefs(userId: string): Promise<UserPrefs> {
-  const { data } = await supabaseAdmin()
-    .from("user_prefs")
-    .select("max_dist_ft, throw_style, play_style, years_playing")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (!data) return { maxDistFt: 300, throwStyle: "RHBH", playStyle: "flat" };
-  return {
-    maxDistFt: data.max_dist_ft,
-    throwStyle: data.throw_style,
-    playStyle: data.play_style ?? "flat",
-    yearsPlaying: data.years_playing ?? undefined,
-  };
+  try {
+    const { data, error } = await supabaseAdmin()
+      .from("user_prefs")
+      .select("max_dist_ft, throw_style, play_style, years_playing")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data) return DEFAULT_USER_PREFS;
+    return {
+      maxDistFt: data.max_dist_ft,
+      throwStyle: data.throw_style,
+      playStyle: data.play_style ?? "flat",
+      yearsPlaying: data.years_playing ?? undefined,
+    };
+  } catch {
+    return DEFAULT_USER_PREFS;
+  }
 }
 
 export async function saveUserPrefs(userId: string, prefs: UserPrefs): Promise<void> {
