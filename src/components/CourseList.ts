@@ -83,6 +83,7 @@ export const COURSES: { province: string; courses: CourseEntry[] }[] = [
       { name: "Kings Pine DiscGolfPark",   city: "Mount Stewart",  slug: "kings-pine-disc-golf-park-96bO",          lat: 46.367, lng: -62.854 },
       { name: "Forest Hills DGC",         city: "New Glasgow",    slug: "forest-hills-disc-golf-course-CoFT",      lat: 46.411, lng: -63.413 },
       { name: "Rose Valley Disc Golf",    city: "Breadalbane",    slug: "rose-valley-disc-golf-dgBb",              lat: 46.302, lng: -63.473 },
+      { name: "Hillcrest Farm DGC",       city: "PEI",            slug: "hillcrest-farm-disc-golf-uWDj",           lat: 46.300, lng: -63.500 },
     ],
   },
 ];
