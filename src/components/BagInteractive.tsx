@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import type { BagDisc } from "@/lib/types";
 import { BagChart } from "@/components/BagChart";
 import { BagSettings, loadPrefs, type BagPrefs } from "@/components/BagSettings";
-import { AIBagAnalysis } from "@/components/AIBagAnalysis";
 
 export function BagInteractive({ discs }: { discs: BagDisc[] }) {
   const [prefs, setPrefs] = useState<BagPrefs>(loadPrefs());
@@ -22,8 +21,6 @@ export function BagInteractive({ discs }: { discs: BagDisc[] }) {
         </div>
         <BagChart discs={discs} prefs={prefs} />
       </section>
-
-      <AIBagAnalysis discCount={discs.length} />
     </div>
   );
 }

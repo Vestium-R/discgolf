@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { planCourseAction } from "@/app/bag/ai-analyze";
 import { COURSES } from "@/components/CourseList";
+import { loadPrefs } from "@/components/BagSettings";
 
 export function CoursePlayPlanner() {
   const [open, setOpen] = useState(false);
@@ -23,7 +24,7 @@ export function CoursePlayPlanner() {
     if (!courseName.trim()) return;
     setResult(null); setErr(null);
     startTransition(async () => {
-      const res = await planCourseAction(courseName.trim(), conditions.trim(), selectedSlug || undefined);
+      const res = await planCourseAction(courseName.trim(), conditions.trim(), selectedSlug || undefined, loadPrefs().maxDist);
       if (res.ok) setResult(res.text); else setErr(res.error);
     });
   }

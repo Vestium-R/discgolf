@@ -5,6 +5,7 @@ import { DISC_TYPE_COLORS } from "@/lib/types";
 import { recommendThrowAction } from "@/app/bag/ai-analyze";
 import { fetchCourseHolesAction, type HoleData } from "@/app/bag/course-holes-action";
 import { COURSES } from "@/components/CourseList";
+import { loadPrefs } from "@/components/BagSettings";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -35,9 +36,15 @@ function describeWinds(ws: Wind[]) {
 
 function speedToFeet(s: number) { return Math.round(100 + (s - 1) * (320 / 13)); }
 
-function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>) {
+function maxUsableSpeed(maxDist: number): number {
+  // Rough: player can effectively use discs up to ~their max distance speed rating
+  return Math.min(14, Math.max(2, 1 + (maxDist - 100) / (320 / 13)));
+}
+
+function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>, playerMaxDist = 300) {
   const bag = discs.filter(d => !d.inStorage);
   if (!bag.length) return [];
+  const maxSpeed = maxUsableSpeed(playerMaxDist);
 
   const hasStrongHead = winds.has("strong-headwind");
   const hasLightHead  = winds.has("light-headwind");
@@ -55,7 +62,7 @@ function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>) {
   const idealSpeed = Math.max(1, Math.min(14, 1 + ((distFt - 100) / 320) * 13));
 
   const scored = bag
-    .filter(d => { const s = stab(d); return s >= stabMin && s <= stabMax; })
+    .filter(d => { const s = stab(d); return s >= stabMin && s <= stabMax && d.speed <= maxSpeed + 1; })
     .map(d => ({ disc: d, score: Math.abs(d.speed - idealSpeed)*10 + Math.abs(speedToFeet(d.speed)-distFt)*0.1 }))
     .sort((a, b) => a.score - b.score)
     .slice(0, 3);
@@ -104,7 +111,8 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
   const [geoLoading, setGeoLoading] = useState(false);
 
   const effectiveDist = selectedHole?.distance ?? dist;
-  const recs = useMemo(() => ruleRecommend(discs, effectiveDist, winds), [discs, effectiveDist, winds]);
+  const playerMaxDist = typeof window !== "undefined" ? loadPrefs().maxDist : 300;
+  const recs = useMemo(() => ruleRecommend(discs, effectiveDist, winds, playerMaxDist), [discs, effectiveDist, winds, playerMaxDist]);
 
   function toggleWind(w: Wind) {
     setAiText(null);
@@ -160,8 +168,9 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
 
   function aiDeepDive() {
     setAiText(null); setErr(null);
+    const maxDist = loadPrefs().maxDist;
     start(async () => {
-      const res = await recommendThrowAction(effectiveDist, describeWinds([...winds] as Wind[]));
+      const res = await recommendThrowAction(effectiveDist, describeWinds([...winds] as Wind[]), maxDist);
       if (res.ok) setAiText(res.text); else setErr(res.error);
     });
   }

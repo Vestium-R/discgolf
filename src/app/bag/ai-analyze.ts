@@ -108,6 +108,7 @@ async function gemini(prompt: string): Promise<string> {
 export async function recommendThrowAction(
   distFt: number,
   wind: string,
+  playerMaxDist = 300,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Sign in required" };
@@ -123,6 +124,7 @@ export async function recommendThrowAction(
 ${discList}
 
 Shot: ${distFt} feet, conditions: ${wind}
+${skillNote(playerMaxDist)}
 
 Pick 2-3 discs from their bag by name. For each: why it fits, suggested release angle (flat/hyzer/anhyzer), and power level. Be direct, under 120 words total.`;
 
@@ -198,6 +200,7 @@ export async function planCourseAction(
   courseName: string,
   conditions: string,
   courseSlug?: string,
+  playerMaxDist = 300,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Sign in required" };
@@ -217,6 +220,7 @@ export async function planCourseAction(
 
   const prompt = `You're a disc golf caddy building a bag for tomorrow's round. Your job is to use what the player already owns — only flag a gap if NONE of their discs can fill a role.
 
+${skillNote(playerMaxDist)}
 Course: ${courseName}
 Conditions: ${conditions || "typical conditions"}
 ${courseData ? `\nCourse data from UDisc:\n${courseData}` : ""}
@@ -244,15 +248,24 @@ Be direct. Prefer concrete disc names over generic advice. Under 230 words.`;
   }
 }
 
-// Called from client components that already have the disc list
+function skillNote(maxDist: number): string {
+  if (maxDist <= 175) return `Player skill: beginner (~${maxDist}ft max). Only recommend discs up to speed 4. Higher speeds will fly unpredictably for them.`;
+  if (maxDist <= 250) return `Player skill: recreational (~${maxDist}ft max). Discs up to speed 7 work well; faster discs will behave overstable for them.`;
+  if (maxDist <= 320) return `Player skill: intermediate (~${maxDist}ft max). Discs up to speed 10 are appropriate; speed 12-14 still risky.`;
+  if (maxDist <= 380) return `Player skill: advanced (~${maxDist}ft max). Most discs up to speed 12 are usable.`;
+  return `Player skill: expert (~${maxDist}ft max). All disc speeds usable.`;
+}
+
 export async function analyzeBagDiscsAction(
-  discs: BagDisc[]
+  discs: BagDisc[],
+  playerMaxDist = 300,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   if (discs.length < 3) return { ok: false, error: "Add at least 3 discs for a useful analysis." };
   const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) return { ok: false, error: "AI not configured — add GOOGLE_AI_KEY to Vercel env vars." };
   try {
-    return { ok: true, text: await gemini(buildPrompt(discs)) };
+    const prompt = buildPrompt(discs) + `\n\n${skillNote(playerMaxDist)}`;
+    return { ok: true, text: await gemini(prompt) };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }

@@ -4,6 +4,7 @@ import type { BagDisc, DiscType } from "@/lib/types";
 import { DISC_TYPE_COLORS, DISC_TYPE_LABELS } from "@/lib/types";
 import { removeDiscAction, toggleStorageAction, updateDiscAction } from "@/app/bag/actions";
 import { analyzeBagDiscsAction } from "@/app/bag/ai-analyze";
+import { loadPrefs } from "@/components/BagSettings";
 
 type SortKey = "type" | "speed" | "manufacturer" | "stability";
 const SORT_LABELS: Record<SortKey, string> = { type:"Type", speed:"Speed", manufacturer:"Brand", stability:"Stability" };
@@ -142,8 +143,9 @@ export function BagList({discs,title,showStorage,gaps,isStorage}:{
 
   function analyse() {
     setAiText(null); setAiErr(null);
+    const { maxDist } = loadPrefs();
     startAiT(async()=>{
-      const res = await analyzeBagDiscsAction(discs);
+      const res = await analyzeBagDiscsAction(discs, maxDist);
       if (res.ok) setAiText(res.text); else setAiErr(res.error);
     });
   }
