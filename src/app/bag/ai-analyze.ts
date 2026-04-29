@@ -42,6 +42,83 @@ Analyze this bag honestly. Consider:
 Format: short paragraphs (not bullet points). Be direct and practical. Under 300 words. Don't pad.`;
 }
 
+async function gemini(prompt: string): Promise<string> {
+  const apiKey = process.env.GOOGLE_AI_KEY;
+  if (!apiKey) throw new Error("AI analysis not configured — add GOOGLE_AI_KEY to Vercel env vars.");
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
+
+export async function recommendThrowAction(
+  distFt: number,
+  wind: string,
+): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  const user = await getUser();
+  if (!user) return { ok: false, error: "Sign in required" };
+  const discs = (await getBagDiscs(user.id)).filter((d) => !d.inStorage);
+  if (discs.length < 2) return { ok: false, error: "Add more discs to your bag first." };
+
+  const discList = discs
+    .map((d) => `• ${d.discName}${d.manufacturer ? ` (${d.manufacturer})` : ""} — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"}`)
+    .join("\n");
+
+  const prompt = `You're a disc golf caddy. The player's bag:
+
+${discList}
+
+Shot: ${distFt} feet, conditions: ${wind}
+
+Pick 2-3 discs from their bag by name. For each: why it fits, suggested release angle (flat/hyzer/anhyzer), and power level. Be direct, under 120 words total.`;
+
+  try {
+    return { ok: true, text: await gemini(prompt) };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+export async function planCourseAction(
+  courseName: string,
+  conditions: string,
+): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  const user = await getUser();
+  if (!user) return { ok: false, error: "Sign in required" };
+  const allDiscs = await getBagDiscs(user.id);
+  if (allDiscs.length === 0) return { ok: false, error: "Add discs to your bag first." };
+
+  const fmt = (d: BagDisc) =>
+    `${d.discName}${d.manufacturer ? ` (${d.manufacturer})` : ""} ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"} — ${DISC_TYPE_LABELS[d.type]}`;
+
+  const bagList = allDiscs.filter((d) => !d.inStorage).map(fmt).join("\n");
+  const storeList = allDiscs.filter((d) => d.inStorage).map(fmt).join("\n");
+
+  const prompt = `You're a disc golf caddy preparing a bag for tomorrow's round.
+
+Course: ${courseName}
+Conditions: ${conditions || "typical conditions"}
+
+In bag:
+${bagList || "(none)"}
+
+In storage:
+${storeList || "(none)"}
+
+Using your knowledge of ${courseName} (or general disc golf knowledge if unfamiliar), recommend:
+1. Which discs to keep in the bag and which from storage to add (aim for 8-12 total)
+2. One or two specific holes to call out with disc choice
+3. Anything to leave home
+
+Be specific and practical. Under 220 words.`;
+
+  try {
+    return { ok: true, text: await gemini(prompt) };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
 export async function analyzeBagAction(): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Sign in required" };
@@ -54,7 +131,7 @@ export async function analyzeBagAction(): Promise<{ ok: true; text: string } | {
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent(buildPrompt(discs));
     const text = result.response.text();
     return { ok: true, text };

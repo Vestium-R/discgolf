@@ -110,10 +110,12 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
   const paths = discs.map(d=>{
     const turn=d.turn??0, fade=d.fade??0;
     const distFt = speedToFeet(d.speed);
-    // Lateral deviation: negative turn → right (+X); positive fade → left (-X)
-    // Scaled so turn -3 peaks ~18ft right, fade 3 ends ~18ft left (realistic S-curve)
-    const peakLat  = flip * (-(turn) * 6);
-    const endLat   = flip * (-(turn) * 3 - fade * 6);
+    // Lateral deviation in feet (RHBH): negative turn → right (+X), fade → left (-X)
+    // Pixel: turn=0, fade=0.5 → endLat=-2 (almost straight with tiny fade left) ✓
+    // Time Lapse: turn=-1, fade=2 → peak=5ft right, end=-8ft left (S-curve) ✓
+    // Sidewinder: turn=-3, fade=1 → peak=15ft right, end=-2ft (understable) ✓
+    const peakLat  = flip * (-(turn) * 5);
+    const endLat   = flip * (-(turn) * 2 - fade * 4);
     const x0=toFx(0),         y0=toFy(0,maxFt);
     const c1x=toFx(peakLat),  c1y=toFy(distFt*0.35,maxFt);
     const c2x=toFx(peakLat*0.5+endLat*0.5), c2y=toFy(distFt*0.65,maxFt);
