@@ -143,9 +143,9 @@ export function BagList({discs,title,showStorage,gaps,isStorage}:{
 
   function analyse() {
     setAiText(null); setAiErr(null);
-    const { maxDist } = loadPrefs();
+    const lp = loadPrefs();
     startAiT(async()=>{
-      const res = await analyzeBagDiscsAction(discs, maxDist);
+      const res = await analyzeBagDiscsAction(discs, lp.maxDist, lp.playStyle ?? "flat", lp.throwStyle ?? "RHBH");
       if (res.ok) setAiText(res.text); else setAiErr(res.error);
     });
   }

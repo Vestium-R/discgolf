@@ -5,7 +5,18 @@ import { getBagDiscs } from "@/lib/store";
 import type { BagDisc } from "@/lib/types";
 import { DISC_TYPE_LABELS } from "@/lib/types";
 
-function buildPrompt(discs: BagDisc[]): string {
+function playStyleNote(playStyle?: string, throwStyle?: string): string {
+  const hand = throwStyle ?? "RHBH";
+  const style = playStyle ?? "flat";
+  const parts: string[] = [`Throw style: ${hand}.`];
+  if (style === "hyzer_flip") parts.push("This player loves to hyzer flip — they prefer understable discs they can rip on a hyzer and let flip to flat for max distance.");
+  else if (style === "anhyzer") parts.push("This player prefers anhyzer/turnover lines and rollers — they like understable to neutral discs.");
+  else if (style === "beginner") parts.push("This player is still learning — prioritize forgiving, understable-to-neutral discs that fly predictably at lower speeds.");
+  else parts.push("This player prefers flat releases and lets the disc's natural fade finish the shot.");
+  return parts.join(" ");
+}
+
+function buildPrompt(discs: BagDisc[], playStyle?: string, throwStyle?: string): string {
   const byType = (t: BagDisc["type"]) => discs.filter((d) => d.type === t);
   const putters  = byType("putter");
   const mids     = byType("midrange");
@@ -22,24 +33,21 @@ function buildPrompt(discs: BagDisc[]): string {
     `  • ${d.discName}${d.manufacturer ? ` (${d.manufacturer})` : ""} — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"} — stability: ${stab(d) > 0 ? "+" : ""}${stab(d).toFixed(1)}`
   ).join("\n");
 
-  return `You are an expert disc golf bag consultant. Analyze this player's bag and give smart, specific, honest recommendations.
+  return `You're a supportive disc golf coach reviewing a student's bag. Be encouraging, specific, and practical — like a teaching pro who wants them to improve.
 
-BAG CONTENTS (${discs.length} discs):
+Player bag (${discs.length} discs):
 ${discList}
 
-SUMMARY:
-- Putters: ${putters.length} | Midranges: ${mids.length} | Fairway drivers: ${fairways.length} | Distance drivers: ${distance.length}
-- Overstable (stability > 1): ${os.length} disc${os.length !== 1 ? "s" : ""}
-- Neutral (-0.5 to 1): ${neu.length} disc${neu.length !== 1 ? "s" : ""}
-- Understable (< -0.5): ${us.length} disc${us.length !== 1 ? "s" : ""}
+Breakdown: ${putters.length} putter${putters.length!==1?"s":""}, ${mids.length} midrange${mids.length!==1?"s":""}, ${fairways.length} fairway${fairways.length!==1?"s":""}, ${distance.length} distance driver${distance.length!==1?"s":""}
+Overstable: ${os.length} | Neutral: ${neu.length} | Understable: ${us.length}
+${playStyleNote(playStyle, throwStyle)}
 
-Analyze this bag honestly. Consider:
-1. What the stability distribution reveals about playing style (e.g. heavy understable = likely a hyzer flip thrower OR a beginner, heavy overstable = control/wind player). Be specific about what it implies.
-2. What's genuinely missing — not just categories, but specific shot shapes and conditions that aren't covered (headwind, tailwind, wooded, tight fairways, hyzer, anhyzer, rollers, etc.)
-3. Concrete disc recommendations by name to fill real gaps — name actual discs with flight numbers.
-4. Any redundancies — if they have 4 nearly identical discs, say so.
+Coaching response — cover these naturally in 2-3 short paragraphs:
+1. **What the bag tells you**: What does this disc selection say about how they play? Be specific (e.g. "Heavy understable suggests you love hyzer flips, which is great for distance — but you'll struggle in headwind without at least one overstable fairway" or "Good spread across stability, this is a well-balanced bag for intermediate play").
+2. **The one or two biggest gaps**: What shot shape or condition is this bag missing? Name specific discs they'd benefit from with flight numbers. One gap per item — don't list everything.
+3. **One thing they're doing right**: Name a specific disc and why it's a smart choice for their style.
 
-Format: short paragraphs (not bullet points). Be direct and practical. Under 300 words. Don't pad.`;
+Tone: encouraging and specific, like a coach who's played for 20 years. No bullet lists. Under 250 words.`;
 }
 
 // Hardcoded preference: 1.5-flash-8b and 1.5-flash on v1 are reliably free.
@@ -259,12 +267,14 @@ function skillNote(maxDist: number): string {
 export async function analyzeBagDiscsAction(
   discs: BagDisc[],
   playerMaxDist = 300,
+  playStyle = "flat",
+  throwStyle = "RHBH",
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   if (discs.length < 3) return { ok: false, error: "Add at least 3 discs for a useful analysis." };
   const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) return { ok: false, error: "AI not configured — add GOOGLE_AI_KEY to Vercel env vars." };
   try {
-    const prompt = buildPrompt(discs) + `\n\n${skillNote(playerMaxDist)}`;
+    const prompt = buildPrompt(discs, playStyle, throwStyle) + `\n\n${skillNote(playerMaxDist)}`;
     return { ok: true, text: await gemini(prompt) };
   } catch (e) {
     return { ok: false, error: (e as Error).message };

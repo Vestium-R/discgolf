@@ -1,9 +1,10 @@
 import { getUser } from "@/lib/auth";
-import { getBagDiscs } from "@/lib/store";
+import { getBagDiscs, getUserPrefs } from "@/lib/store";
 import { SignInForm } from "@/components/SignInForm";
 import { AddDiscForm } from "@/components/AddDiscForm";
 import { BagList } from "@/components/BagList";
 import { BagInteractive } from "@/components/BagInteractive";
+import { PlayerProfile } from "@/components/PlayerProfile";
 import { WhatToThrow } from "@/components/WhatToThrow";
 import { CoursePlayPlanner } from "@/components/CoursePlayPlanner";
 import type { BagDisc, DiscType } from "@/lib/types";
@@ -54,7 +55,7 @@ export default async function BagPage() {
     );
   }
 
-  const discs = await getBagDiscs(user.id);
+  const [discs, userPrefs] = await Promise.all([getBagDiscs(user.id), getUserPrefs(user.id)]);
   const gaps = analyzeBag(discs);
 
   return (
@@ -63,6 +64,9 @@ export default async function BagPage() {
         <h2 className="font-display text-2xl font-bold text-forest-800">My Bag</h2>
         <p className="text-sm text-forest-600">{discs.length} disc{discs.length !== 1 ? "s" : ""} · {user.email}</p>
       </header>
+
+      {/* Compact player profile — collapsible, not the main focus */}
+      <PlayerProfile initial={userPrefs} />
 
       <AddDiscForm />
 
@@ -95,7 +99,7 @@ export default async function BagPage() {
 
       {/* Chart */}
       {discs.filter(d => !d.inStorage).length >= 2 && (
-        <BagInteractive discs={discs.filter(d => !d.inStorage)} />
+        <BagInteractive discs={discs.filter(d => !d.inStorage)} serverPrefs={userPrefs} />
       )}
 
       {discs.length === 0 && (

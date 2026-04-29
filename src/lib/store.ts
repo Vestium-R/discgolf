@@ -239,6 +239,44 @@ export async function getSettings(): Promise<Settings> {
   return { currentSeason: (data as SettingsRow).current_season };
 }
 
+// ─── User prefs ─────────────────────────────────────────────────────────────
+
+export type UserPrefs = {
+  maxDistFt: number;
+  throwStyle: string;   // RHBH | LHBH | RHFH | LHFH
+  playStyle: string;    // flat | hyzer_flip | anhyzer | beginner
+  yearsPlaying?: number;
+};
+
+export async function getUserPrefs(userId: string): Promise<UserPrefs> {
+  const { data } = await supabaseAdmin()
+    .from("user_prefs")
+    .select("max_dist_ft, throw_style, play_style, years_playing")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!data) return { maxDistFt: 300, throwStyle: "RHBH", playStyle: "flat" };
+  return {
+    maxDistFt: data.max_dist_ft,
+    throwStyle: data.throw_style,
+    playStyle: data.play_style ?? "flat",
+    yearsPlaying: data.years_playing ?? undefined,
+  };
+}
+
+export async function saveUserPrefs(userId: string, prefs: UserPrefs): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("user_prefs")
+    .upsert({
+      user_id: userId,
+      max_dist_ft: prefs.maxDistFt,
+      throw_style: prefs.throwStyle,
+      play_style: prefs.playStyle,
+      years_playing: prefs.yearsPlaying ?? null,
+      updated_at: new Date().toISOString(),
+    });
+  if (error) throw error;
+}
+
 export async function saveSettings(s: Settings): Promise<void> {
   const { error } = await supabaseAdmin()
     .from("settings")

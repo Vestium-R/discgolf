@@ -6,7 +6,8 @@ export type BagPrefs = {
   showNamesChart: boolean;
   showNamesFlight: boolean;
   distanceUnit: "ft" | "m";
-  maxDist: number; // player's max comfortable throwing distance in feet
+  maxDist: number;
+  playStyle?: string;
 };
 
 const DEFAULTS: BagPrefs = {
@@ -29,7 +30,7 @@ export function loadPrefs(): BagPrefs {
   }
 }
 
-function savePrefs(p: BagPrefs) {
+export function savePrefs(p: BagPrefs) {
   localStorage.setItem(KEY, JSON.stringify(p));
 }
 
