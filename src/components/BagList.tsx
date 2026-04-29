@@ -117,12 +117,12 @@ function DiscRow({d,editing,onEdit,onStopEdit,showStorage}:{d:BagDisc;editing:bo
       {/* Bigger action buttons */}
       {showStorage&&(
         <button onClick={toggle} disabled={pending} title={d.inStorage?"Move to bag":"Move to storage"}
-          className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-forest-500 hover:bg-forest-100 hover:text-forest-800 transition-colors shrink-0">
+          className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-sm font-medium text-forest-500 hover:bg-forest-100 hover:text-forest-800 transition-colors shrink-0">
           {d.inStorage?"🎒":"📦"}
         </button>
       )}
       <button onClick={onEdit}
-        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-forest-500 hover:bg-forest-100 hover:text-forest-800 transition-colors shrink-0">
+        className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-sm font-medium text-forest-500 hover:bg-forest-100 hover:text-forest-800 transition-colors shrink-0">
         ✏️
       </button>
       <button onClick={remove} disabled={pending}

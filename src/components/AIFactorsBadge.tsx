@@ -28,7 +28,7 @@ export function AIFactorsBadge({
       </button>
 
       {show && (
-        <div className={`absolute ${isUp ? "bottom-full mb-2" : "top-full mt-2"} left-1/2 -translate-x-1/2 w-56 bg-forest-900 text-white text-[11px] rounded-xl p-3 shadow-xl z-50 pointer-events-none`}>
+        <div className={`absolute ${isUp ? "bottom-full mb-2" : "top-full mt-2"} right-0 w-56 bg-forest-900 text-white text-[11px] rounded-xl p-3 shadow-xl z-50 pointer-events-none`}>
           <p className="font-semibold text-forest-200 mb-1.5">This AI considers:</p>
           <ul className="space-y-1">
             {factors.map((f, i) => (
@@ -40,8 +40,8 @@ export function AIFactorsBadge({
           </ul>
           {/* Arrow pointing toward the badge */}
           {isUp
-            ? <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-forest-900" />
-            : <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-b-forest-900" />
+            ? <div className="absolute top-full right-2 border-[5px] border-transparent border-t-forest-900" />
+            : <div className="absolute bottom-full right-2 border-[5px] border-transparent border-b-forest-900" />
           }
         </div>
       )}

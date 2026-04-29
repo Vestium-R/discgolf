@@ -248,6 +248,7 @@ export async function recommendDiscAction(opts: {
   type?: DiscType | "";
   stab?: string;
   brand?: string;
+  plastic?: string;
   description?: string;
 }): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
@@ -269,6 +270,7 @@ export async function recommendDiscAction(opts: {
     .filter(d => !opts.type || d.type === opts.type)
     .filter(d => stabFilter((d.turn ?? 0) + (d.fade ?? 0)))
     .filter(d => !opts.brand || d.manufacturer.toLowerCase().includes(opts.brand.toLowerCase()))
+    // plastic filter is passed to AI as context, not filtered here (disc DB doesn't have plastic)
     .slice(0, 40)
     .map(d => `• ${d.name} (${d.manufacturer}) — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide}/${d.turn}/${d.fade}`)
     .join("\n");
@@ -295,6 +297,7 @@ What they're looking for:
 Type: ${opts.type ? DISC_TYPE_LABELS[opts.type as DiscType] : "Any"}
 Stability: ${opts.stab || "any"}
 Brand preference: ${opts.brand || "no preference"}
+Plastic preference: ${opts.plastic || "no preference"}
 Description: ${opts.description || "not specified"}
 
 Discs available matching those filters (from a database of 400+):
