@@ -66,15 +66,26 @@ export default async function BagPage() {
 
       <AddDiscForm />
 
+      {/* In Bag — with gaps inline, AI button in header */}
       {discs.filter(d => !d.inStorage).length > 0 && (
-        <BagList discs={discs.filter(d => !d.inStorage)} title="In Bag" showStorage />
+        <BagList
+          discs={discs.filter(d => !d.inStorage)}
+          title={`In Bag (${discs.filter(d => !d.inStorage).length})`}
+          showStorage
+          gaps={gaps}
+        />
       )}
 
+      {/* Storage — collapsible button */}
       {discs.filter(d => d.inStorage).length > 0 && (
-        <BagList discs={discs.filter(d => d.inStorage)} title="Storage" showStorage />
+        <BagList
+          discs={discs.filter(d => d.inStorage)}
+          showStorage
+          isStorage
+        />
       )}
 
-      {/* Quick tools — right after the bag */}
+      {/* Quick tools */}
       {discs.filter(d => !d.inStorage).length >= 2 && (
         <div className="grid gap-3 sm:grid-cols-2">
           <WhatToThrow discs={discs} />
@@ -82,24 +93,9 @@ export default async function BagPage() {
         </div>
       )}
 
-      {/* Chart only shows bag discs (not storage) */}
+      {/* Chart */}
       {discs.filter(d => !d.inStorage).length >= 2 && (
         <BagInteractive discs={discs.filter(d => !d.inStorage)} />
-      )}
-
-      {/* Rule-based gaps */}
-      {gaps.length > 0 && (
-        <section className="card p-4 space-y-3">
-          <h3 className="font-display font-bold text-forest-800">Quick gaps</h3>
-          <ul className="space-y-2">
-            {gaps.map((g, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-forest-700">
-                <span className="mt-0.5 shrink-0 text-amber-500">⚠</span>
-                {g}
-              </li>
-            ))}
-          </ul>
-        </section>
       )}
 
       {discs.length === 0 && (

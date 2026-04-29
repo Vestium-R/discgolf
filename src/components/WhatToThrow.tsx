@@ -88,7 +88,7 @@ const allCourses = COURSES.flatMap(g => g.courses);
 
 export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
   const [open, setOpen]         = useState(false);
-  const [mode, setMode]         = useState<Mode>("general");
+  const [mode, setMode]         = useState<Mode>("course");
   const [dist, setDist]         = useState(200);
   const [winds, setWinds]       = useState<Set<Wind>>(new Set(["calm"]));
   const [aiText, setAiText]     = useState<string | null>(null);

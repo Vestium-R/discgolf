@@ -42,7 +42,14 @@ Analyze this bag honestly. Consider:
 Format: short paragraphs (not bullet points). Be direct and practical. Under 300 words. Don't pad.`;
 }
 
-// Discover available models, sorted so smaller/faster ones come first as fallbacks
+// Hardcoded preference: 1.5-flash-8b and 1.5-flash on v1 are reliably free.
+// 2.0+ models show in ListModels but have limit:0 on free tier.
+const HARDCODED_MODELS: { name: string; apiVersion: string }[] = [
+  { name: "gemini-1.5-flash-8b", apiVersion: "v1" },
+  { name: "gemini-1.5-flash",    apiVersion: "v1" },
+  { name: "gemini-1.5-pro",      apiVersion: "v1" },
+];
+
 let cachedModels: { name: string; apiVersion: string }[] = [];
 
 async function findAvailableModels(apiKey: string): Promise<{ name: string; apiVersion: string }[]> {
@@ -75,27 +82,27 @@ async function findAvailableModels(apiKey: string): Promise<{ name: string; apiV
 async function gemini(prompt: string): Promise<string> {
   const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) throw new Error("AI not configured — add GOOGLE_AI_KEY to Vercel env vars.");
-  const models = await findAvailableModels(apiKey);
-  if (!models.length) throw new Error("No Gemini models found. Check your key at aistudio.google.com.");
   const genAI = new GoogleGenerativeAI(apiKey);
+  // Try hardcoded free-tier models first, then fall back to auto-discovered ones
+  const discovered = await findAvailableModels(apiKey);
+  const toTry = [...HARDCODED_MODELS, ...discovered.filter(
+    d => !HARDCODED_MODELS.some(h => h.name === d.name)
+  )];
   let lastErr: Error = new Error("All models failed");
-  for (const { name, apiVersion } of models) {
+  for (const { name, apiVersion } of toTry) {
     try {
       const m = genAI.getGenerativeModel({ model: name }, { apiVersion });
       const result = await m.generateContent(prompt);
       return result.response.text();
     } catch (e) {
       const msg = (e as Error).message ?? "";
-      // 404 = model not found, 503 = overloaded, 429 = quota exceeded — all try next model
       if (msg.includes("503") || msg.includes("404") || msg.includes("429")) {
-        // On quota error, also clear the cache so we re-discover next time
-        if (msg.includes("429")) cachedModels = cachedModels.filter(m => m.name !== name);
         lastErr = e as Error; continue;
       }
-      throw e; // quota, auth, etc. — don't retry
+      throw e;
     }
   }
-  throw new Error(`AI temporarily unavailable — all models busy. Try again in a moment. (${lastErr.message})`);
+  throw new Error(`AI temporarily unavailable. Try again shortly. (${lastErr.message.slice(0, 120)})`);
 }
 
 export async function recommendThrowAction(
@@ -232,6 +239,20 @@ Be direct. Prefer concrete disc names over generic advice. Under 230 words.`;
 
   try {
     return { ok: true, text: await gemini(prompt) };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+// Called from client components that already have the disc list
+export async function analyzeBagDiscsAction(
+  discs: BagDisc[]
+): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  if (discs.length < 3) return { ok: false, error: "Add at least 3 discs for a useful analysis." };
+  const apiKey = process.env.GOOGLE_AI_KEY;
+  if (!apiKey) return { ok: false, error: "AI not configured — add GOOGLE_AI_KEY to Vercel env vars." };
+  try {
+    return { ok: true, text: await gemini(buildPrompt(discs)) };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
