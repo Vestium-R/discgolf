@@ -33,7 +33,16 @@ function yearsNote(years?: number): string {
   return `Experience: ${years} years playing — veteran.`;
 }
 
-/** Build a single disc line for the prompt — includes plastic stability offset and condition */
+/** Heavier discs fly more overstable; lighter more understable. Ref point: 175g. */
+function weightNote(g?: number): string {
+  if (!g) return "";
+  if (g >= 173) return ` | ${g}g (max weight, slightly more OS)`;
+  if (g >= 168) return ` | ${g}g (standard)`;
+  if (g >= 160) return ` | ${g}g (mid-weight, slightly more US)`;
+  return ` | ${g}g (light, noticeably more US — good for lower arm speeds)`;
+}
+
+/** Build a single disc line for the prompt — includes weight, plastic offset, and condition */
 function discLine(d: BagDisc): string {
   const stab = (d.turn ?? 0) + (d.fade ?? 0);
   const stabStr = `stab ${stab >= 0 ? "+" : ""}${stab.toFixed(1)}`;
@@ -41,8 +50,10 @@ function discLine(d: BagDisc): string {
   const plasticStr = d.plastic
     ? ` | ${d.plastic}${offset > 0 ? ` (+${offset} OS)` : offset < 0 ? ` (${offset} US)` : ""}`
     : "";
+  const wt = weightNote(d.weightG);
   const condStr = d.notes ? ` | ${d.notes}` : "";
-  return `• ${d.discName}${d.manufacturer ? ` (${d.manufacturer})` : ""} — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"} — ${stabStr}${plasticStr}${condStr}`;
+  const nick = d.nickname ? ` "${d.nickname}"` : "";
+  return `• ${d.discName}${nick}${d.manufacturer ? ` (${d.manufacturer})` : ""} — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"} — ${stabStr}${plasticStr}${wt}${condStr}`;
 }
 
 // ── Gemini setup ──────────────────────────────────────────────────────────────

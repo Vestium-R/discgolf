@@ -54,7 +54,12 @@ function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>, playe
   const crossRight    = winds.has("crosswind-right");
   const crossLeft     = winds.has("crosswind-left");
 
-  const stab = (d: BagDisc) => (d.turn ?? 0) + (d.fade ?? 0);
+  // Effective stability accounts for weight: heavier = more OS, lighter = more US
+  const stab = (d: BagDisc) => {
+    const base = (d.turn ?? 0) + (d.fade ?? 0);
+    const wtOffset = d.weightG ? (d.weightG - 170) * 0.02 : 0;
+    return base + wtOffset;
+  };
   let stabMin = -4, stabMax = 5;
   if (hasStrongHead)             { stabMin = 1;  stabMax = 6; }
   else if (hasLightHead)         { stabMin = 0;  stabMax = 4; }

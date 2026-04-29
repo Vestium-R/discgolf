@@ -2,6 +2,7 @@
 export const AI_FACTORS = {
   bagAnalysis: [
     "All in-bag discs with flight numbers",
+    "Disc weight (heavier = more OS, lighter = more US)",
     "Plastic type & stability offset",
     "Disc condition (beat-in, fresh, etc.)",
     "Stability distribution (OS/neutral/US)",
@@ -11,6 +12,7 @@ export const AI_FACTORS = {
   ],
   whatToThrow: [
     "All in-bag discs with flight numbers",
+    "Disc weight (heavier = more OS, lighter = more US)",
     "Plastic type & stability offset",
     "Disc condition",
     "Hole distance",
@@ -20,6 +22,7 @@ export const AI_FACTORS = {
   ],
   coursePlanner: [
     "In-bag + storage discs",
+    "Disc weight (heavier = more OS, lighter = more US)",
     "Plastic type & stability offset",
     "Disc condition",
     "UDisc hole distances (when available)",

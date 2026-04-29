@@ -1,8 +1,16 @@
 "use client";
 import { useState } from "react";
 
-export function AIFactorsBadge({ factors }: { factors: readonly string[] }) {
+export function AIFactorsBadge({
+  factors,
+  direction = "up",
+}: {
+  factors: readonly string[];
+  direction?: "up" | "down";
+}) {
   const [show, setShow] = useState(false);
+
+  const isUp = direction === "up";
 
   return (
     <span className="relative inline-flex items-center">
@@ -20,7 +28,7 @@ export function AIFactorsBadge({ factors }: { factors: readonly string[] }) {
       </button>
 
       {show && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-forest-900 text-white text-[11px] rounded-xl p-3 shadow-xl z-50 pointer-events-none">
+        <div className={`absolute ${isUp ? "bottom-full mb-2" : "top-full mt-2"} left-1/2 -translate-x-1/2 w-56 bg-forest-900 text-white text-[11px] rounded-xl p-3 shadow-xl z-50 pointer-events-none`}>
           <p className="font-semibold text-forest-200 mb-1.5">This AI considers:</p>
           <ul className="space-y-1">
             {factors.map((f, i) => (
@@ -30,8 +38,11 @@ export function AIFactorsBadge({ factors }: { factors: readonly string[] }) {
               </li>
             ))}
           </ul>
-          {/* Arrow */}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-forest-900" />
+          {/* Arrow pointing toward the badge */}
+          {isUp
+            ? <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-forest-900" />
+            : <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-b-forest-900" />
+          }
         </div>
       )}
     </span>

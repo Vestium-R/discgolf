@@ -197,7 +197,7 @@ export function BagList({discs,title,showStorage,gaps,isStorage}:{
                 className="text-xs text-forest-600 hover:text-forest-800 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-forest-50 transition-colors">
                 {aiPending?"…":"✨"} <span className="hidden sm:inline">Analyse</span>
               </button>
-              <AIFactorsBadge factors={AI_FACTORS.bagAnalysis} />
+              <AIFactorsBadge factors={AI_FACTORS.bagAnalysis} direction="down" />
             </span>
           )}
         </div>
