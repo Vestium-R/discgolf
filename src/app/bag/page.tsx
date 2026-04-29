@@ -4,6 +4,7 @@ import { SignInForm } from "@/components/SignInForm";
 import { AddDiscForm } from "@/components/AddDiscForm";
 import { BagList } from "@/components/BagList";
 import { BagInteractive } from "@/components/BagInteractive";
+import { WhatToThrow } from "@/components/WhatToThrow";
 import type { BagDisc, DiscType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +76,11 @@ export default async function BagPage() {
       {/* Chart only shows bag discs (not storage) */}
       {discs.filter(d => !d.inStorage).length >= 2 && (
         <BagInteractive discs={discs.filter(d => !d.inStorage)} />
+      )}
+
+      {/* What to throw — rule-based, no AI needed */}
+      {discs.filter(d => !d.inStorage).length >= 2 && (
+        <WhatToThrow discs={discs} />
       )}
 
       {/* Rule-based gaps */}

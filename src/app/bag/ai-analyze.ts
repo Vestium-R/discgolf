@@ -1,5 +1,5 @@
 "use server";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getUser } from "@/lib/auth";
 import { getBagDiscs } from "@/lib/store";
 import type { BagDisc } from "@/lib/types";
@@ -49,20 +49,14 @@ export async function analyzeBagAction(): Promise<{ ok: true; text: string } | {
   const discs = await getBagDiscs(user.id);
   if (discs.length < 3) return { ok: false, error: "Add at least 3 discs to get an analysis." };
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return { ok: false, error: "AI analysis not configured." };
+  const apiKey = process.env.GOOGLE_AI_KEY;
+  if (!apiKey) return { ok: false, error: "AI analysis not configured — add GOOGLE_AI_KEY to Vercel env vars." };
 
   try {
-    const client = new Anthropic({ apiKey });
-    const msg = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 600,
-      messages: [{ role: "user", content: buildPrompt(discs) }],
-    });
-    const text = msg.content
-      .filter((b) => b.type === "text")
-      .map((b) => (b as { type: "text"; text: string }).text)
-      .join("");
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(buildPrompt(discs));
+    const text = result.response.text();
     return { ok: true, text };
   } catch (e) {
     return { ok: false, error: (e as Error).message };

@@ -111,9 +111,9 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
     const turn=d.turn??0, fade=d.fade??0;
     const distFt = speedToFeet(d.speed);
     // Lateral deviation: negative turn → right (+X); positive fade → left (-X)
-    // Scale is realistic: turn -3 peaks ~25ft right, fade 3 ends ~30ft left
-    const peakLat  = flip * (-(turn) * 9);
-    const endLat   = flip * (-(turn) * 4 - fade * 10);
+    // Scaled so turn -3 peaks ~18ft right, fade 3 ends ~18ft left (realistic S-curve)
+    const peakLat  = flip * (-(turn) * 6);
+    const endLat   = flip * (-(turn) * 3 - fade * 6);
     const x0=toFx(0),         y0=toFy(0,maxFt);
     const c1x=toFx(peakLat),  c1y=toFy(distFt*0.35,maxFt);
     const c2x=toFx(peakLat*0.5+endLat*0.5), c2y=toFy(distFt*0.65,maxFt);
@@ -169,21 +169,15 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const COLOR_MAP: Record<string, string> = {
-  red:"#ef4444", orange:"#f97316", yellow:"#eab308", green:"#22c55e",
-  blue:"#3b82f6", purple:"#a855f7", pink:"#ec4899", white:"#e0e0e0",
-  black:"#374151", grey:"#6b7280", gray:"#6b7280", teal:"#14b8a6",
+  red:"#ef4444", orange:"#f97316", yellow:"#ca8a04", green:"#16a34a",
+  blue:"#2563eb", purple:"#7c3aed", pink:"#db2777", white:"#9ca3af",
+  black:"#1f2937", grey:"#6b7280", gray:"#6b7280", teal:"#0d9488",
 };
 function colorToHex(color: string): string {
   return COLOR_MAP[color.toLowerCase()] ?? DISC_TYPE_COLORS["midrange"];
 }
-// Returns a contrasting stroke colour so light discs stay visible on white bg
-function strokeFor(hex: string): string {
-  const r = parseInt(hex.slice(1,3), 16) || 0;
-  const g = parseInt(hex.slice(3,5), 16) || 0;
-  const b = parseInt(hex.slice(5,7), 16) || 0;
-  const luminance = (r*0.299 + g*0.587 + b*0.114);
-  return luminance > 160 ? "#374151" : "white";
-}
+// All discs use a consistent white stroke — light colors are pre-darkened above
+function strokeFor(_hex: string): string { return "white"; }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
