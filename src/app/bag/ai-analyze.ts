@@ -57,13 +57,16 @@ async function findAvailableModels(apiKey: string): Promise<{ name: string; apiV
         if (!(m.supportedGenerationMethods ?? []).includes("generateContent")) continue;
         if (!m.name.includes("flash") && !m.name.includes("pro")) continue;
         const name = m.name.replace("models/", "");
-        // Prefer flash-8b (smallest/fastest) as fallback, then other flash, then pro
-        const priority = name.includes("8b") ? 2 : name.includes("flash") ? 1 : 0;
+        // Prefer 1.5-flash-8b → 1.5-flash → 1.5-pro → anything else.
+        // Explicitly deprioritise 2.0+ models — they have limit:0 on free tier.
+        const is2x  = name.includes("2.0") || name.includes("2.5");
+        const is8b  = name.includes("8b");
+        const is15  = name.includes("1.5");
+        const priority = is2x ? -1 : is8b && is15 ? 3 : is15 ? 2 : 0;
         if (!found.some(f => f.name === name)) found.push({ name, apiVersion, priority });
       }
     } catch { /* try next */ }
   }
-  // Sort: highest priority first (flash-8b is best fallback when main is overloaded)
   found.sort((a, b) => b.priority - a.priority);
   cachedModels = found;
   return cachedModels;
@@ -83,7 +86,12 @@ async function gemini(prompt: string): Promise<string> {
       return result.response.text();
     } catch (e) {
       const msg = (e as Error).message ?? "";
-      if (msg.includes("503") || msg.includes("404")) { lastErr = e as Error; continue; }
+      // 404 = model not found, 503 = overloaded, 429 = quota exceeded — all try next model
+      if (msg.includes("503") || msg.includes("404") || msg.includes("429")) {
+        // On quota error, also clear the cache so we re-discover next time
+        if (msg.includes("429")) cachedModels = cachedModels.filter(m => m.name !== name);
+        lastErr = e as Error; continue;
+      }
       throw e; // quota, auth, etc. — don't retry
     }
   }
