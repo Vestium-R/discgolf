@@ -80,11 +80,11 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
       <div className="relative">
         <label className="text-xs font-semibold text-forest-700 block mb-1">
           Disc name *
-          {!selected && <span className="font-normal text-forest-400 ml-1">— search or type manually</span>}
-          {selected && <span className="font-normal text-green-700 ml-1">✓ from database</span>}
+          {!selected && <span className="font-normal text-forest-400 ml-1">— search the database or type manually</span>}
+          {selected && <span className="font-normal text-green-700 ml-1">✓ auto-filled from database</span>}
         </label>
         <input name="discName" required value={query} onChange={e => onSearch(e.target.value)}
-          placeholder="e.g. Destroyer, Buzzz…"
+          placeholder="Search discs… e.g. Destroyer, Buzzz, Kastaplast"
           className="input-pill text-sm" autoComplete="off" />
         {results.length > 0 && (
           <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-forest-200 rounded-xl shadow-lg max-h-56 overflow-y-auto divide-y divide-forest-50">
@@ -174,7 +174,15 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
         </div>
       )}
 
-      {/* Color + Weight */}
+      {/* Nickname + Color + Weight */}
+      <div>
+        <label className="text-xs font-semibold text-forest-700 block mb-1">
+          Nickname <span className="font-normal text-forest-400">(optional — for two of the same disc)</span>
+        </label>
+        <input name="nickname" placeholder='e.g. "The Flipper", "Headwind Destroyer"'
+          className="input-pill text-sm" />
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-semibold text-forest-700 block mb-1">Color</label>

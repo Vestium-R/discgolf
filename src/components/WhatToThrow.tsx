@@ -2,7 +2,8 @@
 import { useState, useTransition, useMemo } from "react";
 import type { BagDisc } from "@/lib/types";
 import { DISC_TYPE_COLORS } from "@/lib/types";
-import { recommendThrowAction, AI_FACTORS } from "@/app/bag/ai-analyze";
+import { recommendThrowAction } from "@/app/bag/ai-analyze";
+import { AI_FACTORS } from "@/lib/ai-factors";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 import { fetchCourseHolesAction, type HoleData } from "@/app/bag/course-holes-action";
 import { COURSES } from "@/components/CourseList";

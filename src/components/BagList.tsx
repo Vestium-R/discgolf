@@ -3,7 +3,8 @@ import { useState, useTransition } from "react";
 import type { BagDisc, DiscType } from "@/lib/types";
 import { DISC_TYPE_COLORS, DISC_TYPE_LABELS } from "@/lib/types";
 import { removeDiscAction, toggleStorageAction, updateDiscAction } from "@/app/bag/actions";
-import { analyzeBagDiscsAction, AI_FACTORS } from "@/app/bag/ai-analyze";
+import { analyzeBagDiscsAction } from "@/app/bag/ai-analyze";
+import { AI_FACTORS } from "@/lib/ai-factors";
 import { loadPrefs } from "@/components/BagSettings";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 
@@ -102,6 +103,7 @@ function DiscRow({d,editing,onEdit,onStopEdit,showStorage}:{d:BagDisc;editing:bo
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-sm font-semibold text-forest-800">{d.discName}</span>
+          {d.nickname&&<span className="text-xs font-medium text-forest-600 italic">"{d.nickname}"</span>}
           {d.manufacturer&&<span className="text-xs text-forest-400">{d.manufacturer}</span>}
           {d.plastic&&<span className="text-xs text-forest-300">· {d.plastic}</span>}
         </div>

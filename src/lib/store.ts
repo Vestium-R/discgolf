@@ -306,6 +306,7 @@ type BagDiscRow = {
   color: string | null;
   weight_g: number | null;
   notes: string | null;
+  nickname: string | null;
   in_storage: boolean | null;
   created_at: string;
 };
@@ -325,6 +326,7 @@ function rowToDisc(r: BagDiscRow): BagDisc {
     color: r.color ?? undefined,
     weightG: r.weight_g ?? undefined,
     notes: r.notes ?? undefined,
+    nickname: r.nickname ?? undefined,
     inStorage: r.in_storage ?? false,
     createdAt: r.created_at,
   };
@@ -357,6 +359,7 @@ export async function addBagDisc(userId: string, disc: Omit<BagDisc, "id" | "use
       color: disc.color ?? null,
       weight_g: disc.weightG ?? null,
       notes: disc.notes ?? null,
+      nickname: disc.nickname ?? null,
     });
   if (error) throw error;
 }

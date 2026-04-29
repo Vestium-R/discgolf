@@ -1,6 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
-import { planCourseAction, AI_FACTORS } from "@/app/bag/ai-analyze";
+import { planCourseAction } from "@/app/bag/ai-analyze";
+import { AI_FACTORS } from "@/lib/ai-factors";
 import { COURSES } from "@/components/CourseList";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 

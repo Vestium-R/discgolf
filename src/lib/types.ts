@@ -75,6 +75,7 @@ export type BagDisc = {
   color?: string;
   weightG?: number;
   notes?: string;
+  nickname?: string;
   inStorage?: boolean;
   createdAt: string;
 };

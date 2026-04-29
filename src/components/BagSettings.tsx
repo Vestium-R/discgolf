@@ -95,22 +95,6 @@ export function BagSettings({ onChange }: { onChange: (p: BagPrefs) => void }) {
             </div>
           </div>
 
-          {/* Max distance */}
-          <div>
-            <label className="text-xs font-semibold text-forest-700 block mb-1">
-              My max distance: <span className="tabular-nums font-bold text-forest-900">{prefs.maxDist} ft</span>
-            </label>
-            <input type="range" min={100} max={500} step={10} value={prefs.maxDist}
-              onChange={e => update({ maxDist: Number(e.target.value) })}
-              className="w-full accent-forest-600" />
-            <div className="flex justify-between text-[10px] text-forest-400 mt-0.5">
-              <span>100 (beginner)</span><span>300 (avg)</span><span>500 (pro)</span>
-            </div>
-            <p className="text-[10px] text-forest-400 mt-1">
-              Used to filter out discs that need more arm speed than you have — a speed-14 driver at 200ft just rolls over.
-            </p>
-          </div>
-
           {/* Disc name toggles */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-forest-700 block">Disc labels</label>

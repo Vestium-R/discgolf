@@ -17,6 +17,7 @@ export async function addDiscAction(formData: FormData): Promise<void> {
   const turn = turnRaw !== null && turnRaw !== "" ? Number(turnRaw) : undefined;
   const fade = formData.get("fade") ? Number(formData.get("fade")) : undefined;
   const plastic = String(formData.get("plastic") ?? "").trim() || undefined;
+  const nickname = String(formData.get("nickname") ?? "").trim() || undefined;
   const color = String(formData.get("color") ?? "").trim() || undefined;
   const weightRaw = formData.get("weight");
   const weightG = weightRaw && weightRaw !== "" ? Number(weightRaw) : undefined;
@@ -24,7 +25,7 @@ export async function addDiscAction(formData: FormData): Promise<void> {
 
   if (!discName || !type || !Number.isFinite(speed)) return;
 
-  await addBagDisc(user.id, { discName, manufacturer, type, speed, glide, turn, fade, plastic, color, weightG, notes });
+  await addBagDisc(user.id, { discName, manufacturer, type, speed, glide, turn, fade, plastic, nickname, color, weightG, notes });
   revalidatePath("/bag");
 }
 
