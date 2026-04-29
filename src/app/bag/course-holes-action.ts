@@ -15,91 +15,76 @@ export async function fetchCourseHolesAction(
     if (!res.ok) return { ok: false, error: `UDisc returned ${res.status}` };
     const html = await res.text();
 
-    let payload: string | null = null;
-
-    // Method 1: React Router turbo-stream (current UDisc format)
+    // UDisc uses React Router turbo-stream (same format as scorecards)
     const streamMatch = html.match(/streamController\.enqueue\("((?:[^"\\]|\\.)+)"\)/);
-    if (streamMatch) {
-      try { payload = JSON.parse('"' + streamMatch[1] + '"'); } catch { /* fall through */ }
-    }
+    if (!streamMatch) return { ok: false, error: "Couldn't find course data in page." };
 
-    // Method 2: Next.js __NEXT_DATA__ (older UDisc format)
-    if (!payload) {
-      const nextMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([^<]+)<\/script>/);
-      if (nextMatch) payload = nextMatch[1];
-    }
+    let decoded: string;
+    try { decoded = JSON.parse('"' + streamMatch[1] + '"'); }
+    catch { return { ok: false, error: "Couldn't decode page data." }; }
 
-    // Method 3: any window.__data or similar embedded JSON
-    if (!payload) {
-      const winMatch = html.match(/window\.__(?:data|props|state)\s*=\s*(\{.{0,50000}\})/s);
-      if (winMatch) payload = winMatch[1];
-    }
+    let arr: unknown[];
+    try { arr = JSON.parse(decoded) as unknown[]; }
+    catch { return { ok: false, error: "Couldn't parse course data." }; }
 
-    if (!payload) {
-      // Try extracting hole data directly from raw HTML with regex as last resort
-      const holes = extractHolesFromHtml(html);
-      if (holes.length > 0) {
-        const nameM = html.match(/<title>([^<]+)<\/title>/);
-        const courseName = nameM?.[1]?.replace(/ [-|].*/, "").trim() ?? slug;
-        return { ok: true, courseName, holes };
+    // Resolve a field from a _N reference object
+    function getField(obj: unknown, fieldName: string): unknown {
+      if (!obj || typeof obj !== "object" || Array.isArray(obj)) return undefined;
+      const o = obj as Record<string, unknown>;
+      if (Object.prototype.hasOwnProperty.call(o, fieldName)) return o[fieldName];
+      for (const [k, v] of Object.entries(o)) {
+        if (!k.startsWith("_")) continue;
+        const ki = parseInt(k.slice(1), 10);
+        if (arr[ki] === fieldName) {
+          if (typeof v === "number") return v >= 0 ? arr[v] : v === -5 ? false : v === -7 ? null : v;
+          return v;
+        }
       }
-      return { ok: false, error: "UDisc changed their page format — hole distances unavailable. Try General mode or enter distance manually." };
+      return undefined;
     }
 
-    const str = typeof payload === "string" && payload.startsWith("[")
-      ? JSON.stringify(JSON.parse(payload))  // turbo-stream array
-      : payload;
+    // Course name
+    const courseNameIdx = arr.indexOf("courseName");
+    const courseName = courseNameIdx > -1 && typeof arr[courseNameIdx + 1] === "string"
+      ? arr[courseNameIdx + 1] as string
+      : slug;
 
-    // Extract course name
-    const nameM = str.match(/"courseName":"([^"]+)"/) ?? str.match(/"name":"([^"]+)","city"/);
-    const courseName = nameM?.[1] ?? slug;
+    // Find "holes" key and its indices array
+    const holesKeyIdx = arr.indexOf("holes");
+    if (holesKeyIdx === -1) return { ok: false, error: "No hole data found for this course on UDisc." };
 
-    // Extract holes — handle both keyed and positional formats
-    const holes: HoleData[] = extractHolesFromJson(str);
-
-    if (holes.length === 0) {
-      // Fall back to raw HTML extraction
-      const htmlHoles = extractHolesFromHtml(html);
-      if (htmlHoles.length > 0) return { ok: true, courseName, holes: htmlHoles };
-      return { ok: false, error: "Course found but hole distances aren't available for this course on UDisc yet." };
+    // The indices array follows the key
+    let holeIndices: number[] | null = null;
+    for (let j = holesKeyIdx + 1; j < Math.min(holesKeyIdx + 10, arr.length); j++) {
+      const v = arr[j];
+      if (Array.isArray(v) && v.length > 0 && typeof v[0] === "number") {
+        holeIndices = v as number[];
+        break;
+      }
+    }
+    if (!holeIndices || holeIndices.length === 0) {
+      return { ok: false, error: "Hole data exists but couldn't read hole list." };
     }
 
-    return { ok: true, courseName, holes: holes.sort((a, b) => a.hole - b.hole) };
+    // Each index points to a hole object — resolve distance (stored in metres) and par
+    const holes: HoleData[] = [];
+    holeIndices.forEach((idx, i) => {
+      const holeObj = arr[idx];
+      const distM = getField(holeObj, "distance");
+      const par   = getField(holeObj, "par");
+      if (typeof distM === "number" && distM > 0) {
+        holes.push({
+          hole: i + 1,
+          distance: Math.round(distM * 3.28084), // metres → feet
+          par: typeof par === "number" ? par : undefined,
+        });
+      }
+    });
+
+    if (holes.length === 0) return { ok: false, error: "Holes found but no distances recorded on UDisc yet." };
+
+    return { ok: true, courseName, holes };
   } catch (e) {
-    return { ok: false, error: `Couldn't load course data: ${(e as Error).message}` };
+    return { ok: false, error: `Couldn't load course: ${(e as Error).message}` };
   }
-}
-
-function extractHolesFromJson(str: string): HoleData[] {
-  const holes: HoleData[] = [];
-  const seen = new Set<number>();
-
-  // Pattern 1: "holeNumber":N,...,"distance":M
-  for (const m of str.matchAll(/"holeNumber":(\d+)(?:[^}]{0,500}?"distance":(\d+))?/g)) {
-    const hole = Number(m[1]);
-    const dist = m[2] ? Number(m[2]) : 0;
-    if (!seen.has(hole) && dist > 0) { holes.push({ hole, distance: dist }); seen.add(hole); }
-  }
-  if (holes.length > 0) return holes;
-
-  // Pattern 2: "hole":N,"distance":M
-  for (const m of str.matchAll(/"hole":(\d+)[^}]{0,200}"distance":(\d+)/g)) {
-    const hole = Number(m[1]);
-    const dist = Number(m[2]);
-    if (!seen.has(hole) && dist > 0) { holes.push({ hole, distance: dist }); seen.add(hole); }
-  }
-  return holes;
-}
-
-function extractHolesFromHtml(html: string): HoleData[] {
-  // Try to find hole data in plain HTML (e.g. table rows, data attributes)
-  const holes: HoleData[] = [];
-  const seen = new Set<number>();
-
-  // data-hole="N" data-distance="M"
-  for (const m of html.matchAll(/data-hole[^=]*="(\d+)"[^>]*data-distance[^=]*="(\d+)"/g)) {
-    const hole = Number(m[1]), dist = Number(m[2]);
-    if (!seen.has(hole) && dist > 0) { holes.push({ hole, distance: dist }); seen.add(hole); }
-  }
-  return holes;
 }
