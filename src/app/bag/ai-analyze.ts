@@ -42,40 +42,52 @@ Analyze this bag honestly. Consider:
 Format: short paragraphs (not bullet points). Be direct and practical. Under 300 words. Don't pad.`;
 }
 
-// Discover which model is actually available for this key, then cache it
-let cachedModel: { name: string; apiVersion: string } | null = null;
+// Discover available models, sorted so smaller/faster ones come first as fallbacks
+let cachedModels: { name: string; apiVersion: string }[] = [];
 
-async function findAvailableModel(apiKey: string): Promise<{ name: string; apiVersion: string }> {
-  if (cachedModel) return cachedModel;
+async function findAvailableModels(apiKey: string): Promise<{ name: string; apiVersion: string }[]> {
+  if (cachedModels.length) return cachedModels;
+  const found: { name: string; apiVersion: string; priority: number }[] = [];
   for (const apiVersion of ["v1", "v1beta"]) {
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/${apiVersion}/models?key=${apiKey}`,
-      );
+      const res = await fetch(`https://generativelanguage.googleapis.com/${apiVersion}/models?key=${apiKey}`);
       if (!res.ok) continue;
       const data = await res.json() as { models?: { name: string; supportedGenerationMethods?: string[] }[] };
-      const match = (data.models ?? []).find(
-        (m) =>
-          (m.supportedGenerationMethods ?? []).includes("generateContent") &&
-          (m.name.includes("flash") || m.name.includes("pro")),
-      );
-      if (match) {
-        cachedModel = { name: match.name.replace("models/", ""), apiVersion };
-        return cachedModel;
+      for (const m of data.models ?? []) {
+        if (!(m.supportedGenerationMethods ?? []).includes("generateContent")) continue;
+        if (!m.name.includes("flash") && !m.name.includes("pro")) continue;
+        const name = m.name.replace("models/", "");
+        // Prefer flash-8b (smallest/fastest) as fallback, then other flash, then pro
+        const priority = name.includes("8b") ? 2 : name.includes("flash") ? 1 : 0;
+        if (!found.some(f => f.name === name)) found.push({ name, apiVersion, priority });
       }
     } catch { /* try next */ }
   }
-  throw new Error("No Gemini models available for this API key. Check your key at aistudio.google.com.");
+  // Sort: highest priority first (flash-8b is best fallback when main is overloaded)
+  found.sort((a, b) => b.priority - a.priority);
+  cachedModels = found;
+  return cachedModels;
 }
 
 async function gemini(prompt: string): Promise<string> {
   const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) throw new Error("AI not configured — add GOOGLE_AI_KEY to Vercel env vars.");
-  const { name, apiVersion } = await findAvailableModel(apiKey);
+  const models = await findAvailableModels(apiKey);
+  if (!models.length) throw new Error("No Gemini models found. Check your key at aistudio.google.com.");
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: name }, { apiVersion });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  let lastErr: Error = new Error("All models failed");
+  for (const { name, apiVersion } of models) {
+    try {
+      const m = genAI.getGenerativeModel({ model: name }, { apiVersion });
+      const result = await m.generateContent(prompt);
+      return result.response.text();
+    } catch (e) {
+      const msg = (e as Error).message ?? "";
+      if (msg.includes("503") || msg.includes("404")) { lastErr = e as Error; continue; }
+      throw e; // quota, auth, etc. — don't retry
+    }
+  }
+  throw new Error(`AI temporarily unavailable — all models busy. Try again in a moment. (${lastErr.message})`);
 }
 
 export async function recommendThrowAction(
@@ -188,27 +200,27 @@ export async function planCourseAction(
     ? await fetchUdiscCourseBySlug(courseSlug)
     : await fetchUdiscCourseData(courseName);
 
-  const prompt = `You're a disc golf caddy preparing a bag for tomorrow's round.
+  const prompt = `You're a disc golf caddy building a bag for tomorrow's round. Your job is to use what the player already owns — only flag a gap if NONE of their discs can fill a role.
 
 Course: ${courseName}
 Conditions: ${conditions || "typical conditions"}
 ${courseData ? `\nCourse data from UDisc:\n${courseData}` : ""}
 
 Player's discs:
-IN BAG:
+IN BAG (already packed):
 ${bagList || "(none)"}
 
-IN STORAGE:
+IN STORAGE (available to swap in):
 ${storeList || "(none)"}
 
-${courseData.includes("Hole") ? "Use the actual hole distances above to make specific recommendations." : `Use your knowledge of ${courseName} or general disc golf knowledge.`}
+Instructions:
+1. Start with what's in the bag. Keep anything that fits the course.
+2. Suggest swapping in specific storage discs if they're better suited — name them explicitly.
+3. Suggest leaving home anything redundant or unsuitable — name them.
+4. Only after reviewing everything they own: if there's a genuine gap no disc fills (e.g. no overstable fairway for a dogleg), say "Gap: consider adding a [description]" — one line, no brand recommendations.
+5. Call out 2–3 specific holes (by number if UDisc data available) with which of THEIR discs to use and why.
 
-Recommend:
-1. Which discs to bring (8-12 total, pulling from storage if needed) — list them
-2. Call out 2-3 specific holes with which disc and why
-3. What to leave home and why
-
-Be direct, practical, specific. Under 240 words.`;
+Be direct. Prefer concrete disc names over generic advice. Under 230 words.`;
 
   try {
     return { ok: true, text: await gemini(prompt) };
