@@ -1,26 +1,19 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import type { BagDisc } from "@/lib/types";
 import { DISC_TYPE_LABELS, DISC_TYPE_COLORS } from "@/lib/types";
 import { recommendThrowAction } from "@/app/bag/ai-analyze";
 
-type Wind =
-  | "calm"
-  | "light-headwind"
-  | "strong-headwind"
-  | "light-tailwind"
-  | "strong-tailwind"
-  | "crosswind-right"
-  | "crosswind-left";
+type Wind = "calm" | "light-headwind" | "strong-headwind" | "light-tailwind" | "strong-tailwind" | "crosswind-right" | "crosswind-left";
 
-const WIND_OPTIONS: { value: Wind; label: string; hint: string }[] = [
-  { value: "calm",            label: "Calm",               hint: "< 5 mph" },
-  { value: "light-headwind",  label: "Light headwind",     hint: "5–12 mph" },
-  { value: "strong-headwind", label: "Strong headwind",    hint: "13+ mph" },
-  { value: "light-tailwind",  label: "Light tailwind",     hint: "5–12 mph" },
-  { value: "strong-tailwind", label: "Strong tailwind",    hint: "13+ mph" },
-  { value: "crosswind-right", label: "Right crosswind",    hint: "left→right" },
-  { value: "crosswind-left",  label: "Left crosswind",     hint: "right→left" },
+const WIND_OPTIONS: { value: Wind; label: string; hint: string; group?: "head" | "tail" }[] = [
+  { value: "calm",            label: "Calm",             hint: "< 5 mph" },
+  { value: "light-headwind",  label: "Light headwind",   hint: "5–12 mph",  group: "head" },
+  { value: "strong-headwind", label: "Strong headwind",  hint: "13+ mph",   group: "head" },
+  { value: "light-tailwind",  label: "Light tailwind",   hint: "5–12 mph",  group: "tail" },
+  { value: "strong-tailwind", label: "Strong tailwind",  hint: "13+ mph",   group: "tail" },
+  { value: "crosswind-right", label: "Right crosswind",  hint: "left→right" },
+  { value: "crosswind-left",  label: "Left crosswind",   hint: "right→left" },
 ];
 
 const WIND_DESC: Record<Wind, string> = {
@@ -38,6 +31,59 @@ function describeWinds(selected: Wind[]): string {
   return selected.filter(w => w !== "calm").map(w => WIND_DESC[w]).join(" with ");
 }
 
+function speedToFeet(speed: number) { return Math.round(100 + (speed - 1) * (320 / 13)); }
+
+function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>): { disc: BagDisc; reason: string }[] {
+  const bag = discs.filter(d => !d.inStorage);
+  if (bag.length === 0) return [];
+
+  const hasStrongHead = winds.has("strong-headwind");
+  const hasLightHead  = winds.has("light-headwind");
+  const hasStrongTail = winds.has("strong-tailwind");
+  const hasCross      = winds.has("crosswind-right") || winds.has("crosswind-left");
+
+  const stab = (d: BagDisc) => (d.turn ?? 0) + (d.fade ?? 0);
+
+  // Stability target based on wind
+  let stabMin = -4, stabMax = 5;
+  if (hasStrongHead) { stabMin = 1; stabMax = 6; }        // very overstable into wind
+  else if (hasLightHead) { stabMin = 0; stabMax = 4; }    // mildly overstable
+  else if (hasStrongTail) { stabMin = -4; stabMax = 0; }  // understable with tailwind
+  else if (hasCross) { stabMin = 0; stabMax = 5; }        // overstable to hold line
+
+  const idealSpeed = Math.max(1, Math.min(14, 1 + ((distFt - 100) / 320) * 13));
+
+  const scored = bag
+    .filter(d => {
+      const s = stab(d);
+      return s >= stabMin && s <= stabMax;
+    })
+    .map(d => {
+      const speedDelta = Math.abs(d.speed - idealSpeed);
+      const distDelta  = Math.abs(speedToFeet(d.speed) - distFt);
+      return { disc: d, score: speedDelta * 10 + distDelta * 0.1 };
+    })
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 3);
+
+  return scored.map(({ disc }) => {
+    const s = stab(disc);
+    const stabDesc = s > 1.5 ? "overstable" : s < -0.5 ? "understable" : "neutral";
+    const windNote = hasStrongHead ? "holds up into the wind"
+      : hasLightHead ? "stays stable in the headwind"
+      : hasStrongTail ? "extra distance with the tailwind"
+      : hasCross ? "fade holds the line in the crosswind"
+      : "";
+    const distFeet = speedToFeet(disc.speed);
+    const distNote = distFeet > distFt + 40 ? "throw at 70–80% power"
+      : distFeet < distFt - 40 ? "full power needed" : "";
+    const parts = [`${stabDesc} · ${distFeet}ft range`];
+    if (windNote) parts.push(windNote);
+    if (distNote) parts.push(distNote);
+    return { disc, reason: parts.join(" · ") };
+  });
+}
+
 export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
   const [open, setOpen] = useState(false);
   const [dist, setDist] = useState(200);
@@ -46,19 +92,29 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
   const [err, setErr] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const recs = useMemo(() => ruleRecommend(discs, dist, winds), [discs, dist, winds]);
+
   function toggleWind(w: Wind) {
     setAiText(null);
     setWinds(prev => {
       const next = new Set(prev);
       if (w === "calm") return new Set(["calm"]);
       next.delete("calm");
+      if (["light-headwind","strong-headwind"].includes(w)) {
+        ["light-headwind","strong-headwind"].filter(h => h !== w).forEach(h => next.delete(h as Wind));
+        ["light-tailwind","strong-tailwind"].forEach(t => next.delete(t as Wind));
+      }
+      if (["light-tailwind","strong-tailwind"].includes(w)) {
+        ["light-tailwind","strong-tailwind"].filter(t => t !== w).forEach(t => next.delete(t as Wind));
+        ["light-headwind","strong-headwind"].forEach(h => next.delete(h as Wind));
+      }
       if (next.has(w)) { next.delete(w); if (next.size === 0) next.add("calm"); }
       else next.add(w);
       return next;
     });
   }
 
-  function ask() {
+  function aiDeepDive() {
     setAiText(null);
     setErr(null);
     startTransition(async () => {
@@ -86,25 +142,22 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-semibold text-forest-700 block mb-1">
-            Distance: <span className="tabular-nums font-bold">{dist} ft</span>
+            Distance: <span className="tabular-nums font-bold text-forest-900">{dist} ft</span>
           </label>
           <input type="range" min={60} max={500} step={10} value={dist}
             onChange={(e) => { setDist(Number(e.target.value)); setAiText(null); }}
             className="w-full accent-forest-600" />
           <div className="flex justify-between text-[10px] text-forest-400 mt-0.5">
-            <span>60ft</span><span>300ft</span><span>500ft</span>
+            <span>60</span><span>200</span><span>350</span><span>500</span>
           </div>
         </div>
-
         <div>
           <label className="text-xs font-semibold text-forest-700 block mb-1">Wind</label>
           <div className="space-y-0.5">
-            {WIND_OPTIONS.map((w) => (
+            {WIND_OPTIONS.map(w => (
               <label key={w.value}
-                className={`flex items-center gap-1.5 text-xs cursor-pointer px-2 py-1 rounded-lg transition-colors ${winds.has(w.value) ? "bg-forest-100 font-semibold text-forest-800" : "text-forest-600 hover:bg-forest-50"}`}>
-                <input type="checkbox" checked={winds.has(w.value)}
-                  onChange={() => toggleWind(w.value)}
-                  className="accent-forest-600 shrink-0" />
+                className={`flex items-center gap-1.5 text-xs cursor-pointer px-2 py-0.5 rounded-lg transition-colors ${winds.has(w.value) ? "bg-forest-100 font-semibold text-forest-800" : "text-forest-600 hover:bg-forest-50"}`}>
+                <input type="checkbox" checked={winds.has(w.value)} onChange={() => toggleWind(w.value)} className="accent-forest-600 shrink-0" />
                 <span>{w.label}</span>
                 <span className="text-forest-400 text-[10px]">{w.hint}</span>
               </label>
@@ -113,28 +166,47 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
         </div>
       </div>
 
-      <button onClick={ask} disabled={pending}
-        className="btn-primary w-full">
-        {pending ? "Asking AI…" : "✨ Get AI recommendation"}
-      </button>
-
-      {err && <p className="text-sm text-red-700">{err}</p>}
-
-      {pending && (
-        <div className="space-y-2 animate-pulse">
-          <div className="h-3 bg-forest-100 rounded w-full" />
-          <div className="h-3 bg-forest-100 rounded w-5/6" />
-          <div className="h-3 bg-forest-100 rounded w-4/6" />
-        </div>
-      )}
-
-      {aiText && (
-        <div className="rounded-xl bg-forest-50 border border-forest-100 p-3 space-y-1">
-          {aiText.split("\n").filter(Boolean).map((line, i) => (
-            <p key={i} className="text-sm text-forest-800 leading-relaxed">{line}</p>
+      {/* Real-time rule-based results */}
+      {recs.length === 0 ? (
+        <p className="text-sm text-forest-500 text-center py-2">No matching discs in your bag for those conditions.</p>
+      ) : (
+        <ul className="space-y-2">
+          {recs.map(({ disc, reason }, i) => (
+            <li key={disc.id} className="flex items-start gap-3 rounded-xl border border-forest-100 p-2.5">
+              <span className="text-base shrink-0">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-semibold text-sm text-forest-800">{disc.discName}</span>
+                  <span className="text-xs text-forest-400">{disc.manufacturer}</span>
+                  <span className="text-xs tabular-nums text-forest-400">{disc.speed}/{disc.glide ?? "—"}/{disc.turn ?? "—"}/{disc.fade ?? "—"}</span>
+                </div>
+                <p className="text-xs text-forest-500 mt-0.5">{reason}</p>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
+
+      {/* AI deep dive */}
+      <div className="border-t border-forest-100 pt-3 space-y-2">
+        <button onClick={aiDeepDive} disabled={pending}
+          className="btn-secondary w-full text-xs py-1.5">
+          {pending ? "Asking AI…" : "✨ AI deep dive — release angle, power level & more"}
+        </button>
+        {err && <p className="text-xs text-red-700">{err}</p>}
+        {pending && (
+          <div className="space-y-1.5 animate-pulse">
+            {[1, 0.8, 0.9, 0.7].map((w, i) => <div key={i} className="h-2.5 bg-forest-100 rounded" style={{ width: `${w * 100}%` }} />)}
+          </div>
+        )}
+        {aiText && (
+          <div className="rounded-xl bg-forest-50 border border-forest-100 p-3 space-y-1">
+            {aiText.split("\n").filter(Boolean).map((line, i) => (
+              <p key={i} className="text-sm text-forest-800 leading-relaxed">{line}</p>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
