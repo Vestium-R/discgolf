@@ -73,10 +73,20 @@ function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>): { di
     const s = stab(disc);
     const stabDesc = s > 1.5 ? "overstable" : s < -0.5 ? "understable" : "neutral";
     const distFeet = speedToFeet(disc.speed);
-    const distNote = distFeet > distFt + 40 ? "throw at 70–80% power"
-      : distFeet < distFt - 40 ? "full power needed" : "";
+    const distNote = distFeet > distFt + 40 ? "70–80% power"
+      : distFeet < distFt - 40 ? "full power" : "";
 
-    const notes: string[] = [`${stabDesc} · ${distFeet}ft range`];
+    // Shot shape advice based on stability
+    let shotShape = "";
+    if (s <= -3)      shotShape = "hyzer flip — release on hyzer and let it flip to flat";
+    else if (s <= -1.5) shotShape = "flat or slight anhyzer release";
+    else if (s <= -0.5) shotShape = "flat release, will turn slightly";
+    else if (s <= 1)    shotShape = "flat release, straight flight";
+    else if (s <= 2.5)  shotShape = "flat or slight hyzer for a reliable fade";
+    else                shotShape = "hard hyzer line";
+
+    const notes: string[] = [`${distFeet}ft range`];
+    notes.push(shotShape);
 
     // Wind-specific guidance
     if (hasStrongHead) notes.push("holds up into strong headwind");
