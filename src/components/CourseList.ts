@@ -77,6 +77,12 @@ export const COURSES: { province: string; courses: CourseEntry[] }[] = [
       { name: "Darnley Disc Golf",          city: "Kensington",     slug: "darnley-disc-golf-hp4U",                  lat: 46.440, lng: -63.720 },
       { name: "Alberton DGC",              city: "Alberton",       slug: "alberton-huvA",                           lat: 46.817, lng: -64.063 },
       { name: "Lennox Island DGC",         city: "Lennox Island",  slug: "lennox-island-disc-golf-course-7atP",     lat: 46.620, lng: -63.890 },
+      { name: "Huck-It Disc Golf",          city: "Kinkora",        slug: "huck-it-disc-golf-j0d5",                  lat: 46.277, lng: -63.699 },
+      { name: "Belfast Disc Golf",          city: "Belfast",        slug: "belfast-disc-golf-IPHc",                  lat: 46.074, lng: -62.731 },
+      { name: "Glenaladale DGC",           city: "Mount Stewart",  slug: "glenaladale-disc-golf-course-gl5b",       lat: 46.367, lng: -62.854 },
+      { name: "Kings Pine DiscGolfPark",   city: "Mount Stewart",  slug: "kings-pine-disc-golf-park-96bO",          lat: 46.367, lng: -62.854 },
+      { name: "Forest Hills DGC",         city: "New Glasgow",    slug: "forest-hills-disc-golf-course-CoFT",      lat: 46.411, lng: -63.413 },
+      { name: "Rose Valley Disc Golf",    city: "Breadalbane",    slug: "rose-valley-disc-golf-dgBb",              lat: 46.302, lng: -63.473 },
     ],
   },
 ];
