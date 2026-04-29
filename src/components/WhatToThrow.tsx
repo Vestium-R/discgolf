@@ -33,19 +33,36 @@ const WIND_DESC: Record<Wind, string> = {
   "crosswind-left":  "left crosswind (blowing right to left)",
 };
 
+function describeWinds(selected: Wind[]): string {
+  if (selected.length === 0 || selected.includes("calm")) return "calm conditions";
+  return selected.filter(w => w !== "calm").map(w => WIND_DESC[w]).join(" with ");
+}
+
 export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
   const [open, setOpen] = useState(false);
   const [dist, setDist] = useState(200);
-  const [wind, setWind] = useState<Wind>("calm");
+  const [winds, setWinds] = useState<Set<Wind>>(new Set(["calm"]));
   const [aiText, setAiText] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  function toggleWind(w: Wind) {
+    setAiText(null);
+    setWinds(prev => {
+      const next = new Set(prev);
+      if (w === "calm") return new Set(["calm"]);
+      next.delete("calm");
+      if (next.has(w)) { next.delete(w); if (next.size === 0) next.add("calm"); }
+      else next.add(w);
+      return next;
+    });
+  }
 
   function ask() {
     setAiText(null);
     setErr(null);
     startTransition(async () => {
-      const res = await recommendThrowAction(dist, WIND_DESC[wind]);
+      const res = await recommendThrowAction(dist, describeWinds([...winds] as Wind[]));
       if (res.ok) setAiText(res.text);
       else setErr(res.error);
     });
@@ -84,9 +101,9 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
           <div className="space-y-0.5">
             {WIND_OPTIONS.map((w) => (
               <label key={w.value}
-                className={`flex items-center gap-1.5 text-xs cursor-pointer px-2 py-1 rounded-lg transition-colors ${wind === w.value ? "bg-forest-100 font-semibold text-forest-800" : "text-forest-600 hover:bg-forest-50"}`}>
-                <input type="radio" name="wind" value={w.value} checked={wind === w.value}
-                  onChange={() => { setWind(w.value); setAiText(null); }}
+                className={`flex items-center gap-1.5 text-xs cursor-pointer px-2 py-1 rounded-lg transition-colors ${winds.has(w.value) ? "bg-forest-100 font-semibold text-forest-800" : "text-forest-600 hover:bg-forest-50"}`}>
+                <input type="checkbox" checked={winds.has(w.value)}
+                  onChange={() => toggleWind(w.value)}
                   className="accent-forest-600 shrink-0" />
                 <span>{w.label}</span>
                 <span className="text-forest-400 text-[10px]">{w.hint}</span>
