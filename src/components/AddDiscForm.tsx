@@ -42,7 +42,7 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
     setSelected(disc);
     setManufacturer(disc.manufacturer);
     setSelectedPlastic(null);
-    setQuery(`${disc.manufacturer} ${disc.name}`);
+    setQuery(disc.name); // search box becomes the disc name field
     setResults([]);
   }
 
@@ -79,10 +79,12 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
       {/* Disc search */}
       <div className="relative">
         <label className="text-xs font-semibold text-forest-700 block mb-1">
-          Search disc <span className="font-normal text-forest-400">(or fill in manually below)</span>
+          Disc name *
+          {!selected && <span className="font-normal text-forest-400 ml-1">— search or type manually</span>}
+          {selected && <span className="font-normal text-green-700 ml-1">✓ from database</span>}
         </label>
-        <input value={query} onChange={e => onSearch(e.target.value)}
-          placeholder="e.g. Destroyer, Buzzz, Innova…"
+        <input name="discName" required value={query} onChange={e => onSearch(e.target.value)}
+          placeholder="e.g. Destroyer, Buzzz…"
           className="input-pill text-sm" autoComplete="off" />
         {results.length > 0 && (
           <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-forest-200 rounded-xl shadow-lg max-h-56 overflow-y-auto divide-y divide-forest-50">
@@ -104,20 +106,13 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
         )}
       </div>
 
-      {/* Disc name + manufacturer */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2 sm:col-span-1">
-          <label className="text-xs font-semibold text-forest-700 block mb-1">Disc name *</label>
-          <input name="discName" required defaultValue={selected?.name ?? ""}
-            key={selected?.name ?? "name"} placeholder="e.g. Destroyer" className="input-pill text-sm" />
-        </div>
-        <div className="col-span-2 sm:col-span-1">
-          <label className="text-xs font-semibold text-forest-700 block mb-1">Manufacturer</label>
-          <input name="manufacturer"
-            value={selected ? selected.manufacturer : manufacturer}
-            onChange={e => { setManufacturer(e.target.value); setSelectedPlastic(null); }}
-            placeholder="e.g. Innova" className="input-pill text-sm" />
-        </div>
+      {/* Manufacturer */}
+      <div>
+        <label className="text-xs font-semibold text-forest-700 block mb-1">Manufacturer</label>
+        <input name="manufacturer"
+          value={selected ? selected.manufacturer : manufacturer}
+          onChange={e => { setManufacturer(e.target.value); setSelectedPlastic(null); }}
+          placeholder="e.g. Innova" className="input-pill text-sm" />
       </div>
 
       {/* Type + Plastic */}
