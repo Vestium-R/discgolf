@@ -3,8 +3,9 @@ import { useState, useTransition } from "react";
 import type { BagDisc, DiscType } from "@/lib/types";
 import { DISC_TYPE_COLORS, DISC_TYPE_LABELS } from "@/lib/types";
 import { removeDiscAction, toggleStorageAction, updateDiscAction } from "@/app/bag/actions";
-import { analyzeBagDiscsAction } from "@/app/bag/ai-analyze";
+import { analyzeBagDiscsAction, AI_FACTORS } from "@/app/bag/ai-analyze";
 import { loadPrefs } from "@/components/BagSettings";
+import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 
 type SortKey = "type" | "speed" | "manufacturer" | "stability";
 const SORT_LABELS: Record<SortKey, string> = { type:"Type", speed:"Speed", manufacturer:"Brand", stability:"Stability" };
@@ -145,7 +146,7 @@ export function BagList({discs,title,showStorage,gaps,isStorage}:{
     setAiText(null); setAiErr(null);
     const lp = loadPrefs();
     startAiT(async()=>{
-      const res = await analyzeBagDiscsAction(discs, lp.maxDist, lp.playStyle ?? "flat", lp.throwStyle ?? "RHBH");
+      const res = await analyzeBagDiscsAction(discs, lp.maxDist, lp.playStyle ?? "flat", lp.throwStyle ?? "RHBH", (lp as any).yearsPlaying);
       if (res.ok) setAiText(res.text); else setAiErr(res.error);
     });
   }
@@ -189,10 +190,13 @@ export function BagList({discs,title,showStorage,gaps,isStorage}:{
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-forest-400">{discs.length}</span>
           {discs.length>=3&&(
-            <button onClick={analyse} disabled={aiPending}
-              className="text-xs text-forest-600 hover:text-forest-800 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-forest-50 transition-colors">
-              {aiPending?"…":"✨"} <span className="hidden sm:inline">Analyse</span>
-            </button>
+            <span className="flex items-center gap-1">
+              <button onClick={analyse} disabled={aiPending}
+                className="text-xs text-forest-600 hover:text-forest-800 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-forest-50 transition-colors">
+                {aiPending?"…":"✨"} <span className="hidden sm:inline">Analyse</span>
+              </button>
+              <AIFactorsBadge factors={AI_FACTORS.bagAnalysis} />
+            </span>
           )}
         </div>
       </div>

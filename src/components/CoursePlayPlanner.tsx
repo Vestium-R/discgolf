@@ -1,8 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
-import { planCourseAction } from "@/app/bag/ai-analyze";
+import { planCourseAction, AI_FACTORS } from "@/app/bag/ai-analyze";
 import { COURSES } from "@/components/CourseList";
-import { loadPrefs } from "@/components/BagSettings";
+import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 
 export function CoursePlayPlanner() {
   const [open, setOpen] = useState(false);
@@ -24,7 +24,7 @@ export function CoursePlayPlanner() {
     if (!courseName.trim()) return;
     setResult(null); setErr(null);
     startTransition(async () => {
-      const res = await planCourseAction(courseName.trim(), conditions.trim(), selectedSlug || undefined, loadPrefs().maxDist);
+      const res = await planCourseAction(courseName.trim(), conditions.trim(), selectedSlug || undefined);
       if (res.ok) setResult(res.text); else setErr(res.error);
     });
   }
@@ -82,9 +82,12 @@ export function CoursePlayPlanner() {
         </div>
       </div>
 
-      <button onClick={plan} disabled={pending || !courseName.trim()} className="btn-primary w-full">
-        {pending ? "Planning…" : "✨ Plan my bag"}
-      </button>
+      <span className="flex items-center gap-1">
+        <button onClick={plan} disabled={pending || !courseName.trim()} className="btn-primary flex-1">
+          {pending ? "Planning…" : "✨ Plan my bag"}
+        </button>
+        <AIFactorsBadge factors={AI_FACTORS.coursePlanner} />
+      </span>
 
       {err && <p className="text-sm text-red-700">{err}</p>}
 

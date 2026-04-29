@@ -2,7 +2,8 @@
 import { useState, useTransition, useMemo } from "react";
 import type { BagDisc } from "@/lib/types";
 import { DISC_TYPE_COLORS } from "@/lib/types";
-import { recommendThrowAction } from "@/app/bag/ai-analyze";
+import { recommendThrowAction, AI_FACTORS } from "@/app/bag/ai-analyze";
+import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 import { fetchCourseHolesAction, type HoleData } from "@/app/bag/course-holes-action";
 import { COURSES } from "@/components/CourseList";
 import { loadPrefs } from "@/components/BagSettings";
@@ -301,10 +302,13 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
 
       {/* AI deep dive */}
       <div className="border-t border-forest-100 pt-3 space-y-2">
-        <button onClick={aiDeepDive} disabled={pending || (!selectedHole && mode==="course")}
-          className="btn-secondary w-full text-xs py-1.5">
-          {pending ? "Asking AI…" : "✨ AI deep dive — release angle, power & more"}
-        </button>
+        <span className="flex items-center gap-1">
+          <button onClick={aiDeepDive} disabled={pending || (!selectedHole && mode==="course")}
+            className="btn-secondary flex-1 text-xs py-1.5">
+            {pending ? "Asking AI…" : "✨ AI deep dive — release angle, power & more"}
+          </button>
+          <AIFactorsBadge factors={AI_FACTORS.whatToThrow} />
+        </span>
         {err && <p className="text-xs text-red-700">{err}</p>}
         {pending && (
           <div className="space-y-1.5 animate-pulse">

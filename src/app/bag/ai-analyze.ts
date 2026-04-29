@@ -1,57 +1,52 @@
 "use server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getUser } from "@/lib/auth";
-import { getBagDiscs } from "@/lib/store";
+import { getBagDiscs, getUserPrefs } from "@/lib/store";
 import type { BagDisc } from "@/lib/types";
 import { DISC_TYPE_LABELS } from "@/lib/types";
+import { plasticStabOffset } from "@/lib/plastics-db";
 
-function playStyleNote(playStyle?: string, throwStyle?: string): string {
-  const hand = throwStyle ?? "RHBH";
-  const style = playStyle ?? "flat";
-  const parts: string[] = [`Throw style: ${hand}.`];
-  if (style === "hyzer_flip") parts.push("This player loves to hyzer flip — they prefer understable discs they can rip on a hyzer and let flip to flat for max distance.");
-  else if (style === "anhyzer") parts.push("This player prefers anhyzer/turnover lines and rollers — they like understable to neutral discs.");
-  else if (style === "beginner") parts.push("This player is still learning — prioritize forgiving, understable-to-neutral discs that fly predictably at lower speeds.");
-  else parts.push("This player prefers flat releases and lets the disc's natural fade finish the shot.");
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function skillNote(maxDist: number): string {
+  if (maxDist <= 175) return `Skill level: beginner (~${maxDist}ft max). Only recommend discs up to speed 4 — faster discs will fly unpredictably.`;
+  if (maxDist <= 250) return `Skill level: recreational (~${maxDist}ft max). Discs up to speed 7 work well; anything faster behaves overstable for them.`;
+  if (maxDist <= 320) return `Skill level: intermediate (~${maxDist}ft max). Discs up to speed 10 are appropriate; speed 12-14 risky.`;
+  if (maxDist <= 380) return `Skill level: advanced (~${maxDist}ft max). Most discs up to speed 12 are usable.`;
+  return `Skill level: expert (~${maxDist}ft max). All disc speeds usable.`;
+}
+
+function playStyleNote(playStyle: string, throwStyle: string): string {
+  const parts: string[] = [`Throw style: ${throwStyle}.`];
+  if (playStyle === "hyzer_flip") parts.push("Player loves hyzer flips — prefers understable discs ripped on hyzer that flip to flat for max distance.");
+  else if (playStyle === "anhyzer") parts.push("Player prefers anhyzer/turnover lines and rollers — likes understable to neutral discs.");
+  else if (playStyle === "beginner") parts.push("Player is still learning — prioritize forgiving, understable-to-neutral discs that fly predictably.");
+  else parts.push("Player prefers flat releases and lets the disc's natural fade finish the shot.");
   return parts.join(" ");
 }
 
-function buildPrompt(discs: BagDisc[], playStyle?: string, throwStyle?: string): string {
-  const byType = (t: BagDisc["type"]) => discs.filter((d) => d.type === t);
-  const putters  = byType("putter");
-  const mids     = byType("midrange");
-  const fairways = byType("fairway_driver");
-  const distance = byType("distance_driver");
-
-  const stab = (d: BagDisc) => (d.turn ?? 0) + (d.fade ?? 0);
-  const all = discs;
-  const os  = all.filter((d) => stab(d) > 1);
-  const neu = all.filter((d) => stab(d) >= -0.5 && stab(d) <= 1);
-  const us  = all.filter((d) => stab(d) < -0.5);
-
-  const discList = discs.map((d) =>
-    `  • ${d.discName}${d.manufacturer ? ` (${d.manufacturer})` : ""} — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"} — stability: ${stab(d) > 0 ? "+" : ""}${stab(d).toFixed(1)}`
-  ).join("\n");
-
-  return `You're a supportive disc golf coach reviewing a student's bag. Be encouraging, specific, and practical — like a teaching pro who wants them to improve.
-
-Player bag (${discs.length} discs):
-${discList}
-
-Breakdown: ${putters.length} putter${putters.length!==1?"s":""}, ${mids.length} midrange${mids.length!==1?"s":""}, ${fairways.length} fairway${fairways.length!==1?"s":""}, ${distance.length} distance driver${distance.length!==1?"s":""}
-Overstable: ${os.length} | Neutral: ${neu.length} | Understable: ${us.length}
-${playStyleNote(playStyle, throwStyle)}
-
-Coaching response — cover these naturally in 2-3 short paragraphs:
-1. **What the bag tells you**: What does this disc selection say about how they play? Be specific (e.g. "Heavy understable suggests you love hyzer flips, which is great for distance — but you'll struggle in headwind without at least one overstable fairway" or "Good spread across stability, this is a well-balanced bag for intermediate play").
-2. **The one or two biggest gaps**: What shot shape or condition is this bag missing? Name specific discs they'd benefit from with flight numbers. One gap per item — don't list everything.
-3. **One thing they're doing right**: Name a specific disc and why it's a smart choice for their style.
-
-Tone: encouraging and specific, like a coach who's played for 20 years. No bullet lists. Under 250 words.`;
+function yearsNote(years?: number): string {
+  if (!years) return "";
+  if (years <= 1) return `Experience: ${years} year playing — newer player.`;
+  if (years <= 3) return `Experience: ${years} years playing — developing player.`;
+  if (years <= 7) return `Experience: ${years} years playing — experienced player.`;
+  return `Experience: ${years} years playing — veteran.`;
 }
 
-// Hardcoded preference: 1.5-flash-8b and 1.5-flash on v1 are reliably free.
-// 2.0+ models show in ListModels but have limit:0 on free tier.
+/** Build a single disc line for the prompt — includes plastic stability offset and condition */
+function discLine(d: BagDisc): string {
+  const stab = (d.turn ?? 0) + (d.fade ?? 0);
+  const stabStr = `stab ${stab >= 0 ? "+" : ""}${stab.toFixed(1)}`;
+  const offset = plasticStabOffset(d.manufacturer, d.plastic ?? "");
+  const plasticStr = d.plastic
+    ? ` | ${d.plastic}${offset > 0 ? ` (+${offset} OS)` : offset < 0 ? ` (${offset} US)` : ""}`
+    : "";
+  const condStr = d.notes ? ` | ${d.notes}` : "";
+  return `• ${d.discName}${d.manufacturer ? ` (${d.manufacturer})` : ""} — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"} — ${stabStr}${plasticStr}${condStr}`;
+}
+
+// ── Gemini setup ──────────────────────────────────────────────────────────────
+
 const HARDCODED_MODELS: { name: string; apiVersion: string }[] = [
   { name: "gemini-1.5-flash-8b", apiVersion: "v1" },
   { name: "gemini-1.5-flash",    apiVersion: "v1" },
@@ -72,11 +67,9 @@ async function findAvailableModels(apiKey: string): Promise<{ name: string; apiV
         if (!(m.supportedGenerationMethods ?? []).includes("generateContent")) continue;
         if (!m.name.includes("flash") && !m.name.includes("pro")) continue;
         const name = m.name.replace("models/", "");
-        // Prefer 1.5-flash-8b → 1.5-flash → 1.5-pro → anything else.
-        // Explicitly deprioritise 2.0+ models — they have limit:0 on free tier.
-        const is2x  = name.includes("2.0") || name.includes("2.5");
-        const is8b  = name.includes("8b");
-        const is15  = name.includes("1.5");
+        const is2x = name.includes("2.0") || name.includes("2.5");
+        const is8b = name.includes("8b");
+        const is15 = name.includes("1.5");
         const priority = is2x ? -1 : is8b && is15 ? 3 : is15 ? 2 : 0;
         if (!found.some(f => f.name === name)) found.push({ name, apiVersion, priority });
       }
@@ -91,11 +84,8 @@ async function gemini(prompt: string): Promise<string> {
   const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) throw new Error("AI not configured — add GOOGLE_AI_KEY to Vercel env vars.");
   const genAI = new GoogleGenerativeAI(apiKey);
-  // Try hardcoded free-tier models first, then fall back to auto-discovered ones
   const discovered = await findAvailableModels(apiKey);
-  const toTry = [...HARDCODED_MODELS, ...discovered.filter(
-    d => !HARDCODED_MODELS.some(h => h.name === d.name)
-  )];
+  const toTry = [...HARDCODED_MODELS, ...discovered.filter(d => !HARDCODED_MODELS.some(h => h.name === d.name))];
   let lastErr: Error = new Error("All models failed");
   for (const { name, apiVersion } of toTry) {
     try {
@@ -104,13 +94,139 @@ async function gemini(prompt: string): Promise<string> {
       return result.response.text();
     } catch (e) {
       const msg = (e as Error).message ?? "";
-      if (msg.includes("503") || msg.includes("404") || msg.includes("429")) {
-        lastErr = e as Error; continue;
-      }
+      if (msg.includes("503") || msg.includes("404") || msg.includes("429")) { lastErr = e as Error; continue; }
       throw e;
     }
   }
-  throw new Error(`AI temporarily unavailable. Try again shortly. (${lastErr.message.slice(0, 120)})`);
+  throw new Error(`AI temporarily unavailable — try again shortly. (${lastErr.message.slice(0, 100)})`);
+}
+
+// ── Course data helpers ───────────────────────────────────────────────────────
+
+async function fetchUdiscCourseBySlug(slug: string): Promise<string> {
+  try {
+    const res = await fetch(`https://udisc.com/courses/${slug}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)", Accept: "text/html" },
+    });
+    if (!res.ok) return "";
+    const html = await res.text();
+    const streamMatch = html.match(/streamController\.enqueue\("((?:[^"\\]|\\.)+)"\)/);
+    if (!streamMatch) return "";
+    const decoded = JSON.parse('"' + streamMatch[1] + '"');
+    const arr = JSON.parse(decoded) as unknown[];
+    const holesKeyIdx = arr.indexOf("holes");
+    if (holesKeyIdx === -1) return "";
+    let holeIndices: number[] | null = null;
+    for (let j = holesKeyIdx + 1; j < Math.min(holesKeyIdx + 10, arr.length); j++) {
+      const v = arr[j];
+      if (Array.isArray(v) && v.length > 0 && typeof v[0] === "number") { holeIndices = v as number[]; break; }
+    }
+    if (!holeIndices) return "";
+    function getField(obj: unknown, field: string): unknown {
+      if (!obj || typeof obj !== "object" || Array.isArray(obj)) return undefined;
+      const o = obj as Record<string, unknown>;
+      if (field in o) return o[field];
+      for (const [k, v] of Object.entries(o)) {
+        if (!k.startsWith("_")) continue;
+        if (arr[parseInt(k.slice(1))] === field) return typeof v === "number" && v >= 0 ? arr[v] : v;
+      }
+      return undefined;
+    }
+    const holes = holeIndices.map((idx, i) => {
+      const distM = getField(arr[idx], "distance");
+      return typeof distM === "number" && distM > 0 ? `Hole ${i + 1}: ${Math.round(distM * 3.28084)}ft` : null;
+    }).filter(Boolean);
+    return holes.length > 0 ? `Hole distances:\n${holes.join("\n")}` : "";
+  } catch { return ""; }
+}
+
+async function fetchUdiscCourseData(courseName: string): Promise<string> {
+  try {
+    const res = await fetch(`https://udisc.com/courses?query=${encodeURIComponent(courseName)}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)", Accept: "text/html" },
+    });
+    if (!res.ok) return "";
+    const html = await res.text();
+    const slugM = html.match(/href="\/courses\/([a-z0-9-]+(?:-[a-zA-Z0-9]+)+)"/);
+    if (!slugM) return "";
+    return await fetchUdiscCourseBySlug(slugM[1]);
+  } catch { return ""; }
+}
+
+// ── Public actions ────────────────────────────────────────────────────────────
+
+/** What factors each action considers — shown in the UI hover tooltip */
+export const AI_FACTORS = {
+  bagAnalysis: [
+    "All in-bag discs with flight numbers",
+    "Plastic type & stability offset",
+    "Disc condition (beat-in, fresh, etc.)",
+    "Stability distribution (OS/neutral/US)",
+    "Play style & throw style",
+    "Max distance / skill level",
+    "Years playing",
+  ],
+  whatToThrow: [
+    "All in-bag discs with flight numbers",
+    "Plastic type & stability offset",
+    "Disc condition",
+    "Hole distance",
+    "Wind conditions (type + strength)",
+    "Play style & throw style",
+    "Max distance / skill level",
+  ],
+  coursePlanner: [
+    "In-bag + storage discs",
+    "Plastic type & stability offset",
+    "Disc condition",
+    "UDisc hole distances (when available)",
+    "Course name & conditions",
+    "Play style & throw style",
+    "Max distance / skill level",
+    "Years playing",
+  ],
+} as const;
+
+export async function analyzeBagDiscsAction(
+  discs: BagDisc[],
+  playerMaxDist = 300,
+  playStyle = "flat",
+  throwStyle = "RHBH",
+  yearsPlaying?: number,
+): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  if (discs.length < 3) return { ok: false, error: "Add at least 3 discs for a useful analysis." };
+  const apiKey = process.env.GOOGLE_AI_KEY;
+  if (!apiKey) return { ok: false, error: "AI not configured — add GOOGLE_AI_KEY to Vercel env vars." };
+
+  const byType = (t: BagDisc["type"]) => discs.filter(d => d.type === t);
+  const stab = (d: BagDisc) => (d.turn ?? 0) + (d.fade ?? 0);
+  const os = discs.filter(d => stab(d) > 1).length;
+  const neu = discs.filter(d => stab(d) >= -0.5 && stab(d) <= 1).length;
+  const us = discs.filter(d => stab(d) < -0.5).length;
+
+  const prompt = `You're a supportive disc golf coach reviewing a student's bag. Be encouraging, specific, and practical.
+
+Player bag (${discs.length} discs):
+${discs.map(discLine).join("\n")}
+
+Breakdown: ${byType("putter").length} putters, ${byType("midrange").length} midranges, ${byType("fairway_driver").length} fairways, ${byType("distance_driver").length} distance drivers
+Stability split: ${os} overstable | ${neu} neutral | ${us} understable
+${playStyleNote(playStyle, throwStyle)}
+${skillNote(playerMaxDist)}
+${yearsNote(yearsPlaying)}
+
+Coaching response in 2-3 short paragraphs:
+1. What this bag says about how they play — be specific and read the stability spread alongside their stated style.
+2. The one or two biggest gaps — name specific discs with flight numbers they'd benefit from. One gap per item.
+3. One thing they're doing right — name a specific disc and why it's a smart choice for their style.
+
+Tone: encouraging, like a coach who's played 20 years. No bullet lists. Under 250 words.`;
+
+  try {
+    return { ok: true, text: await gemini(prompt) };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }
 
 export async function recommendThrowAction(
@@ -120,87 +236,29 @@ export async function recommendThrowAction(
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Sign in required" };
-  const discs = (await getBagDiscs(user.id)).filter((d) => !d.inStorage);
+  const [discs, prefs] = await Promise.all([
+    getBagDiscs(user.id).then(d => d.filter(x => !x.inStorage)),
+    getUserPrefs(user.id),
+  ]);
   if (discs.length < 2) return { ok: false, error: "Add more discs to your bag first." };
 
-  const discList = discs
-    .map((d) => `• ${d.discName}${d.manufacturer ? ` (${d.manufacturer})` : ""} — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"}`)
-    .join("\n");
+  const prompt = `You're a disc golf caddy. Player's bag:
+${discs.map(discLine).join("\n")}
 
-  const prompt = `You're a disc golf caddy. The player's bag:
-
-${discList}
-
-Shot: ${distFt} feet, conditions: ${wind}
+Shot: ${distFt} feet | Conditions: ${wind}
+${playStyleNote(prefs.playStyle, prefs.throwStyle)}
 ${skillNote(playerMaxDist)}
 
-Pick 2-3 discs from their bag by name. For each: why it fits, suggested release angle (flat/hyzer/anhyzer), and power level. Be direct, under 120 words total.`;
+Pick 2-3 discs from their bag by name. For each:
+- Why it fits this shot (including plastic stability if relevant)
+- Release angle (flat/hyzer/anhyzer) given their style
+- Power level
+Be direct. Under 130 words total.`;
 
   try {
     return { ok: true, text: await gemini(prompt) };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
-  }
-}
-
-async function fetchUdiscCourseBySlug(slug: string): Promise<string> {
-  try {
-    const res = await fetch(`https://udisc.com/courses/${slug}`, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)", Accept: "text/html" },
-    });
-    if (!res.ok) return "";
-    const html = await res.text();
-    const nextData = html.match(/<script id="__NEXT_DATA__" type="application\/json">([^<]+)<\/script>/)?.[1];
-    if (!nextData) return "";
-    const str = JSON.stringify(JSON.parse(nextData));
-    const holes: string[] = [];
-    for (const m of str.matchAll(/"holeNumber":(\d+)[^}]*?"distance":(\d+)/g)) {
-      holes.push(`Hole ${m[1]}: ${m[2]}ft`);
-    }
-    return holes.length > 0
-      ? `UDisc data:\n${holes.slice(0, 18).join("\n")}`
-      : `Found course (slug: ${slug}) but hole distances not available.`;
-  } catch { return ""; }
-}
-
-async function fetchUdiscCourseData(courseName: string): Promise<string> {
-  // Search UDisc for the course and pull hole data from the first result
-  try {
-    const searchUrl = `https://udisc.com/courses?query=${encodeURIComponent(courseName)}`;
-    const res = await fetch(searchUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)", Accept: "text/html" },
-      redirect: "follow",
-    });
-    if (!res.ok) return "";
-    const html = await res.text();
-
-    // Try to extract course slug from search results
-    const slugM = html.match(/href="\/courses\/([a-z0-9-]+(?:-[a-zA-Z0-9]+)+)"/);
-    if (!slugM) return "";
-
-    const courseUrl = `https://udisc.com/courses/${slugM[1]}`;
-    const courseRes = await fetch(courseUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; DiscGolfLeagueBot/1.0)", Accept: "text/html" },
-    });
-    if (!courseRes.ok) return "";
-    const courseHtml = await courseRes.text();
-
-    // Extract hole distances from the page (UDisc embeds these in __NEXT_DATA__ or similar)
-    const nextData = courseHtml.match(/<script id="__NEXT_DATA__" type="application\/json">([^<]+)<\/script>/)?.[1];
-    if (!nextData) return `Found course at ${courseUrl} but couldn't extract hole data.`;
-
-    const data = JSON.parse(nextData);
-    // Navigate the Next.js data structure to find holes
-    const str = JSON.stringify(data);
-    const holes: string[] = [];
-    const holeMatches = str.matchAll(/"holeNumber":(\d+)[^}]*?"distance":(\d+)/g);
-    for (const m of holeMatches) {
-      holes.push(`Hole ${m[1]}: ${m[2]}ft`);
-    }
-    if (holes.length > 0) return `Course: ${courseUrl}\nHoles:\n${holes.slice(0, 18).join("\n")}`;
-    return `Found course at ${courseUrl} (hole distances not available in page data).`;
-  } catch {
-    return "";
   }
 }
 
@@ -212,91 +270,44 @@ export async function planCourseAction(
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Sign in required" };
-  const allDiscs = await getBagDiscs(user.id);
+  const [allDiscs, prefs] = await Promise.all([
+    getBagDiscs(user.id),
+    getUserPrefs(user.id),
+  ]);
   if (allDiscs.length === 0) return { ok: false, error: "Add discs to your bag first." };
 
-  const fmt = (d: BagDisc) =>
-    `${d.discName}${d.manufacturer ? ` (${d.manufacturer})` : ""} ${d.speed}/${d.glide ?? "?"}/${d.turn ?? "?"}/${d.fade ?? "?"} — ${DISC_TYPE_LABELS[d.type]}`;
-
-  const bagList = allDiscs.filter((d) => !d.inStorage).map(fmt).join("\n");
-  const storeList = allDiscs.filter((d) => d.inStorage).map(fmt).join("\n");
-
-  // Fetch real course data: use known slug directly, or search by name
+  const bagDiscs   = allDiscs.filter(d => !d.inStorage);
+  const storeDiscs = allDiscs.filter(d =>  d.inStorage);
   const courseData = courseSlug
     ? await fetchUdiscCourseBySlug(courseSlug)
     : await fetchUdiscCourseData(courseName);
 
-  const prompt = `You're a disc golf caddy building a bag for tomorrow's round. Your job is to use what the player already owns — only flag a gap if NONE of their discs can fill a role.
+  const prompt = `You're a disc golf caddy building a bag for tomorrow's round. Use what the player owns — flag a gap only if nothing fits.
 
+${playStyleNote(prefs.playStyle, prefs.throwStyle)}
 ${skillNote(playerMaxDist)}
-Course: ${courseName}
-Conditions: ${conditions || "typical conditions"}
-${courseData ? `\nCourse data from UDisc:\n${courseData}` : ""}
+${yearsNote(prefs.yearsPlaying)}
 
-Player's discs:
-IN BAG (already packed):
-${bagList || "(none)"}
+Course: ${courseName} | Conditions: ${conditions || "typical"}
+${courseData ? `\n${courseData}` : ""}
 
-IN STORAGE (available to swap in):
-${storeList || "(none)"}
+IN BAG:
+${bagDiscs.map(discLine).join("\n") || "(none)"}
+
+IN STORAGE:
+${storeDiscs.map(discLine).join("\n") || "(none)"}
 
 Instructions:
-1. Start with what's in the bag. Keep anything that fits the course.
-2. Suggest swapping in specific storage discs if they're better suited — name them explicitly.
-3. Suggest leaving home anything redundant or unsuitable — name them.
-4. Only after reviewing everything they own: if there's a genuine gap no disc fills (e.g. no overstable fairway for a dogleg), say "Gap: consider adding a [description]" — one line, no brand recommendations.
-5. Call out 2–3 specific holes (by number if UDisc data available) with which of THEIR discs to use and why.
+1. Keep bag discs that suit the course. Suggest specific storage swaps if better suited — name them.
+2. Suggest what to leave home and why.
+3. If there's a genuine gap no disc fills, one line: "Gap: consider adding a [description]" — no brand names.
+4. Call out 2-3 specific holes (by number if distances available) with which disc to use and why.
+5. Account for plastic stability offsets where relevant (e.g. beat-in disc plays more understable).
 
-Be direct. Prefer concrete disc names over generic advice. Under 230 words.`;
+Direct and practical. Under 240 words.`;
 
   try {
     return { ok: true, text: await gemini(prompt) };
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
-}
-
-function skillNote(maxDist: number): string {
-  if (maxDist <= 175) return `Player skill: beginner (~${maxDist}ft max). Only recommend discs up to speed 4. Higher speeds will fly unpredictably for them.`;
-  if (maxDist <= 250) return `Player skill: recreational (~${maxDist}ft max). Discs up to speed 7 work well; faster discs will behave overstable for them.`;
-  if (maxDist <= 320) return `Player skill: intermediate (~${maxDist}ft max). Discs up to speed 10 are appropriate; speed 12-14 still risky.`;
-  if (maxDist <= 380) return `Player skill: advanced (~${maxDist}ft max). Most discs up to speed 12 are usable.`;
-  return `Player skill: expert (~${maxDist}ft max). All disc speeds usable.`;
-}
-
-export async function analyzeBagDiscsAction(
-  discs: BagDisc[],
-  playerMaxDist = 300,
-  playStyle = "flat",
-  throwStyle = "RHBH",
-): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
-  if (discs.length < 3) return { ok: false, error: "Add at least 3 discs for a useful analysis." };
-  const apiKey = process.env.GOOGLE_AI_KEY;
-  if (!apiKey) return { ok: false, error: "AI not configured — add GOOGLE_AI_KEY to Vercel env vars." };
-  try {
-    const prompt = buildPrompt(discs, playStyle, throwStyle) + `\n\n${skillNote(playerMaxDist)}`;
-    return { ok: true, text: await gemini(prompt) };
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
-}
-
-export async function analyzeBagAction(): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
-  const user = await getUser();
-  if (!user) return { ok: false, error: "Sign in required" };
-
-  const discs = await getBagDiscs(user.id);
-  if (discs.length < 3) return { ok: false, error: "Add at least 3 discs to get an analysis." };
-
-  const apiKey = process.env.GOOGLE_AI_KEY;
-  if (!apiKey) return { ok: false, error: "AI analysis not configured — add GOOGLE_AI_KEY to Vercel env vars." };
-
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(buildPrompt(discs));
-    const text = result.response.text();
-    return { ok: true, text };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
