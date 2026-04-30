@@ -98,7 +98,7 @@ function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>, playe
     else if (hasLightHead) notes.push("stable in headwind");
     if (winds.has("strong-tailwind")) {
       notes.push("strong tailwind — let it turn, adds significant distance");
-      if (d.speed > maxSpeed) notes.push(`speed ${d.speed} usable with wind assist`);
+      if (disc.speed > maxSpeed) notes.push(`speed ${disc.speed} usable with wind assist`);
     } else if (winds.has("light-tailwind")) notes.push("tailwind boost");
     if (crossRight) notes.push(s > 1 ? "fade fights L→R push" : "aim further left");
     if (crossLeft)  notes.push(s < 0 ? "turn + wind — extra flex" : "aim further right");
