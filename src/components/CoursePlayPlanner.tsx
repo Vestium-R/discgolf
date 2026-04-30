@@ -26,6 +26,7 @@ export function CoursePlayPlanner() {
     setResult(null); setErr(null);
     startTransition(async () => {
       const res = await planCourseAction(courseName.trim(), conditions.trim(), selectedSlug || undefined);
+
       if (res.ok) setResult(res.text); else setErr(res.error);
     });
   }

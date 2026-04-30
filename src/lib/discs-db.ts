@@ -172,20 +172,22 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Kastaplast", name: "Falk", type: "distance_driver", speed: 11, glide: 5, turn: -1, fade: 3 },
 
   // ── MVP / Axiom / Streamline ─────────────────────────────────────────────
+  // Numbers confirmed via axiomdiscs.com / mvpdiscsports.com / ADG where noted
   { manufacturer: "MVP", name: "Atom", type: "putter", speed: 2.5, glide: 3, turn: -0.5, fade: 1 },
   { manufacturer: "MVP", name: "Anode", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
   { manufacturer: "MVP", name: "Envy", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
-  { manufacturer: "MVP", name: "Paradox", type: "putter", speed: 2.5, glide: 4, turn: 0, fade: 2 },
-  { manufacturer: "MVP", name: "Disc Soft Ion", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "MVP", name: "Proxy", type: "putter", speed: 3, glide: 3.5, turn: -1, fade: 0.5 }, // ADG p48/49
   { manufacturer: "MVP", name: "Orbital", type: "distance_driver", speed: 14, glide: 5, turn: -1, fade: 3 },
   { manufacturer: "MVP", name: "Octane", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "MVP", name: "Relativity", type: "distance_driver", speed: 14.5, glide: 5.5, turn: -3, fade: 1.5 }, // ADG p55
   { manufacturer: "MVP", name: "Signal", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
   { manufacturer: "MVP", name: "Theory", type: "distance_driver", speed: 10, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "Axiom", name: "Insanity", type: "distance_driver", speed: 14, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Axiom", name: "Defy", type: "distance_driver", speed: 14, glide: 5.5, turn: -3, fade: 1.5 },
   { manufacturer: "Axiom", name: "Crave", type: "fairway_driver", speed: 8, glide: 5.5, turn: -2, fade: 2 },
   { manufacturer: "Axiom", name: "Virus", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Axiom", name: "Hex", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Axiom", name: "Hex", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },  // axiomdiscs.com
+  { manufacturer: "Axiom", name: "Proxy", type: "putter", speed: 3, glide: 3.5, turn: -1, fade: 0.5 }, // same mold as MVP Proxy
   { manufacturer: "Streamline", name: "Trace", type: "fairway_driver", speed: 9, glide: 5, turn: -3, fade: 1 },
   { manufacturer: "Streamline", name: "Drift", type: "midrange", speed: 4, glide: 6, turn: -2, fade: 1 },
 
@@ -327,11 +329,8 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "MVP", name: "Catalyst", type: "distance_driver", speed: 13, glide: 5.5, turn: -2, fade: 2 },
   { manufacturer: "MVP", name: "Deflector", type: "distance_driver", speed: 12, glide: 5, turn: -3, fade: 1.5 },
   { manufacturer: "MVP", name: "Dimension", type: "distance_driver", speed: 14, glide: 5, turn: -1, fade: 3 },
-  { manufacturer: "MVP", name: "Disc Soft Ion", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
-  { manufacturer: "MVP", name: "Electron Disc Ion", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
   { manufacturer: "MVP", name: "Matrix", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "MVP", name: "Photon", type: "distance_driver", speed: 12, glide: 5, turn: -0.5, fade: 3 },
-  { manufacturer: "MVP", name: "Proxy", type: "putter", speed: 3, glide: 4, turn: -1, fade: 1 },
   { manufacturer: "MVP", name: "Resistor", type: "fairway_driver", speed: 8, glide: 4, turn: 0, fade: 4 },
   { manufacturer: "MVP", name: "Servo", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
   { manufacturer: "MVP", name: "Spiral", type: "distance_driver", speed: 14, glide: 6, turn: -3, fade: 1 },
@@ -339,10 +338,9 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── More Axiom ────────────────────────────────────────────────────────────
   { manufacturer: "Axiom", name: "Disarray", type: "distance_driver", speed: 13, glide: 5, turn: -4, fade: 2 },
-  { manufacturer: "Axiom", name: "Fireball", type: "distance_driver", speed: 12, glide: 5, turn: -0.5, fade: 4 },
+  { manufacturer: "Axiom", name: "Fireball", type: "fairway_driver", speed: 9, glide: 3.5, turn: 0, fade: 3.5 }, // axiomdiscs.com — was wrong type+numbers
   { manufacturer: "Axiom", name: "Mayhem", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
   { manufacturer: "Axiom", name: "Panic", type: "distance_driver", speed: 13.5, glide: 5, turn: -1, fade: 3 },
-  { manufacturer: "Axiom", name: "Proxy", type: "putter", speed: 3, glide: 4, turn: -1, fade: 1 },
   { manufacturer: "Axiom", name: "Rhythm", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
   { manufacturer: "Axiom", name: "Vanish", type: "distance_driver", speed: 12, glide: 6, turn: -4, fade: 1 },
 
@@ -435,7 +433,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Alfa Discs", name: "Stal", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
 
   // ── Axiom (more) — popular putters & drivers ─────────────────────────────
-  { manufacturer: "Axiom", name: "Pixel", type: "putter", speed: 2.5, glide: 4, turn: 0, fade: 0.5 },
+  { manufacturer: "Axiom", name: "Pixel", type: "putter", speed: 2, glide: 4, turn: 0, fade: 0.5 },   // axiomdiscs.com — speed was 2.5
   { manufacturer: "Axiom", name: "Alias", type: "putter", speed: 2, glide: 4, turn: -1, fade: 0.5 },
   { manufacturer: "Axiom", name: "Envy", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
   { manufacturer: "Axiom", name: "Crave", type: "fairway_driver", speed: 8, glide: 5.5, turn: -2, fade: 2 },
@@ -481,10 +479,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Latitude 64", name: "XXX", type: "fairway_driver", speed: 7, glide: 3, turn: 0, fade: 4 },
   { manufacturer: "Latitude 64", name: "Zion", type: "fairway_driver", speed: 9, glide: 4, turn: -0.5, fade: 3 },
 
-  // ── Confirmed via discgolfdojo.com ────────────────────────────────────────
-  { manufacturer: "Innova", name: "Fox", type: "midrange", speed: 5, glide: 6, turn: -2, fade: 1 },
-  { manufacturer: "Innova", name: "Savant", type: "fairway_driver", speed: 9, glide: 5, turn: -1, fade: 2 },
-  { manufacturer: "Discmania", name: "Solar Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },
+  // ── Confirmed via discgolfdojo.com (deduped — primaries are above) ─────────
   { manufacturer: "Streamline", name: "Turbulence", type: "fairway_driver", speed: 7, glide: 2, turn: 0, fade: 3.5 },
   { manufacturer: "Westside Discs", name: "Prince", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
 
@@ -500,7 +495,7 @@ export const DISC_DB: DiscRecord[] = [
   // ── MVP (confirmed) ───────────────────────────────────────────────────────
   { manufacturer: "MVP", name: "Trail", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "MVP", name: "Wave", type: "distance_driver", speed: 12, glide: 5, turn: -3, fade: 2 },
-  { manufacturer: "MVP", name: "Relativity", type: "distance_driver", speed: 14, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "MVP", name: "Ion", type: "putter", speed: 2.5, glide: 3, turn: 0, fade: 1.5 }, // mvpdiscsports.com confirmed
   { manufacturer: "MVP", name: "Ohm", type: "midrange", speed: 4, glide: 5, turn: 0, fade: 1 },
 
   // ── Westside (confirmed) ─────────────────────────────────────────────────
@@ -508,8 +503,8 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Westside Discs", name: "Sword", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2 },
 
   // ── Kastaplast (confirmed) ────────────────────────────────────────────────
-  { manufacturer: "Kastaplast", name: "Reko", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
-  { manufacturer: "Kastaplast", name: "Reko X", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Kastaplast", name: "Reko", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },   // ADG p52 confirmed — was 4 glide
+  { manufacturer: "Kastaplast", name: "Reko X", type: "putter", speed: 3, glide: 3, turn: 0, fade: 2 },
 
   // ── Thought Space Athletics (confirmed) ───────────────────────────────────
   { manufacturer: "Thought Space Athletics", name: "Omen", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 2 },
@@ -546,8 +541,7 @@ export const DISC_DB: DiscRecord[] = [
   // ── Discraft (confirmed via atlanticdiscgolf.com) ─────────────────────────
   { manufacturer: "Discraft", name: "Athena", type: "fairway_driver", speed: 7, glide: 5, turn: 0, fade: 2 },
 
-  // ── Discmania (confirmed via atlanticdiscgolf.com) ────────────────────────
-  { manufacturer: "Discmania", name: "Solar Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },
+  // Solar Flare is above in confirmed via discgolfdojo section
 
   // ── Axiom (confirmed via axiomdiscs.com and atlanticdiscgolf.com) ──────────
   { manufacturer: "Axiom", name: "Pyro", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 2.5 },

@@ -20,9 +20,10 @@ const STAB_MAX = 6, STAB_MIN = -5, SPD_MIN = 0, SPD_MAX = 14;
 function sx(stab: number) { return SPL + ((STAB_MAX - stab) / (STAB_MAX - STAB_MIN)) * SPW; }
 function sy(speed: number) { return SPT + SPH - ((speed - SPD_MIN) / (SPD_MAX - SPD_MIN)) * SPH; }
 
-function ScatterPlot({ discs, hovered, setHovered, showNames }: {
-  discs: BagDisc[]; hovered: string | null;
+function ScatterPlot({ discs, hovered, setHovered, showNames, onClickDisc, focused }: {
+  discs: BagDisc[]; hovered: string | null; focused: string | null;
   setHovered: (id: string | null) => void; showNames: boolean;
+  onClickDisc: (id: string) => void;
 }) {
   const stabTicks = [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
   const spdTicks  = [2, 4, 6, 8, 10, 12, 14];
@@ -67,7 +68,7 @@ function ScatterPlot({ discs, hovered, setHovered, showNames }: {
         const col=d.color ? colorToHex(d.color) : DISC_TYPE_COLORS[d.type];
         return (
           <g key={d.id} style={{cursor:"pointer"}}
-            onMouseEnter={()=>setHovered(d.id)} onMouseLeave={()=>setHovered(null)}>
+            onMouseEnter={()=>setHovered(d.id)} onMouseLeave={()=>setHovered(null)} onClick={()=>onClickDisc(d.id)}>
             <circle cx={x} cy={y} r={isHov?10:7} fill={col} stroke={strokeFor(col)} strokeWidth={isHov?2.5:2} opacity={isHov?1:0.85}/>
             <text x={x} y={y+3.5} textAnchor="middle" fontSize={7} fill="white" fontWeight="700" pointerEvents="none">{d.speed}</text>
             {(showNames||isHov) && (
@@ -99,9 +100,10 @@ function toFy(distFt: number, maxFt: number) {
   return FPT + FPH - Math.min(distFt/maxFt, 1)*FPH;
 }
 
-function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
-  discs: BagDisc[]; hovered: string|null;
+function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onClickDisc, focused }: {
+  discs: BagDisc[]; hovered: string|null; focused: string|null;
   setHovered: (id:string|null)=>void; showNames: boolean; flipLateral: boolean;
+  onClickDisc: (id: string) => void;
 }) {
   if (discs.length===0) return null;
   const maxFt = Math.max(...discs.map(d=>speedToFeet(d.speed)), 150);
@@ -154,7 +156,7 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral }: {
         const col=d.color ? colorToHex(d.color) : DISC_TYPE_COLORS[d.type];
         return (
           <g key={d.id} style={{cursor:"pointer"}}
-            onMouseEnter={()=>setHovered(d.id)} onMouseLeave={()=>setHovered(null)}>
+            onMouseEnter={()=>setHovered(d.id)} onMouseLeave={()=>setHovered(null)} onClick={()=>onClickDisc(d.id)}>
             <path d={path} fill="none" stroke={col} strokeWidth={isHov?2.5:1.5} opacity={isHov?1:0.55}/>
             <circle cx={ex} cy={ey} r={isHov?6:4} fill={col} stroke={strokeFor(col)} strokeWidth={1.5}/>
             {(showNames||isHov) && (
@@ -188,8 +190,11 @@ type View = "scatter"|"flights";
 export function BagChart({ discs, prefs={} }: { discs: BagDisc[]; prefs?: ChartPrefs }) {
   const [view, setView] = useState<View>("scatter");
   const [hovered, setHovered] = useState<string|null>(null);
-  const hoveredDisc = hovered ? discs.find(d=>d.id===hovered) : null;
+  const [focused, setFocused] = useState<string|null>(null);
+  const hoveredDisc = hovered ? discs.find(d=>d.id===hovered) : (focused ? discs.find(d=>d.id===focused) : null);
   const flipLateral = prefs.throwStyle==="LHBH" || prefs.throwStyle==="RHFH";
+  const visibleDiscs = focused ? discs.filter(d=>d.id===focused) : discs;
+  function handleClick(id: string) { setFocused(f => f===id ? null : id); }
 
   return (
     <div className="space-y-3">
@@ -205,8 +210,14 @@ export function BagChart({ discs, prefs={} }: { discs: BagDisc[]; prefs?: ChartP
       </div>
 
       {view==="scatter"
-        ? <ScatterPlot discs={discs} hovered={hovered} setHovered={setHovered} showNames={prefs.showNamesChart??false}/>
-        : <FlightPaths discs={discs} hovered={hovered} setHovered={setHovered} showNames={prefs.showNamesFlight??true} flipLateral={flipLateral}/>}
+        ? <ScatterPlot discs={visibleDiscs} hovered={hovered} setHovered={setHovered} showNames={prefs.showNamesChart??false} onClickDisc={handleClick} focused={focused}/>
+        : <FlightPaths discs={visibleDiscs} hovered={hovered} setHovered={setHovered} showNames={prefs.showNamesFlight??true} flipLateral={flipLateral} onClickDisc={handleClick} focused={focused}/>}
+      {focused && (
+        <p className="text-[11px] text-forest-500 text-center">
+          Showing <strong>{discs.find(d=>d.id===focused)?.discName}</strong> only ·{" "}
+          <button onClick={()=>setFocused(null)} className="underline hover:text-forest-800">show all</button>
+        </p>
+      )}
 
       <div className="min-h-[22px]">
         {hoveredDisc ? (

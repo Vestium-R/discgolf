@@ -26,12 +26,12 @@ function sortDiscs(discs: BagDisc[], key: SortKey) {
   return [...discs].sort((a,b) => {
     if (key==="type") return TYPE_ORDER.indexOf(a.type)-TYPE_ORDER.indexOf(b.type)||a.speed-b.speed;
     if (key==="speed") return b.speed-a.speed;
-    if (key==="manufacturer") return (a.manufacturer??"").localeCompare(b.manufacturer??"")||a.discName.localeCompare(b.discName);
+    if (key==="manufacturer") return (a.manufacturer??"").localeCompare(b.manufacturer??"")||a.speed-b.speed;
     return ((b.turn??0)+(b.fade??0))-((a.turn??0)+(a.fade??0));
   });
 }
 function groupByType(discs: BagDisc[]) {
-  return TYPE_ORDER.map(t=>({type:t,label:DISC_TYPE_LABELS[t],discs:discs.filter(d=>d.type===t).sort((a,b)=>a.speed-b.speed)})).filter(g=>g.discs.length>0);
+  return TYPE_ORDER.map(t=>({type:t,label:DISC_TYPE_LABELS[t],discs:discs.filter(d=>d.type===t).sort((a,b)=>b.speed-a.speed)})).filter(g=>g.discs.length>0);
 }
 function groupByBrand(discs: BagDisc[]) {
   const map = new Map<string,BagDisc[]>();

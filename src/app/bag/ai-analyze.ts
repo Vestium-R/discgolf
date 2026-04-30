@@ -214,7 +214,6 @@ Tone: encouraging, like a coach who's played 20 years. No bullet lists. Under 25
 export async function recommendThrowAction(
   distFt: number,
   wind: string,
-  playerMaxDist = 300,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Sign in required" };
@@ -222,6 +221,7 @@ export async function recommendThrowAction(
     getBagDiscs(user.id).then(d => d.filter(x => !x.inStorage)),
     getUserPrefs(user.id),
   ]);
+  const playerMaxDist = prefs.maxDistFt;
   if (discs.length < 2) return { ok: false, error: "Add more discs to your bag first." };
 
   const prompt = `You're a disc golf caddy. Player's bag:
@@ -321,7 +321,6 @@ export async function planCourseAction(
   courseName: string,
   conditions: string,
   courseSlug?: string,
-  playerMaxDist = 300,
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const user = await getUser();
   if (!user) return { ok: false, error: "Sign in required" };
@@ -329,6 +328,7 @@ export async function planCourseAction(
     getBagDiscs(user.id),
     getUserPrefs(user.id),
   ]);
+  const playerMaxDist = prefs.maxDistFt;
   if (allDiscs.length === 0) return { ok: false, error: "Add discs to your bag first." };
 
   const bagDiscs   = allDiscs.filter(d => !d.inStorage);

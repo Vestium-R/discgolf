@@ -175,9 +175,8 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
 
   function aiDeepDive() {
     setAiText(null); setErr(null);
-    const maxDist = loadPrefs().maxDist;
     start(async () => {
-      const res = await recommendThrowAction(effectiveDist, describeWinds([...winds] as Wind[]), maxDist);
+      const res = await recommendThrowAction(effectiveDist, describeWinds([...winds] as Wind[]));
       if (res.ok) setAiText(res.text); else setErr(res.error);
     });
   }
