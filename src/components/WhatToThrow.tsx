@@ -91,10 +91,12 @@ function ruleRecommend(
   else if (windDir === "tail" && windStr === "strong") { stabMin = -4 + totalOffset; stabMax = -0.5 + totalOffset; }
   else if (windDir === "tail" && windStr === "light")  { stabMin = -3 + totalOffset; stabMax = 1 + totalOffset; }
   else if (cross !== "none")                           { stabMin = 0 + totalOffset; stabMax = 5 + totalOffset; }
-  else /* calm */                                      { stabMin = -2.5 + totalOffset; stabMax = 2.5 + totalOffset; }
+  else /* calm */                                      { stabMin = -2.0 + totalOffset; stabMax = 2.0 + totalOffset; }
 
-  // Wooded/tunnel overrides to near-neutral only — straightest disc wins
-  if (woodedOverride) { stabMin = -1.0; stabMax = 1.0; }
+  // Wooded/tunnel: tightest neutral window — straightest disc wins
+  if (woodedOverride) { stabMin = -0.8; stabMax = 0.8; }
+  // Straight/open: tighter window — near-neutral only, no understable, modest fade ok
+  else if (shape === "straight") { stabMin = Math.max(stabMin, -0.5 + totalOffset); stabMax = Math.min(stabMax, 2.0 + totalOffset); }
 
   // Approach zone: sub-150ft → no distance drivers
   const approachOnly = distFt < 150;
