@@ -188,7 +188,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Axiom", name: "Envy", type: "putter", speed: 3, glide: 3, turn: 0, fade: 2 },               // was 3/4/0/2
   { manufacturer: "Axiom", name: "Hex", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },             // confirmed axiomdiscs.com
   { manufacturer: "Axiom", name: "Insanity", type: "fairway_driver", speed: 9, glide: 5, turn: -2.5, fade: 1.5 }, // was 14/5/-2/2 — completely wrong
-  { manufacturer: "Axiom", name: "Paradox", type: "distance_driver", speed: 5, glide: 4, turn: -4, fade: 0 },  // ADG page 1
+  { manufacturer: "Axiom", name: "Paradox", type: "midrange", speed: 5, glide: 4, turn: -4, fade: 0 },          // ADG — understable midrange
   { manufacturer: "Axiom", name: "Pitch", type: "putter", speed: 1, glide: 7, turn: -0.5, fade: 0 },           // new — ADG p5
   { manufacturer: "Axiom", name: "Proxy", type: "putter", speed: 3, glide: 3.5, turn: -1, fade: 0.5 },         // ADG confirmed
   { manufacturer: "Axiom", name: "Rhythm", type: "fairway_driver", speed: 7, glide: 5.5, turn: -2, fade: 1 },  // was 5/5/-0.5/2
