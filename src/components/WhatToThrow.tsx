@@ -120,19 +120,26 @@ function ruleRecommend(
       const distDelta = discMaxFt < distFt
         ? (distFt - discMaxFt) * 0.1   // can throw harder to reach
         : (discMaxFt - distFt) * 0.05; // can throttle back
-      // Type zone — midrange strongly preferred at mid distances
+      // Type zone — prefer the disc that matches the distance, but scale by player ability.
+      // Advanced players have more control and can choose faster discs at shorter distances.
+      // "overkill ratio": how much faster is this disc than the hole needs?
+      const overkillRatio = discMaxFt > distFt ? (discMaxFt - distFt) / Math.max(distFt, 1) : 0;
+      // Overkill penalty scales with how much the disc exceeds the hole distance,
+      // but is reduced for advanced players (who can control it)
+      const playerSkill = Math.min(1, (playerMaxDist - 100) / 300); // 0=beginner, 1=advanced
+      const overkillPenalty = overkillRatio * 8 * (1 - playerSkill * 0.5);
+
       const typeBonus =
         distFt < 150  && d.type === "putter"           ? -7 :
         distFt < 150  && d.type === "midrange"         ? -3 :
         distFt < 200  && d.type === "midrange"         ? -6 :
         distFt < 200  && d.type === "fairway_driver"   ? -1 :
-        distFt < 310  && d.type === "midrange"         ? -7 : // midrange is the right tool
-        distFt < 310  && d.type === "fairway_driver"   ? -1 :
+        distFt < 310  && d.type === "midrange"         ? -6 :
         distFt < 380  && d.type === "fairway_driver"   ? -5 :
         distFt < 380  && d.type === "distance_driver"  ? -2 :
         distFt >= 380 && d.type === "distance_driver"  ? -5 :
         distFt >= 380 && d.type === "fairway_driver"   ? -1 : 0;
-      return { disc: d, score: distDelta + typeBonus };
+      return { disc: d, score: distDelta + typeBonus + overkillPenalty };
     })
     .sort((a, b) => a.score - b.score)
     .filter((item, idx, arr) => arr.findIndex(x => x.disc.discName === item.disc.discName) === idx)
