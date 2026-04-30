@@ -588,7 +588,7 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── Latitude 64 (confirmed via ADG) ───────────────────────────────────────
   { manufacturer: "Latitude 64", name: "River", type: "fairway_driver", speed: 7, glide: 7, turn: -1, fade: 1 },
-  { manufacturer: "Latitude 64", name: "Balance", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },         // from bag
+  { manufacturer: "MVP", name: "Balance", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },                // bag confirmed — MVP disc
   { manufacturer: "Latitude 64", name: "Gorgon", type: "distance_driver", speed: 10, glide: 6, turn: -2, fade: 1 }, // from bag
   { manufacturer: "Latitude 64", name: "Pearl", type: "midrange", speed: 4, glide: 6, turn: -4, fade: 0 },          // ADG confirmed
   { manufacturer: "Latitude 64", name: "Racer", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2 },  // from bag
