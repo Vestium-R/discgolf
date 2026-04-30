@@ -199,7 +199,7 @@ ${yearsNote(yearsPlaying)}
 
 Coaching response in 2-3 short paragraphs:
 1. What this bag says about how they play — be specific and read the stability spread alongside their stated style.
-2. The one or two biggest gaps — name specific discs with flight numbers they'd benefit from. One gap per item.
+2. If any, name the one or two biggest gaps. Name specific discs with flight numbers they'd benefit from. One gap per item.
 3. One thing they're doing right — name a specific disc and why it's a smart choice for their style.
 
 Tone: encouraging, like a coach who's played 20 years. No bullet lists. Under 250 words.`;
@@ -353,11 +353,13 @@ IN STORAGE:
 ${storeDiscs.map(discLine).join("\n") || "(none)"}
 
 Instructions:
-1. Keep bag discs that suit the course. Suggest specific storage swaps if better suited — name them.
-2. If something should be left at home, suggest it and why only from their current bag.
-3. If there's a genuine gap no disc fills, one line: "Gap: consider adding a [description]" — no brand names.
-4. Call out 2-3 specific holes (by number if distances available) with which disc to use and why.
-5. Account for plastic stability offsets where relevant (e.g. beat-in disc plays more understable).
+1. Get context around the discs in the bag and in storage. 2 discs with the same flight numbers are likely very similar.
+2. Get context of the course. Technical courses generally need more shot variety type.
+3. Keep bag discs that suit the course. Suggest specific storage swaps if better suited — name them.
+4. If something should be left at home, suggest it and why only from their current bag.
+5. If there's a genuine gap no disc fills, one line: "Gap: consider adding a [description]" — no brand names.
+6. Call out 2-3 specific holes (by number if distances available) with which disc to use and why.
+7. Account for plastic stability offsets where relevant (e.g. beat-in disc plays more understable).
 
 Direct and practical. Under 240 words.`;
 
