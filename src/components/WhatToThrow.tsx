@@ -101,10 +101,29 @@ function ruleRecommend(
       return true;
     })
     .map(d => {
-      const speedScore = Math.abs(d.speed - idealSpeed) * 10;
-      const distScore  = Math.abs(speedToFeet(d.speed) - distFt) * 0.1;
-      const famBonus   = (count.get(d.discName) ?? 1) > 1 ? -2 : 0; // familiar discs rank slightly higher
-      return { disc: d, score: speedScore + distScore + famBonus };
+      const discMaxFt = speedToFeet(d.speed);
+      // Penalise "too fast" more than "too slow":
+      // Throwing a faster disc at 70% is fine; throwing a slower disc can't exceed its max.
+      // If disc max < target, that's a hard gap → big penalty.
+      // If disc max > target, it just means easing off power → smaller penalty.
+      const distDelta = discMaxFt < distFt
+        ? (distFt - discMaxFt) * 0.5   // under-powered: heavier penalty
+        : (discMaxFt - distFt) * 0.05; // over-powered: light penalty (can throttle back)
+
+      // Type preference by distance zone (avoid overkill)
+      const typeBonus =
+        distFt < 150  && d.type === "putter"           ? -6 :
+        distFt < 150  && d.type === "midrange"         ? -3 :
+        distFt < 230  && d.type === "midrange"         ? -4 :
+        distFt < 230  && d.type === "fairway_driver"   ? -1 :
+        distFt < 310  && d.type === "midrange"         ? -2 :
+        distFt < 310  && d.type === "fairway_driver"   ? -3 :
+        distFt >= 310 && d.type === "distance_driver"  ? -3 :
+        distFt >= 310 && d.type === "fairway_driver"   ? -1 :
+        0;
+
+      const famBonus = (count.get(d.discName) ?? 1) > 1 ? -2 : 0;
+      return { disc: d, score: distDelta + typeBonus + famBonus };
     })
     .sort((a, b) => a.score - b.score)
     // Deduplicate by disc name — don't show 3 copies of the same disc

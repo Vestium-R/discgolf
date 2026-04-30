@@ -354,7 +354,7 @@ ${storeDiscs.map(discLine).join("\n") || "(none)"}
 
 Instructions:
 1. Keep bag discs that suit the course. Suggest specific storage swaps if better suited — name them.
-2. Suggest what to leave home and why.
+2. If something should be left at home, suggest it and why only from their current bag.
 3. If there's a genuine gap no disc fills, one line: "Gap: consider adding a [description]" — no brand names.
 4. Call out 2-3 specific holes (by number if distances available) with which disc to use and why.
 5. Account for plastic stability offsets where relevant (e.g. beat-in disc plays more understable).
