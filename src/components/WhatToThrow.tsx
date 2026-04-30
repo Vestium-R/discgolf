@@ -72,13 +72,15 @@ function ruleRecommend(
   // Play style stability offset
   const styleOff = playStyle === "hyzer_flip" ? -0.8 : playStyle === "anhyzer" ? -1.2 : 0;
 
-  // Shot shape stability offset (RHBH reference)
-  const shapeOff = shape === "dogleg-right" ? -1.5   // want understable to turn right
-                 : shape === "dogleg-left"  ?  1.5   // want overstable to fade left
-                 : shape === "wooded"       ?  0.3   // slightly more control = slightly OS
-                 : shape === "downhill"     ? -0.5   // discs fly more understable downhill
+  // Shot shape stability offset AND window override
+  const shapeOff = shape === "dogleg-right" ? -2.0   // need understable to turn right naturally
+                 : shape === "dogleg-left"  ?  2.0   // need overstable to fade left
+                 : shape === "downhill"     ? -0.5   // hills make discs fly more understable
                  : shape === "uphill"       ?  0.5   // discs fade harder uphill
                  : 0;
+
+  // Wooded/tunnel: override stabMin/stabMax to tightest neutral window — straightest disc wins
+  const woodedOverride = shape === "wooded";
 
   const totalOffset = styleOff + shapeOff;
 
@@ -89,7 +91,10 @@ function ruleRecommend(
   else if (windDir === "tail" && windStr === "strong") { stabMin = -4 + totalOffset; stabMax = -0.5 + totalOffset; }
   else if (windDir === "tail" && windStr === "light")  { stabMin = -3 + totalOffset; stabMax = 1 + totalOffset; }
   else if (cross !== "none")                           { stabMin = 0 + totalOffset; stabMax = 5 + totalOffset; }
-  else /* calm */                                      { stabMin = -2.5 + totalOffset; stabMax = 3.5 + totalOffset; }
+  else /* calm */                                      { stabMin = -2.5 + totalOffset; stabMax = 2.5 + totalOffset; }
+
+  // Wooded/tunnel overrides to near-neutral only — straightest disc wins
+  if (woodedOverride) { stabMin = -1.0; stabMax = 1.0; }
 
   // Approach zone: sub-150ft → no distance drivers
   const approachOnly = distFt < 150;
@@ -113,20 +118,22 @@ function ruleRecommend(
     })
     .map(d => {
       const discMaxFt = speedToFeet(d.speed);
-      // Penalise under-powered more than over-powered (can throttle back, can't add distance)
+      // Light penalty — type zone does the heavy lifting for disc selection
       const distDelta = discMaxFt < distFt
-        ? (distFt - discMaxFt) * 0.5
-        : (discMaxFt - distFt) * 0.05;
-      // Type zone preference
+        ? (distFt - discMaxFt) * 0.1   // can throw harder to reach
+        : (discMaxFt - distFt) * 0.05; // can throttle back
+      // Type zone — midrange strongly preferred at mid distances
       const typeBonus =
-        distFt < 150  && d.type === "putter"          ? -6 :
+        distFt < 150  && d.type === "putter"           ? -7 :
         distFt < 150  && d.type === "midrange"         ? -3 :
-        distFt < 230  && d.type === "midrange"         ? -4 :
-        distFt < 230  && d.type === "fairway_driver"   ? -1 :
-        distFt < 310  && d.type === "midrange"         ? -2 :
-        distFt < 310  && d.type === "fairway_driver"   ? -3 :
-        distFt >= 310 && d.type === "distance_driver"  ? -3 :
-        distFt >= 310 && d.type === "fairway_driver"   ? -1 : 0;
+        distFt < 200  && d.type === "midrange"         ? -6 :
+        distFt < 200  && d.type === "fairway_driver"   ? -1 :
+        distFt < 310  && d.type === "midrange"         ? -5 : // midrange is the right tool
+        distFt < 310  && d.type === "fairway_driver"   ? -2 :
+        distFt < 380  && d.type === "fairway_driver"   ? -5 :
+        distFt < 380  && d.type === "distance_driver"  ? -2 :
+        distFt >= 380 && d.type === "distance_driver"  ? -5 :
+        distFt >= 380 && d.type === "fairway_driver"   ? -1 : 0;
       const famBonus = (count.get(d.discName) ?? 1) > 1 ? -2 : 0;
       return { disc: d, score: distDelta + typeBonus + famBonus };
     })
