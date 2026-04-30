@@ -588,6 +588,33 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── Latitude 64 (confirmed via ADG) ───────────────────────────────────────
   { manufacturer: "Latitude 64", name: "River", type: "fairway_driver", speed: 7, glide: 7, turn: -1, fade: 1 },
+  { manufacturer: "Latitude 64", name: "Balance", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },         // from bag
+  { manufacturer: "Latitude 64", name: "Gorgon", type: "distance_driver", speed: 10, glide: 6, turn: -2, fade: 1 }, // from bag
+  { manufacturer: "Latitude 64", name: "Pearl", type: "midrange", speed: 4, glide: 6, turn: -4, fade: 0 },          // ADG confirmed
+  { manufacturer: "Latitude 64", name: "Racer", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2 },  // from bag
+
+  // ── Innova (from bag_discs) ───────────────────────────────────────────────
+  { manufacturer: "Innova", name: "Sonic", type: "putter", speed: 1, glide: 2, turn: -4, fade: 0 },   // bag confirmed
+  { manufacturer: "Innova", name: "Flick", type: "distance_driver", speed: 12, glide: 3, turn: 1, fade: 5 }, // bag confirmed
+  { manufacturer: "Innova", name: "Osprey", type: "fairway_driver", speed: 10, glide: 6, turn: -3, fade: 1 }, // bag confirmed
+
+  // ── Discraft (from bag_discs) ─────────────────────────────────────────────
+  { manufacturer: "Discraft", name: "Nuke OS", type: "distance_driver", speed: 13, glide: 4, turn: 0, fade: 4 },   // bag confirmed
+  { manufacturer: "Discraft", name: "Kratos", type: "putter", speed: 3, glide: 3, turn: 0, fade: 3 },              // bag confirmed
+  { manufacturer: "Discraft", name: "Raptor", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },      // ADG confirmed
+  { manufacturer: "Discraft", name: "Zone OS", type: "putter", speed: 4, glide: 2, turn: 1, fade: 5 },             // ADG confirmed
+  { manufacturer: "Discraft", name: "Zone SS", type: "putter", speed: 4, glide: 4, turn: -1, fade: 2 },            // ADG confirmed
+
+  // ── Axiom (from bag_discs) ────────────────────────────────────────────────
+  { manufacturer: "Axiom", name: "Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3.5 },        // bag (same as Fireball-ish)
+  { manufacturer: "Axiom", name: "Engine", type: "distance_driver", speed: 13, glide: 5, turn: -0.5, fade: 2 },    // from bag
+  { manufacturer: "Axiom", name: "Entropy", type: "putter", speed: 4, glide: 3, turn: 0, fade: 3 },               // from bag
+
+  // ── MVP (from bag_discs) ──────────────────────────────────────────────────
+  { manufacturer: "MVP", name: "Bokeh", type: "fairway_driver", speed: 7, glide: 6, turn: 0, fade: 1 },            // bag confirmed
+
+  // ── Infinite Discs (from bag_discs) ───────────────────────────────────────
+  { manufacturer: "Infinite Discs", name: "Kotuku", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },      // bag confirmed
 ];
 
 /** Return sorted matches for a search query (disc name or manufacturer). */
