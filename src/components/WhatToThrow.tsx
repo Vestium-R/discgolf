@@ -131,16 +131,18 @@ function ruleRecommend(
       const playerSkill = Math.min(1, (playerMaxDist - 100) / 300); // 0=beginner, 1=advanced
       const overkillPenalty = overkillRatio * 8 * (1 - playerSkill * 0.5);
 
+      // Type zone: strongly prefer the right tool for the distance
       const typeBonus =
-        distFt < 150  && d.type === "putter"           ? -7 :
-        distFt < 150  && d.type === "midrange"         ? -3 :
-        distFt < 200  && d.type === "midrange"         ? -6 :
-        distFt < 200  && d.type === "fairway_driver"   ? -1 :
-        distFt < 310  && d.type === "midrange"         ? -6 :
-        distFt < 380  && d.type === "fairway_driver"   ? -5 :
-        distFt < 380  && d.type === "distance_driver"  ? -2 :
-        distFt >= 380 && d.type === "distance_driver"  ? -5 :
-        distFt >= 380 && d.type === "fairway_driver"   ? -1 : 0;
+        distFt < 150  && d.type === "putter"           ? -8 :
+        distFt < 150  && d.type === "midrange"         ? -4 :
+        distFt < 200  && d.type === "midrange"         ? -7 :
+        distFt < 200  && d.type === "fairway_driver"   ? -2 :
+        distFt < 310  && d.type === "midrange"         ? -7 : // midrange is ideal
+        distFt < 310  && d.type === "fairway_driver"   ? -3 : // fairway ok but secondary
+        distFt < 380  && d.type === "fairway_driver"   ? -7 :
+        distFt < 380  && d.type === "distance_driver"  ? -3 :
+        distFt >= 380 && d.type === "distance_driver"  ? -7 :
+        distFt >= 380 && d.type === "fairway_driver"   ? -2 : 0;
       return { disc: d, score: distDelta + typeBonus + overkillPenalty };
     })
     .sort((a, b) => a.score - b.score)
