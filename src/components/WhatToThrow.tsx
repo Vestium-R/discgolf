@@ -126,8 +126,8 @@ function ruleRecommend(
         distFt < 150  && d.type === "midrange"         ? -3 :
         distFt < 200  && d.type === "midrange"         ? -6 :
         distFt < 200  && d.type === "fairway_driver"   ? -1 :
-        distFt < 310  && d.type === "midrange"         ? -5 : // midrange is the right tool
-        distFt < 310  && d.type === "fairway_driver"   ? -2 :
+        distFt < 310  && d.type === "midrange"         ? -7 : // midrange is the right tool
+        distFt < 310  && d.type === "fairway_driver"   ? -1 :
         distFt < 380  && d.type === "fairway_driver"   ? -5 :
         distFt < 380  && d.type === "distance_driver"  ? -2 :
         distFt >= 380 && d.type === "distance_driver"  ? -5 :
