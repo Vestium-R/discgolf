@@ -66,10 +66,19 @@ function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>, playe
   else if (winds.has("strong-tailwind")) { stabMin = -4; stabMax = 0; }
   else if (crossRight || crossLeft)      { stabMin = 0;  stabMax = 5; }
 
-  const idealSpeed = Math.max(1, Math.min(14, 1 + ((distFt - 100) / 320) * 13));
+  const idealSpeed = Math.max(1, Math.min(15, 1 + ((distFt - 100) / 320) * 13));
+
+  // Speed cap: applies on headwind (overpowered discs flip badly into wind)
+  // but NOT on tailwind/calm (wind helps, and faster understable discs are exactly right)
+  const applySpeedCap = hasStrongHead || hasLightHead;
 
   const scored = bag
-    .filter(d => { const s = stab(d); return s >= stabMin && s <= stabMax && d.speed <= maxSpeed + 1; })
+    .filter(d => {
+      const s = stab(d);
+      if (s < stabMin || s > stabMax) return false;
+      if (applySpeedCap && d.speed > maxSpeed + 1) return false;
+      return true;
+    })
     .map(d => ({ disc: d, score: Math.abs(d.speed - idealSpeed)*10 + Math.abs(speedToFeet(d.speed)-distFt)*0.1 }))
     .sort((a, b) => a.score - b.score)
     .slice(0, 3);
@@ -87,7 +96,10 @@ function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>, playe
     const notes = [`${df}ft range`, shotShape];
     if (hasStrongHead) notes.push("holds up into strong headwind");
     else if (hasLightHead) notes.push("stable in headwind");
-    if (hasTail) notes.push("tailwind boost");
+    if (winds.has("strong-tailwind")) {
+      notes.push("strong tailwind — let it turn, adds significant distance");
+      if (d.speed > maxSpeed) notes.push(`speed ${d.speed} usable with wind assist`);
+    } else if (winds.has("light-tailwind")) notes.push("tailwind boost");
     if (crossRight) notes.push(s > 1 ? "fade fights L→R push" : "aim further left");
     if (crossLeft)  notes.push(s < 0 ? "turn + wind — extra flex" : "aim further right");
     const power = df > distFt + 40 ? " · 70–80% power" : df < distFt - 40 ? " · full power" : "";
