@@ -115,7 +115,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Discraft", name: "Force", type: "distance_driver", speed: 12, glide: 5, turn: -0.5, fade: 3 },
   { manufacturer: "Discraft", name: "Nuke", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
   { manufacturer: "Discraft", name: "Nuke SS", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Discraft", name: "Scorch", type: "distance_driver", speed: 13, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Discraft", name: "Scorch", type: "distance_driver", speed: 11, glide: 6, turn: -2, fade: 2 }, // bag confirmed
   { manufacturer: "Discraft", name: "Surge", type: "distance_driver", speed: 11, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Discraft", name: "Surge SS", type: "distance_driver", speed: 11, glide: 5, turn: -3, fade: 2 },
   { manufacturer: "Discraft", name: "Thrasher", type: "distance_driver", speed: 12, glide: 5, turn: -3, fade: 1 },
