@@ -99,12 +99,10 @@ function ruleRecommend(
   // Approach zone: sub-150ft → no distance drivers
   const approachOnly = distFt < 150;
 
-  // Speed cap only on headwind
-  const applySpeedCap = windDir === "head";
-
-  // Familiarity count (more copies = player likes this disc)
-  const count = new Map<string, number>();
-  for (const d of bag) count.set(d.discName, (count.get(d.discName) ?? 0) + 1);
+  // Speed cap: always apply, but tailwind gets +2 grace (wind assist helps)
+  const speedGrace = windDir === "tail" && windStr === "strong" ? 3
+                   : windDir === "tail" ? 2 : 0;
+  const effectiveMaxSpeed = maxSpeed + speedGrace;
 
   const idealSpeed = Math.max(1, Math.min(15, 1 + ((distFt - 100) / 320) * 13));
 
@@ -112,7 +110,7 @@ function ruleRecommend(
     .filter(d => {
       const s = effStab(d);
       if (s < stabMin || s > stabMax) return false;
-      if (applySpeedCap && d.speed > maxSpeed + 1) return false;
+      if (d.speed > effectiveMaxSpeed) return false;
       if (approachOnly && d.type === "distance_driver") return false;
       return true;
     })
@@ -134,8 +132,7 @@ function ruleRecommend(
         distFt < 380  && d.type === "distance_driver"  ? -2 :
         distFt >= 380 && d.type === "distance_driver"  ? -5 :
         distFt >= 380 && d.type === "fairway_driver"   ? -1 : 0;
-      const famBonus = (count.get(d.discName) ?? 1) > 1 ? -2 : 0;
-      return { disc: d, score: distDelta + typeBonus + famBonus };
+      return { disc: d, score: distDelta + typeBonus };
     })
     .sort((a, b) => a.score - b.score)
     .filter((item, idx, arr) => arr.findIndex(x => x.disc.discName === item.disc.discName) === idx)
