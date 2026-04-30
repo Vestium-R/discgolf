@@ -606,7 +606,8 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Discraft", name: "Zone SS", type: "putter", speed: 4, glide: 4, turn: -1, fade: 2 },            // ADG confirmed
 
   // ── Axiom (from bag_discs) ────────────────────────────────────────────────
-  { manufacturer: "Axiom", name: "Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3.5 },        // bag (same as Fireball-ish)
+  { manufacturer: "Axiom", name: "Fireball", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },      // player confirmed 9/4/0/3
+  { manufacturer: "Axiom", name: "Flare", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },          // from bag — similar to Fireball
   { manufacturer: "Axiom", name: "Engine", type: "distance_driver", speed: 13, glide: 5, turn: -0.5, fade: 2 },    // from bag
   { manufacturer: "Axiom", name: "Entropy", type: "putter", speed: 4, glide: 3, turn: 0, fade: 3 },               // from bag
 

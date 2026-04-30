@@ -8,6 +8,7 @@ import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 import { fetchCourseHolesAction, type HoleData } from "@/app/bag/course-holes-action";
 import { COURSES } from "@/components/CourseList";
 import { loadPrefs } from "@/components/BagSettings";
+import { plasticStabOffset } from "@/lib/plastics-db";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -43,44 +44,70 @@ function maxUsableSpeed(maxDist: number): number {
   return Math.min(14, Math.max(2, 1 + (maxDist - 100) / (320 / 13)));
 }
 
-function ruleRecommend(discs: BagDisc[], distFt: number, winds: Set<Wind>, playerMaxDist = 300) {
+function ruleRecommend(
+  discs: BagDisc[], distFt: number, winds: Set<Wind>,
+  playerMaxDist = 300, playStyle = "flat",
+) {
   const bag = discs.filter(d => !d.inStorage);
   if (!bag.length) return [];
   const maxSpeed = maxUsableSpeed(playerMaxDist);
 
   const hasStrongHead = winds.has("strong-headwind");
   const hasLightHead  = winds.has("light-headwind");
-  const hasTail       = winds.has("strong-tailwind") || winds.has("light-tailwind");
   const crossRight    = winds.has("crosswind-right");
   const crossLeft     = winds.has("crosswind-left");
 
-  // Effective stability accounts for weight: heavier = more OS, lighter = more US
+  // Effective stability: base + weight + plastic + condition
   const stab = (d: BagDisc) => {
     const base = (d.turn ?? 0) + (d.fade ?? 0);
-    const wtOffset = d.weightG ? (d.weightG - 170) * 0.02 : 0;
-    return base + wtOffset;
+    const wtOffset    = d.weightG ? (d.weightG - 170) * 0.02 : 0;
+    const plasticOff  = plasticStabOffset(d.manufacturer, d.plastic ?? "");
+    const condOff     = d.notes?.includes("Beat in") ? -0.7
+                      : d.notes?.includes("Slightly beat") ? -0.3
+                      : d.notes?.includes("OS flip") ? -1.0 : 0;
+    return base + wtOffset + plasticOff + condOff;
   };
-  let stabMin = -4, stabMax = 5;
-  if (hasStrongHead)             { stabMin = 1;  stabMax = 6; }
-  else if (hasLightHead)         { stabMin = 0;  stabMax = 4; }
-  else if (winds.has("strong-tailwind")) { stabMin = -4; stabMax = 0; }
-  else if (crossRight || crossLeft)      { stabMin = 0;  stabMax = 5; }
+
+  // Approach zone: sub-150ft → putters and midranges only
+  const approachOnly = distFt < 150;
+
+  // Play style shifts preferred stability: hyzer flipper wants more understable
+  const styleOffset = playStyle === "hyzer_flip" ? -0.8
+                    : playStyle === "anhyzer"     ? -1.2
+                    : 0;
+
+  let stabMin = -4 + styleOffset, stabMax = 5 + styleOffset;
+  if (hasStrongHead)                   { stabMin = 1;  stabMax = 6; }
+  else if (hasLightHead)               { stabMin = 0;  stabMax = 4; }
+  else if (winds.has("strong-tailwind")) { stabMin = -4; stabMax = 0 + styleOffset; }
+  else if (crossRight || crossLeft)    { stabMin = 0;  stabMax = 5; }
 
   const idealSpeed = Math.max(1, Math.min(15, 1 + ((distFt - 100) / 320) * 13));
 
-  // Speed cap: applies on headwind (overpowered discs flip badly into wind)
-  // but NOT on tailwind/calm (wind helps, and faster understable discs are exactly right)
+  // Speed cap only on headwind; lifted for tailwind/calm so fast understable discs show
   const applySpeedCap = hasStrongHead || hasLightHead;
+
+  // Count per disc name to use as familiarity tiebreaker
+  const count = new Map<string, number>();
+  for (const d of bag) count.set(d.discName, (count.get(d.discName) ?? 0) + 1);
 
   const scored = bag
     .filter(d => {
       const s = stab(d);
       if (s < stabMin || s > stabMax) return false;
       if (applySpeedCap && d.speed > maxSpeed + 1) return false;
+      if (approachOnly && d.type === "distance_driver") return false;
       return true;
     })
-    .map(d => ({ disc: d, score: Math.abs(d.speed - idealSpeed)*10 + Math.abs(speedToFeet(d.speed)-distFt)*0.1 }))
+    .map(d => {
+      const speedScore = Math.abs(d.speed - idealSpeed) * 10;
+      const distScore  = Math.abs(speedToFeet(d.speed) - distFt) * 0.1;
+      const famBonus   = (count.get(d.discName) ?? 1) > 1 ? -2 : 0; // familiar discs rank slightly higher
+      return { disc: d, score: speedScore + distScore + famBonus };
+    })
     .sort((a, b) => a.score - b.score)
+    // Deduplicate by disc name — don't show 3 copies of the same disc
+    .filter((item, idx, arr) => arr.findIndex(x => x.disc.discName === item.disc.discName) === idx)
     .slice(0, 3);
 
   return scored.map(({ disc }) => {
@@ -130,8 +157,8 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
   const [geoLoading, setGeoLoading] = useState(false);
 
   const effectiveDist = selectedHole?.distance ?? dist;
-  const playerMaxDist = typeof window !== "undefined" ? loadPrefs().maxDist : 300;
-  const recs = useMemo(() => ruleRecommend(discs, effectiveDist, winds, playerMaxDist), [discs, effectiveDist, winds, playerMaxDist]);
+  const { maxDist: playerMaxDist, playStyle = "flat" } = typeof window !== "undefined" ? loadPrefs() : { maxDist: 300, playStyle: "flat" };
+  const recs = useMemo(() => ruleRecommend(discs, effectiveDist, winds, playerMaxDist, playStyle), [discs, effectiveDist, winds, playerMaxDist, playStyle]);
 
   function toggleWind(w: Wind) {
     setAiText(null);
