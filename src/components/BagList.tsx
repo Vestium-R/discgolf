@@ -7,6 +7,8 @@ import { analyzeBagDiscsAction } from "@/app/bag/ai-analyze";
 import { AI_FACTORS } from "@/lib/ai-factors";
 import { loadPrefs } from "@/components/BagSettings";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
+import { DISC_DB } from "@/lib/discs-db";
+import { getPlasticsForManufacturer } from "@/lib/plastics-db";
 
 type SortKey = "type" | "speed" | "manufacturer" | "stability";
 const SORT_LABELS: Record<SortKey, string> = { type:"Type", speed:"Speed", manufacturer:"Brand", stability:"Stability" };
@@ -40,20 +42,50 @@ function groupByBrand(discs: BagDisc[]) {
 }
 
 // ── Edit form ─────────────────────────────────────────────────────────────────
+// Sorted unique manufacturers from disc DB
+const ALL_BRANDS = [...new Set(DISC_DB.map(d => d.manufacturer))].sort();
+
 function EditForm({disc,onDone}:{disc:BagDisc;onDone:()=>void}) {
   const [pending,startT] = useTransition();
+  const [mfr, setMfr] = useState(disc.manufacturer ?? "");
+  const plastics = getPlasticsForManufacturer(mfr);
+
   function submit(fd: FormData) { fd.set("id",disc.id); startT(async()=>{ await updateDiscAction(fd); onDone(); }); }
   return (
     <form action={submit} className="p-3 space-y-3 bg-forest-50 rounded-xl border border-forest-200 m-2">
       <div className="grid grid-cols-2 gap-2">
-        <div><label className="text-[10px] text-forest-600 block mb-0.5">Name *</label><input name="discName" defaultValue={disc.discName} required className="input-pill text-xs py-1.5"/></div>
-        <div><label className="text-[10px] text-forest-600 block mb-0.5">Brand</label><input name="manufacturer" defaultValue={disc.manufacturer??""} className="input-pill text-xs py-1.5"/></div>
+        <div><label className="text-[10px] text-forest-600 block mb-0.5">Name *</label>
+          <input name="discName" defaultValue={disc.discName} required className="input-pill text-xs py-1.5"/>
+        </div>
+        <div><label className="text-[10px] text-forest-600 block mb-0.5">Brand</label>
+          <select name="manufacturer" value={mfr} onChange={e => setMfr(e.target.value)} className="input-pill text-xs py-1.5">
+            <option value="">— Select —</option>
+            {ALL_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+            {mfr && !ALL_BRANDS.includes(mfr) && <option value={mfr}>{mfr}</option>}
+          </select>
+        </div>
         <div><label className="text-[10px] text-forest-600 block mb-0.5">Type *</label>
           <select name="type" defaultValue={disc.type} required className="input-pill text-xs py-1.5">
             {TYPE_ORDER.map(t=><option key={t} value={t}>{DISC_TYPE_LABELS[t]}</option>)}
           </select>
         </div>
-        <div><label className="text-[10px] text-forest-600 block mb-0.5">Plastic</label><input name="plastic" defaultValue={disc.plastic??""} className="input-pill text-xs py-1.5"/></div>
+        <div><label className="text-[10px] text-forest-600 block mb-0.5">Plastic</label>
+          {plastics.length > 0 ? (
+            <select name="plastic" defaultValue={disc.plastic??""} className="input-pill text-xs py-1.5">
+              <option value="">— Select —</option>
+              {plastics.map(p=>(
+                <option key={p.name} value={p.name}>
+                  {p.name} {p.stabilityOffset>0?"↑OS":p.stabilityOffset<0?"↓US":"·"}
+                </option>
+              ))}
+              {disc.plastic && !plastics.find(p=>p.name===disc.plastic) && (
+                <option value={disc.plastic}>{disc.plastic}</option>
+              )}
+            </select>
+          ) : (
+            <input name="plastic" defaultValue={disc.plastic??""} placeholder="e.g. Star, ESP" className="input-pill text-xs py-1.5"/>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-4 gap-1.5">
         {[{name:"speed",label:"Spd",v:disc.speed,min:1,max:15},{name:"glide",label:"Gli",v:disc.glide,min:1,max:7},{name:"turn",label:"Trn",v:disc.turn,min:-5,max:2},{name:"fade",label:"Fde",v:disc.fade,min:0,max:5}].map(f=>(
