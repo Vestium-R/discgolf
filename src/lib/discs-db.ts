@@ -148,7 +148,7 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── Latitude 64 ──────────────────────────────────────────────────────────
   { manufacturer: "Latitude 64", name: "Bliss", type: "putter", speed: 2, glide: 4, turn: -1, fade: 1 },
-  { manufacturer: "Latitude 64", name: "Diamond", type: "fairway_driver", speed: 7, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "Latitude 64", name: "Diamond", type: "fairway_driver", speed: 8, glide: 6, turn: -3, fade: 1 },  // ADG confirmed — was speed 7
   { manufacturer: "Latitude 64", name: "Explorer", type: "fairway_driver", speed: 9, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "Latitude 64", name: "Flow", type: "fairway_driver", speed: 9, glide: 6, turn: -3, fade: 1 },
   { manufacturer: "Latitude 64", name: "Fuse", type: "midrange", speed: 5, glide: 6, turn: -1, fade: 1 },
@@ -182,12 +182,21 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "MVP", name: "Relativity", type: "distance_driver", speed: 14.5, glide: 5.5, turn: -3, fade: 1.5 }, // ADG p55
   { manufacturer: "MVP", name: "Signal", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
   { manufacturer: "MVP", name: "Theory", type: "distance_driver", speed: 10, glide: 5, turn: -1, fade: 2 },
-  { manufacturer: "Axiom", name: "Insanity", type: "distance_driver", speed: 14, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Axiom", name: "Defy", type: "distance_driver", speed: 14, glide: 5.5, turn: -3, fade: 1.5 },
-  { manufacturer: "Axiom", name: "Crave", type: "fairway_driver", speed: 8, glide: 5.5, turn: -2, fade: 2 },
-  { manufacturer: "Axiom", name: "Virus", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Axiom", name: "Hex", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },  // axiomdiscs.com
-  { manufacturer: "Axiom", name: "Proxy", type: "putter", speed: 3, glide: 3.5, turn: -1, fade: 0.5 }, // same mold as MVP Proxy
+  // All Axiom numbers confirmed via atlanticdiscgolf.com/collections/axiom-discs
+  { manufacturer: "Axiom", name: "Crave", type: "fairway_driver", speed: 6.5, glide: 5, turn: -1, fade: 1 },   // was 8/5.5/-2/2
+  { manufacturer: "Axiom", name: "Defy", type: "distance_driver", speed: 11, glide: 5, turn: -1, fade: 3 },    // was 14/5.5/-3/1.5
+  { manufacturer: "Axiom", name: "Envy", type: "putter", speed: 3, glide: 3, turn: 0, fade: 2 },               // was 3/4/0/2
+  { manufacturer: "Axiom", name: "Hex", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },             // confirmed axiomdiscs.com
+  { manufacturer: "Axiom", name: "Insanity", type: "fairway_driver", speed: 9, glide: 5, turn: -2.5, fade: 1.5 }, // was 14/5/-2/2 — completely wrong
+  { manufacturer: "Axiom", name: "Paradox", type: "distance_driver", speed: 5, glide: 4, turn: -4, fade: 0 },  // ADG page 1
+  { manufacturer: "Axiom", name: "Pitch", type: "putter", speed: 1, glide: 7, turn: -0.5, fade: 0 },           // new — ADG p5
+  { manufacturer: "Axiom", name: "Proxy", type: "putter", speed: 3, glide: 3.5, turn: -1, fade: 0.5 },         // ADG confirmed
+  { manufacturer: "Axiom", name: "Rhythm", type: "fairway_driver", speed: 7, glide: 5.5, turn: -2, fade: 1 },  // was 5/5/-0.5/2
+  { manufacturer: "Axiom", name: "Tantrum", type: "distance_driver", speed: 14.5, glide: 5, turn: -1.5, fade: 3 }, // new — was wrong
+  { manufacturer: "Axiom", name: "Tenacity", type: "distance_driver", speed: 13, glide: 5, turn: -2.5, fade: 2 }, // new
+  { manufacturer: "Axiom", name: "Vanish", type: "distance_driver", speed: 11, glide: 5, turn: -3, fade: 2 },  // was 12/6/-4/1
+  { manufacturer: "Axiom", name: "Virus", type: "fairway_driver", speed: 9, glide: 5, turn: -3.5, fade: 1 },   // was 8/5/-2/2
+  { manufacturer: "Axiom", name: "Wrath", type: "fairway_driver", speed: 9, glide: 4.5, turn: -0.5, fade: 2 }, // new
   { manufacturer: "Streamline", name: "Trace", type: "fairway_driver", speed: 9, glide: 5, turn: -3, fade: 1 },
   { manufacturer: "Streamline", name: "Drift", type: "midrange", speed: 4, glide: 6, turn: -2, fade: 1 },
 
@@ -200,7 +209,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Discmania", name: "MD3", type: "midrange", speed: 5, glide: 6, turn: -1, fade: 2 },
   { manufacturer: "Discmania", name: "MD5", type: "midrange", speed: 6, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Discmania", name: "Essence", type: "fairway_driver", speed: 8, glide: 6, turn: -2, fade: 1 },
-  { manufacturer: "Discmania", name: "FD", type: "fairway_driver", speed: 7, glide: 6, turn: -2, fade: 1 },
+  { manufacturer: "Discmania", name: "FD", type: "fairway_driver", speed: 7, glide: 6, turn: 0, fade: 1 },    // ADG confirmed — was -2 turn
   { manufacturer: "Discmania", name: "FD3", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Discmania", name: "FD5", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Discmania", name: "PD", type: "fairway_driver", speed: 10, glide: 4, turn: -1, fade: 3 },
@@ -336,13 +345,10 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "MVP", name: "Spiral", type: "distance_driver", speed: 14, glide: 6, turn: -3, fade: 1 },
   { manufacturer: "MVP", name: "Volt", type: "fairway_driver", speed: 9, glide: 5, turn: -1, fade: 2 },
 
-  // ── More Axiom ────────────────────────────────────────────────────────────
+  // ── More Axiom (confirmed via ADG — moved to primary Axiom section above) ──
   { manufacturer: "Axiom", name: "Disarray", type: "distance_driver", speed: 13, glide: 5, turn: -4, fade: 2 },
-  { manufacturer: "Axiom", name: "Fireball", type: "fairway_driver", speed: 9, glide: 3.5, turn: 0, fade: 3.5 }, // axiomdiscs.com — was wrong type+numbers
-  { manufacturer: "Axiom", name: "Mayhem", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Axiom", name: "Mayhem", type: "distance_driver", speed: 13, glide: 5, turn: -1.5, fade: 2 }, // ADG corrected
   { manufacturer: "Axiom", name: "Panic", type: "distance_driver", speed: 13.5, glide: 5, turn: -1, fade: 3 },
-  { manufacturer: "Axiom", name: "Rhythm", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
-  { manufacturer: "Axiom", name: "Vanish", type: "distance_driver", speed: 12, glide: 6, turn: -4, fade: 1 },
 
   // ── More Streamline ───────────────────────────────────────────────────────
   { manufacturer: "Streamline", name: "Escape", type: "distance_driver", speed: 11, glide: 5, turn: -3, fade: 2 },
@@ -485,7 +491,7 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── Dynamic Discs (confirmed) ─────────────────────────────────────────────
   { manufacturer: "Dynamic Discs", name: "Warrant", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 0 },
-  { manufacturer: "Dynamic Discs", name: "Sockibomb Slammer", type: "midrange", speed: 5, glide: 3, turn: 0, fade: 3 },
+  { manufacturer: "Dynamic Discs", name: "Sockibomb Slammer", type: "putter", speed: 3, glide: 1, turn: 0.5, fade: 4 }, // ADG confirmed — was very wrong
   { manufacturer: "Dynamic Discs", name: "Lucid Enforcer", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
 
   // ── Discmania (confirmed) ────────────────────────────────────────────────
@@ -562,6 +568,26 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── Prodigy (confirmed) ───────────────────────────────────────────────────
   { manufacturer: "Prodigy", name: "A2", type: "putter", speed: 4, glide: 2, turn: 0, fade: 4 },
+
+  // ── Dynamic Discs (confirmed via atlanticdiscgolf.com/collections/dynamic-discs) ─
+  { manufacturer: "Dynamic Discs", name: "Felon", type: "fairway_driver", speed: 9, glide: 3, turn: 0.5, fade: 4 },
+  { manufacturer: "Dynamic Discs", name: "Motive", type: "fairway_driver", speed: 8, glide: 6, turn: -3, fade: 2 },
+  { manufacturer: "Dynamic Discs", name: "Justice", type: "midrange", speed: 5, glide: 1, turn: 0.5, fade: 4 },
+
+  // ── Infinite Discs (confirmed via atlanticdiscgolf.com/collections/infinite-discs) ─
+  { manufacturer: "Infinite Discs", name: "Anubis", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 0 },
+  { manufacturer: "Infinite Discs", name: "Centurion", type: "fairway_driver", speed: 7, glide: 5, turn: -1, fade: 1.5 },
+  { manufacturer: "Infinite Discs", name: "Pharaoh", type: "distance_driver", speed: 13, glide: 6, turn: -1, fade: 2 },
+  { manufacturer: "Infinite Discs", name: "Sphinx", type: "fairway_driver", speed: 9, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "Infinite Discs", name: "Maya", type: "distance_driver", speed: 11, glide: 5, turn: -3, fade: 1 },
+  { manufacturer: "Infinite Discs", name: "Slab", type: "distance_driver", speed: 12, glide: 3, turn: 0, fade: 4 },
+
+  // ── Discmania (confirmed via ADG) ─────────────────────────────────────────
+  { manufacturer: "Discmania", name: "Magician", type: "fairway_driver", speed: 6, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Discmania", name: "Genius", type: "fairway_driver", speed: 7, glide: 5, turn: -4, fade: 1 },
+
+  // ── Latitude 64 (confirmed via ADG) ───────────────────────────────────────
+  { manufacturer: "Latitude 64", name: "River", type: "fairway_driver", speed: 7, glide: 7, turn: -1, fade: 1 },
 ];
 
 /** Return sorted matches for a search query (disc name or manufacturer). */
