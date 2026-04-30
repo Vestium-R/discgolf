@@ -56,7 +56,7 @@ function EditForm({disc,onDone}:{disc:BagDisc;onDone:()=>void}) {
         <div><label className="text-[10px] text-forest-600 block mb-0.5">Plastic</label><input name="plastic" defaultValue={disc.plastic??""} className="input-pill text-xs py-1.5"/></div>
       </div>
       <div className="grid grid-cols-4 gap-1.5">
-        {[{name:"speed",label:"Spd",v:disc.speed,min:1,max:14},{name:"glide",label:"Gli",v:disc.glide,min:1,max:7},{name:"turn",label:"Trn",v:disc.turn,min:-5,max:2},{name:"fade",label:"Fde",v:disc.fade,min:0,max:5}].map(f=>(
+        {[{name:"speed",label:"Spd",v:disc.speed,min:1,max:15},{name:"glide",label:"Gli",v:disc.glide,min:1,max:7},{name:"turn",label:"Trn",v:disc.turn,min:-5,max:2},{name:"fade",label:"Fde",v:disc.fade,min:0,max:5}].map(f=>(
           <div key={f.name}><label className="text-[10px] text-forest-500 block mb-0.5">{f.label}</label>
             <input name={f.name} type="number" step="0.5" min={f.min} max={f.max} defaultValue={f.v??""} required={f.name==="speed"} className="input-pill text-xs py-1.5 text-center px-1"/>
           </div>

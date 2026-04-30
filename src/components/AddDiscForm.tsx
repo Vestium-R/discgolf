@@ -206,7 +206,7 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
         </p>
         <div className="grid grid-cols-4 gap-2">
           {[
-            { name:"speed", label:"Speed", v:selected?.speed, min:1,  max:14, placeholder:"7"  },
+            { name:"speed", label:"Speed", v:selected?.speed, min:1,  max:15, placeholder:"7"  },
             { name:"glide", label:"Glide", v:selected?.glide, min:1,  max:7,  placeholder:"5"  },
             { name:"turn",  label:"Turn",  v:selected?.turn,  min:-5, max:2,  placeholder:"-1" },
             { name:"fade",  label:"Fade",  v:selected?.fade,  min:0,  max:5,  placeholder:"2"  },
