@@ -93,8 +93,8 @@ export default async function BagPage() {
       {/* Quick tools */}
       {discs.filter(d => !d.inStorage).length >= 2 && (
         <div className="grid gap-3 sm:grid-cols-2">
-          <WhatToThrow discs={discs} />
-          <CoursePlayPlanner />
+          <WhatToThrow discs={discs} serverPrefs={userPrefs} />
+          <CoursePlayPlanner serverPrefs={userPrefs} />
         </div>
       )}
 

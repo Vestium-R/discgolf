@@ -7,7 +7,8 @@ import { AI_FACTORS } from "@/lib/ai-factors";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 import { fetchCourseHolesAction, type HoleData } from "@/app/bag/course-holes-action";
 import { COURSES } from "@/components/CourseList";
-import { loadPrefs } from "@/components/BagSettings";
+import { loadPrefs, type BagPrefs } from "@/components/BagSettings";
+import type { UserPrefs } from "@/lib/store";
 import { plasticStabOffset } from "@/lib/plastics-db";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -139,7 +140,7 @@ function ruleRecommend(
 type Mode = "general" | "course";
 const allCourses = COURSES.flatMap(g => g.courses);
 
-export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
+export function WhatToThrow({ discs, serverPrefs }: { discs: BagDisc[]; serverPrefs?: UserPrefs }) {
   const [open, setOpen]         = useState(false);
   const [mode, setMode]         = useState<Mode>("course");
   const [dist, setDist]         = useState(200);
@@ -157,7 +158,11 @@ export function WhatToThrow({ discs }: { discs: BagDisc[] }) {
   const [geoLoading, setGeoLoading] = useState(false);
 
   const effectiveDist = selectedHole?.distance ?? dist;
-  const { maxDist: playerMaxDist, playStyle = "flat" } = typeof window !== "undefined" ? loadPrefs() : { maxDist: 300, playStyle: "flat" };
+  // Prefer server prefs (from DB, always accurate) over localStorage (may be stale)
+  const localPrefs = typeof window !== "undefined" ? loadPrefs() : {} as BagPrefs;
+  const playerMaxDist = serverPrefs?.maxDistFt ?? localPrefs.maxDist ?? 300;
+  const playStyle     = serverPrefs?.playStyle  ?? localPrefs.playStyle ?? "flat";
+
   const recs = useMemo(() => ruleRecommend(discs, effectiveDist, winds, playerMaxDist, playStyle), [discs, effectiveDist, winds, playerMaxDist, playStyle]);
 
   function toggleWind(w: Wind) {

@@ -4,8 +4,9 @@ import { planCourseAction } from "@/app/bag/ai-analyze";
 import { AI_FACTORS } from "@/lib/ai-factors";
 import { COURSES } from "@/components/CourseList";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
+import type { UserPrefs } from "@/lib/store";
 
-export function CoursePlayPlanner() {
+export function CoursePlayPlanner({ serverPrefs }: { serverPrefs?: UserPrefs }) {
   const [open, setOpen] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState("");
   const [selectedName, setSelectedName] = useState("");
