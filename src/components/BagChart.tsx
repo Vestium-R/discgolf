@@ -15,7 +15,7 @@ export type ChartPrefs = {
 
 const SW = 580, SH = 340, SPL = 44, SPT = 16, SPR = 16, SPB = 44;
 const SPW = SW - SPL - SPR, SPH = SH - SPT - SPB;
-const STAB_MAX = 6, STAB_MIN = -5, SPD_MIN = 0, SPD_MAX = 14;
+const STAB_MAX = 6, STAB_MIN = -5, SPD_MIN = 0, SPD_MAX = 15;
 
 function sx(stab: number) { return SPL + ((STAB_MAX - stab) / (STAB_MAX - STAB_MIN)) * SPW; }
 function sy(speed: number) { return SPT + SPH - ((speed - SPD_MIN) / (SPD_MAX - SPD_MIN)) * SPH; }
@@ -26,7 +26,7 @@ function ScatterPlot({ discs, hovered, setHovered, showNames, onClickDisc, focus
   onClickDisc: (id: string) => void;
 }) {
   const stabTicks = [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
-  const spdTicks  = [2, 4, 6, 8, 10, 12, 14];
+  const spdTicks  = [2, 4, 6, 8, 10, 12, 14, 15];
 
   return (
     <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full min-w-[300px] rounded-xl border border-forest-100 bg-white">
