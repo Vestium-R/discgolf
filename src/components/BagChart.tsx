@@ -113,15 +113,30 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
     const turn=d.turn??0, fade=d.fade??0;
     const distFt = speedToFeet(d.speed);
     // Lateral deviation in feet (RHBH): negative turn → right (+X), fade → left (-X)
-    // Pixel: turn=0, fade=0.5 → endLat=-2 (almost straight with tiny fade left) ✓
-    // Time Lapse: turn=-1, fade=2 → peak=5ft right, end=-8ft left (S-curve) ✓
-    // Sidewinder: turn=-3, fade=1 → peak=15ft right, end=-2ft (understable) ✓
     const peakLat  = flip * (-(turn) * 5);
     const endLat   = flip * (-(turn) * 2 - fade * 4);
-    const x0=toFx(0),         y0=toFy(0,maxFt);
-    const c1x=toFx(peakLat),  c1y=toFy(distFt*0.35,maxFt);
-    const c2x=toFx(peakLat*0.5+endLat*0.5), c2y=toFy(distFt*0.65,maxFt);
-    const ex=toFx(endLat),    ey=toFy(distFt,maxFt);
+
+    // S-curve: if turn and fade have opposite signs, the disc curves one way then back
+    const hasSCurve = (turn < -0.5) && (fade > 0.5); // understable disc with fade = S-curve
+
+    const x0=toFx(0), y0=toFy(0,maxFt);
+    let c1x, c1y, c2x, c2y;
+
+    if (hasSCurve) {
+      // S-curve: peak should be earlier (30%), fade-back should be gradual
+      c1x = toFx(peakLat * 1.2);      // exaggerate the turn peak
+      c1y = toFy(distFt * 0.30, maxFt);
+      c2x = toFx(endLat * 0.7);       // pull toward end but not fully
+      c2y = toFy(distFt * 0.70, maxFt);
+    } else {
+      // Standard curve
+      c1x = toFx(peakLat);
+      c1y = toFy(distFt * 0.35, maxFt);
+      c2x = toFx(peakLat * 0.5 + endLat * 0.5);
+      c2y = toFy(distFt * 0.65, maxFt);
+    }
+
+    const ex=toFx(endLat), ey=toFy(distFt, maxFt);
     return { d, path:`M ${x0} ${y0} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${ex} ${ey}`, ex, ey, distFt };
   });
 
@@ -194,7 +209,15 @@ export function BagChart({ discs, prefs={} }: { discs: BagDisc[]; prefs?: ChartP
   const hoveredDisc = hovered ? discs.find(d=>d.id===hovered) : (focused ? discs.find(d=>d.id===focused) : null);
   const flipLateral = prefs.throwStyle==="LHBH" || prefs.throwStyle==="RHFH";
   const visibleDiscs = focused ? discs.filter(d=>d.id===focused) : discs;
-  function handleClick(id: string) { setFocused(f => f===id ? null : id); }
+  function handleClick(id: string) {
+    if (focused === id) {
+      setFocused(null);
+      setView("scatter");
+    } else {
+      setFocused(id);
+      setView("flights"); // Auto-switch to flights when clicking a disc
+    }
+  }
 
   return (
     <div className="space-y-3">
@@ -215,7 +238,7 @@ export function BagChart({ discs, prefs={} }: { discs: BagDisc[]; prefs?: ChartP
       {focused && (
         <p className="text-[11px] text-forest-500 text-center">
           Showing <strong>{discs.find(d=>d.id===focused)?.discName}</strong> only ·{" "}
-          <button onClick={()=>setFocused(null)} className="underline hover:text-forest-800">show all</button>
+          <button onClick={()=>{setFocused(null); setView("scatter");}} className="underline hover:text-forest-800">show all</button>
         </p>
       )}
 
