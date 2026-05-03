@@ -64,9 +64,9 @@ export function BagSettings({ onChange }: { onChange: (p: BagPrefs) => void }) {
         <div className="mt-3 card p-4 space-y-4">
           <h4 className="text-sm font-semibold text-forest-800">Display settings</h4>
 
-          {/* Throwing style */}
+          {/* Throwing style simulation */}
           <div>
-            <label className="text-xs font-semibold text-forest-700 block mb-1">Throwing style</label>
+            <label className="text-xs font-semibold text-forest-700 block mb-1">Throwing style simulation</label>
             <div className="flex gap-1 flex-wrap">
               {(["RHBH", "RHFH", "LHBH", "LHFH"] as BagPrefs["throwStyle"][]).map((s) => (
                 <button key={s} onClick={() => update({ throwStyle: s })}
@@ -77,7 +77,7 @@ export function BagSettings({ onChange }: { onChange: (p: BagPrefs) => void }) {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-forest-400 mt-1">Affects flight path direction on the chart</p>
+            <p className="text-[10px] text-forest-400 mt-1">Visualize flight paths for different release angles</p>
           </div>
 
           {/* Distance unit */}
