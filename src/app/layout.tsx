@@ -31,13 +31,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NavLink href="/">Home</NavLink>
               <NavLink href="/rounds">Rounds</NavLink>
               <NavLink href="/stats">Stats</NavLink>
-              <NavLink href="/seasons">Seasons</NavLink>
-              <NavLink href="/courses">Courses</NavLink>
-              <NavLink href="/rules">Rules</NavLink>
               <NavLink href="/bag">My Bag</NavLink>
               <NavLink href="/in-round">In Round</NavLink>
-              <NavLink href="/setup">Setup</NavLink>
-              <NavLink href="/admin">⚙</NavLink>
+              <NavLink href="/courses">Courses</NavLink>
+              <NavLink href="/rules">Rules</NavLink>
+              <details className="group">
+                <summary className="cursor-pointer rounded-full px-3 py-2 text-forest-700 hover:bg-forest-50 transition-colors">More</summary>
+                <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-10 min-w-max">
+                  <NavLink href="/seasons">Seasons</NavLink>
+                  <NavLink href="/setup">Setup</NavLink>
+                  <NavLink href="/admin">⚙ Admin</NavLink>
+                </div>
+              </details>
             </nav>
           </div>
         </header>
