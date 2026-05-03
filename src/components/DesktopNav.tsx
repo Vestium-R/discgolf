@@ -49,16 +49,18 @@ export function DesktopNav() {
         >
           Stats {openDropdown === "stats" ? "▼" : ""}
         </button>
-        {openDropdown === "stats" && (
-          <div className="absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40">
-            <NavLink href="/stats" active={isActive("/stats")}>
-              Stats
-            </NavLink>
-            <NavLink href="/courses" active={isActive("/courses")}>
-              Courses
-            </NavLink>
-          </div>
-        )}
+        <div
+          className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40 transition-opacity ${
+            openDropdown === "stats" ? "block opacity-100" : "hidden opacity-0"
+          }`}
+        >
+          <NavLink href="/stats" active={isActive("/stats")}>
+            Stats
+          </NavLink>
+          <NavLink href="/courses" active={isActive("/courses")}>
+            Courses
+          </NavLink>
+        </div>
       </div>
 
       <NavLink href="/bag" active={isActive("/bag")}>
@@ -83,19 +85,21 @@ export function DesktopNav() {
         >
           More {openDropdown === "more" ? "▼" : ""}
         </button>
-        {openDropdown === "more" && (
-          <div className="absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40">
-            <NavLink href="/seasons" active={isActive("/seasons")}>
-              Seasons
-            </NavLink>
-            <NavLink href="/setup" active={isActive("/setup")}>
-              Setup
-            </NavLink>
-            <NavLink href="/admin" active={isActive("/admin")}>
-              ⚙ Admin
-            </NavLink>
-          </div>
-        )}
+        <div
+          className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40 transition-opacity ${
+            openDropdown === "more" ? "block opacity-100" : "hidden opacity-0"
+          }`}
+        >
+          <NavLink href="/seasons" active={isActive("/seasons")}>
+            Seasons
+          </NavLink>
+          <NavLink href="/setup" active={isActive("/setup")}>
+            Setup
+          </NavLink>
+          <NavLink href="/admin" active={isActive("/admin")}>
+            ⚙ Admin
+          </NavLink>
+        </div>
       </div>
     </nav>
   );
