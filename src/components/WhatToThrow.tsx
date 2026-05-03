@@ -236,8 +236,8 @@ function ruleRecommend(
 type Mode = "general" | "course";
 const allCourses = COURSES.flatMap(g => g.courses);
 
-export function WhatToThrow({ discs, serverPrefs }: { discs: BagDisc[]; serverPrefs?: UserPrefs }) {
-  const [open, setOpen]     = useState(false);
+export function WhatToThrow({ discs, serverPrefs, defaultOpen = false }: { discs: BagDisc[]; serverPrefs?: UserPrefs; defaultOpen?: boolean }) {
+  const [open, setOpen]     = useState(defaultOpen);
   const [mode, setMode]     = useState<Mode>("course");
   const [dist, setDist]     = useState(200);
   // Wind

@@ -4,14 +4,15 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const primaryTabs = [
-  { href: "/",       label: "Home",   icon: "🏠", exact: true },
-  { href: "/rounds", label: "Rounds", icon: "🥏" },
-  { href: "/add",    label: "Add",    icon: "+",  add: true },
-  { href: "/bag",    label: "Bag",    icon: "🎒" },
-  { href: "/stats",  label: "Stats",  icon: "📊" },
+  { href: "/",         label: "Home",     icon: "🏠", exact: true },
+  { href: "/in-round", label: "In Round", icon: "🥏" },
+  { href: "/add",      label: "Add",      icon: "+",  add: true },
+  { href: "/bag",      label: "Bag",      icon: "🎒" },
+  { href: "/stats",    label: "Stats",    icon: "📊" },
 ];
 
 const moreTabs = [
+  { href: "/rounds",  label: "Rounds",  icon: "🗂️" },
   { href: "/seasons", label: "Seasons", icon: "🏆" },
   { href: "/courses", label: "Courses", icon: "📍" },
   { href: "/rules",   label: "Rules",   icon: "📋" },
