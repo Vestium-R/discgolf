@@ -50,7 +50,7 @@ export function DesktopNav() {
           Stats {openDropdown === "stats" ? "▼" : ""}
         </button>
         {openDropdown === "stats" && (
-          <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-50 min-w-max">
+          <div className="absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40">
             <NavLink href="/stats" active={isActive("/stats")}>
               Stats
             </NavLink>
@@ -84,7 +84,7 @@ export function DesktopNav() {
           More {openDropdown === "more" ? "▼" : ""}
         </button>
         {openDropdown === "more" && (
-          <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-50 min-w-max">
+          <div className="absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40">
             <NavLink href="/seasons" active={isActive("/seasons")}>
               Seasons
             </NavLink>
