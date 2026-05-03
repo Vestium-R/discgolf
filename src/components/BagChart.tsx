@@ -60,8 +60,8 @@ function ScatterPlot({ discs, hovered, setHovered, showNames, onClickDisc, focus
       {/* Border */}
       <rect x={SPL} y={SPT} width={SPW} height={SPH} fill="none" stroke="#e5e7eb"/>
 
-      {/* Discs */}
-      {discs.map(d=>{
+      {/* Discs — render non-hovered first so hovered names appear on top */}
+      {[...discs].sort((a,b)=>(hovered===b.id?-1:hovered===a.id?1:0)).map(d=>{
         const stab=(d.turn??0)+(d.fade??0);
         const x=sx(stab), y=sy(d.speed);
         const isHov=hovered===d.id;
@@ -73,7 +73,7 @@ function ScatterPlot({ discs, hovered, setHovered, showNames, onClickDisc, focus
             <text x={x} y={y+3.5} textAnchor="middle" fontSize={7} fill="white" fontWeight="700" pointerEvents="none">{d.speed}</text>
             {(showNames||isHov) && (
               <text x={x} y={y-13} textAnchor="middle" fontSize={9} fill="#111827" fontWeight={isHov?"700":"500"}
-                stroke="white" strokeWidth={3} paintOrder="stroke">{d.discName}</text>
+                stroke="white" strokeWidth={3} paintOrder="stroke" pointerEvents="none">{d.discName}</text>
             )}
           </g>
         );
