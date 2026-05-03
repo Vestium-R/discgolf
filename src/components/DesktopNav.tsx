@@ -41,13 +41,16 @@ export function DesktopNav() {
           onClick={() =>
             setOpenDropdown(openDropdown === "stats" ? null : "stats")
           }
-          className={`rounded-full px-3 py-2 transition-colors cursor-pointer font-medium ${
+          className={`rounded-full px-3 py-2 transition-colors cursor-pointer font-medium flex items-center gap-1 ${
             isActive("/stats") || isActive("/courses") || openDropdown === "stats"
               ? "text-forest-800 bg-forest-50"
               : "text-forest-700 hover:bg-forest-50"
           }`}
         >
-          Stats {openDropdown === "stats" ? "▼" : ""}
+          <span>Stats</span>
+          <span className={`text-xs transition-transform ${openDropdown === "stats" ? "rotate-180" : ""}`}>
+            ▼
+          </span>
         </button>
         <div
           className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-48 transition-all duration-150 ${
@@ -82,13 +85,16 @@ export function DesktopNav() {
       <div ref={moreRef} className="relative">
         <button
           onClick={() => setOpenDropdown(openDropdown === "more" ? null : "more")}
-          className={`rounded-full px-3 py-2 transition-colors cursor-pointer font-medium ${
+          className={`rounded-full px-3 py-2 transition-colors cursor-pointer font-medium flex items-center gap-1 ${
             isActive("/setup") || isActive("/admin") || openDropdown === "more"
               ? "text-forest-800 bg-forest-50"
               : "text-forest-700 hover:bg-forest-50"
           }`}
         >
-          More {openDropdown === "more" ? "▼" : ""}
+          <span>More</span>
+          <span className={`text-xs transition-transform ${openDropdown === "more" ? "rotate-180" : ""}`}>
+            ▼
+          </span>
         </button>
         <div
           className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40 transition-all duration-150 ${
