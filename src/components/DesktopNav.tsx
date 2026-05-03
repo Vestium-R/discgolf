@@ -50,8 +50,10 @@ export function DesktopNav() {
           Stats {openDropdown === "stats" ? "▼" : ""}
         </button>
         <div
-          className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40 transition-opacity ${
-            openDropdown === "stats" ? "block opacity-100" : "hidden opacity-0"
+          className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40 transition-all duration-150 ${
+            openDropdown === "stats"
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
           }`}
         >
           <NavLink href="/stats" active={isActive("/stats")}>
@@ -86,8 +88,10 @@ export function DesktopNav() {
           More {openDropdown === "more" ? "▼" : ""}
         </button>
         <div
-          className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40 transition-opacity ${
-            openDropdown === "more" ? "block opacity-100" : "hidden opacity-0"
+          className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40 transition-all duration-150 ${
+            openDropdown === "more"
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
           }`}
         >
           <NavLink href="/seasons" active={isActive("/seasons")}>
