@@ -3,6 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { DesktopNav } from "@/components/DesktopNav";
 
 export const metadata: Metadata = {
   title: "The Patch",
@@ -27,28 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               The Patch
             </Link>
             {/* Top nav — desktop only; mobile uses the bottom tab bar */}
-            <nav className="hidden sm:flex gap-1 text-sm overflow-x-auto scrollbar-none flex-1 justify-end">
-              <NavLink href="/">Home</NavLink>
-              <NavLink href="/rounds">Rounds</NavLink>
-              <details className="group relative">
-                <summary className="cursor-pointer rounded-full px-3 py-2 text-forest-700 hover:bg-forest-50 transition-colors">Stats</summary>
-                <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-50 min-w-max">
-                  <NavLink href="/stats">Stats</NavLink>
-                  <NavLink href="/courses">Courses</NavLink>
-                </div>
-              </details>
-              <NavLink href="/bag">My Bag</NavLink>
-              <NavLink href="/in-round">In Round</NavLink>
-              <NavLink href="/rules">Rules</NavLink>
-              <details className="group relative">
-                <summary className="cursor-pointer rounded-full px-3 py-2 text-forest-700 hover:bg-forest-50 transition-colors">More</summary>
-                <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-50 min-w-max">
-                  <NavLink href="/seasons">Seasons</NavLink>
-                  <NavLink href="/setup">Setup</NavLink>
-                  <NavLink href="/admin">⚙ Admin</NavLink>
-                </div>
-              </details>
-            </nav>
+            <DesktopNav />
           </div>
         </header>
 

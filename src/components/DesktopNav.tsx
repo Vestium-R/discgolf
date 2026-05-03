@@ -1,0 +1,123 @@
+"use client";
+import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
+
+export function DesktopNav() {
+  const pathname = usePathname() ?? "";
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (statsRef.current && !statsRef.current.contains(e.target as Node)) {
+        if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+          setOpenDropdown(null);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  return (
+    <nav className="hidden sm:flex gap-1 text-sm overflow-x-auto scrollbar-none flex-1 justify-end">
+      <NavLink href="/" active={isActive("/")}>
+        Home
+      </NavLink>
+      <NavLink href="/rounds" active={isActive("/rounds")}>
+        Rounds
+      </NavLink>
+
+      {/* Stats Dropdown */}
+      <div ref={statsRef} className="relative">
+        <button
+          onClick={() =>
+            setOpenDropdown(openDropdown === "stats" ? null : "stats")
+          }
+          className={`rounded-full px-3 py-2 transition-colors ${
+            isActive("/stats") || isActive("/courses")
+              ? "text-forest-800 bg-forest-50"
+              : "text-forest-700 hover:bg-forest-50"
+          }`}
+        >
+          Stats
+        </button>
+        {openDropdown === "stats" && (
+          <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-50 min-w-max">
+            <NavLink href="/stats" active={isActive("/stats")}>
+              Stats
+            </NavLink>
+            <NavLink href="/courses" active={isActive("/courses")}>
+              Courses
+            </NavLink>
+          </div>
+        )}
+      </div>
+
+      <NavLink href="/bag" active={isActive("/bag")}>
+        My Bag
+      </NavLink>
+      <NavLink href="/in-round" active={isActive("/in-round")}>
+        In Round
+      </NavLink>
+      <NavLink href="/rules" active={isActive("/rules")}>
+        Rules
+      </NavLink>
+
+      {/* More Dropdown */}
+      <div ref={moreRef} className="relative">
+        <button
+          onClick={() => setOpenDropdown(openDropdown === "more" ? null : "more")}
+          className={`rounded-full px-3 py-2 transition-colors ${
+            isActive("/seasons") || isActive("/setup") || isActive("/admin")
+              ? "text-forest-800 bg-forest-50"
+              : "text-forest-700 hover:bg-forest-50"
+          }`}
+        >
+          More
+        </button>
+        {openDropdown === "more" && (
+          <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-50 min-w-max">
+            <NavLink href="/seasons" active={isActive("/seasons")}>
+              Seasons
+            </NavLink>
+            <NavLink href="/setup" active={isActive("/setup")}>
+              Setup
+            </NavLink>
+            <NavLink href="/admin" active={isActive("/admin")}>
+              ⚙ Admin
+            </NavLink>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+function NavLink({
+  href,
+  children,
+  active,
+}: {
+  href: string;
+  children: React.ReactNode;
+  active?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-full px-3 py-2 transition-colors whitespace-nowrap shrink-0 ${
+        active
+          ? "text-forest-800 bg-forest-50"
+          : "text-forest-700 hover:bg-forest-50"
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
