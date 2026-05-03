@@ -114,7 +114,10 @@ function ruleRecommend(
   // Speed cap: always apply, but tailwind gets +2 grace (wind assist helps)
   const speedGrace = windDir === "tail" && windStr === "strong" ? 3
                    : windDir === "tail" ? 2 : 0;
-  const effectiveMaxSpeed = maxSpeed + speedGrace;
+
+  // For long holes (1.3x+ player max), relax speed cap — use fastest available disc
+  const holeExceedsPlayerMax = distFt > playerMaxDist * 1.3;
+  const effectiveMaxSpeed = holeExceedsPlayerMax ? 15 : maxSpeed + speedGrace;
 
   const idealSpeed = Math.max(1, Math.min(15, 1 + ((distFt - 100) / 320) * 13));
 
@@ -198,6 +201,12 @@ function ruleRecommend(
     }
 
     const power = df > distFt + 40 ? " · 70–80% power" : df < distFt - 40 ? " · full power" : "";
+
+    // If hole is much longer than player max, add note about reaching distance
+    if (holeExceedsPlayerMax) {
+      notes.push(`beyond your ${playerMaxDist}ft typical — max power + conditions`);
+    }
+
     return { disc, reason: notes.join(" · ") + power };
   });
 }
