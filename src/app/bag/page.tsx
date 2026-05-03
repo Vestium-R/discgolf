@@ -10,6 +10,7 @@ import { CoursePlayPlanner } from "@/components/CoursePlayPlanner";
 import { DiscRecommender } from "@/components/DiscRecommender";
 import { ShareBag } from "@/components/ShareBag";
 import { MeasureThrowGPS } from "@/components/MeasureThrowGPS";
+import { BagAnalysis } from "@/components/BagAnalysis";
 import type { BagDisc, DiscType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -117,6 +118,8 @@ export default async function BagPage() {
       {discs.length > 0 && (
         <div className="border-t-2 border-forest-100 pt-6 space-y-4">
           <h3 className="text-xs font-semibold text-forest-600 uppercase tracking-widest">Analysis & Learning</h3>
+
+          <BagAnalysis discs={discs.filter(d => !d.inStorage)} serverPrefs={userPrefs} />
 
           <DiscRecommender />
 
