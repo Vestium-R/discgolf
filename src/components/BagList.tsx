@@ -4,11 +4,9 @@ import type { BagDisc, DiscType } from "@/lib/types";
 import { DISC_TYPE_COLORS, DISC_TYPE_LABELS } from "@/lib/types";
 import { removeDiscAction, toggleStorageAction, updateDiscAction } from "@/app/bag/actions";
 import { analyzeBagDiscsAction } from "@/app/bag/ai-analyze";
-import { getDiscThrowStats } from "@/app/bag/throws-action";
 import { AI_FACTORS } from "@/lib/ai-factors";
 import { loadPrefs } from "@/components/BagSettings";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
-import { MeasureThrow } from "@/components/MeasureThrow";
 import { DISC_DB } from "@/lib/discs-db";
 import { getPlasticsForManufacturer } from "@/lib/plastics-db";
 
@@ -123,67 +121,47 @@ function EditForm({disc,onDone}:{disc:BagDisc;onDone:()=>void}) {
 // ── Disc row ──────────────────────────────────────────────────────────────────
 function DiscRow({d,editing,onEdit,onStopEdit,showStorage}:{d:BagDisc;editing:boolean;onEdit:()=>void;onStopEdit:()=>void;showStorage?:boolean}) {
   const [pending,startT] = useTransition();
-  const [measuring, setMeasuring] = useState(false);
-  const [stats, setStats] = useState<{avg:number;min:number;max:number;count:number}|null>(null);
-  const [loadingStats, setLoadingStats] = useState(false);
   const {label,cls} = stabInfo(d);
   const dot = d.color?(COLOR_HEX[d.color.toLowerCase()]||DISC_TYPE_COLORS[d.type]):DISC_TYPE_COLORS[d.type];
 
   function remove() { startT(async()=>{ const fd=new FormData(); fd.set("id",d.id); await removeDiscAction(fd); }); }
   function toggle() { startT(async()=>{ const fd=new FormData(); fd.set("id",d.id); fd.set("inStorage",d.inStorage?"0":"1"); await toggleStorageAction(fd); }); }
-  function openMeasure() { setMeasuring(true); loadThrowStats(); }
-  function loadThrowStats() {
-    setLoadingStats(true);
-    startT(async()=>{
-      const s = await getDiscThrowStats(d.id);
-      setStats(s);
-      setLoadingStats(false);
-    });
-  }
 
   if (editing) return <EditForm disc={d} onDone={onStopEdit}/>;
 
   return (
-    <>
-      <li className="flex items-center gap-2.5 px-4 py-3">
-        <span className="w-3 h-3 rounded-full shrink-0 border border-white shadow-sm" style={{backgroundColor:dot}}/>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-sm font-semibold text-forest-800">{d.discName}</span>
-            {d.nickname&&<span className="text-xs font-medium text-forest-600 italic">"{d.nickname}"</span>}
-            {d.manufacturer&&<span className="text-xs text-forest-400">{d.manufacturer}</span>}
-            {d.plastic&&<span className="text-xs text-forest-300">· {d.plastic}</span>}
-          </div>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <span className="text-xs tabular-nums text-forest-500">{d.speed}/{d.glide??'—'}/{d.turn??'—'}/{d.fade??'—'}</span>
-            {d.weightG&&<span className="text-xs text-forest-400">{d.weightG}g</span>}
-            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cls}`}>{label}</span>
-            {d.notes&&<span className="text-[10px] text-forest-400 italic">{d.notes}</span>}
-            {stats&&<span className="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-full">⚡ {stats.avg}ft avg ({stats.count})</span>}
-          </div>
+    <li className="flex items-center gap-2.5 px-4 py-3">
+      <span className="w-3 h-3 rounded-full shrink-0 border border-white shadow-sm" style={{backgroundColor:dot}}/>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-sm font-semibold text-forest-800">{d.discName}</span>
+          {d.nickname&&<span className="text-xs font-medium text-forest-600 italic">"{d.nickname}"</span>}
+          {d.manufacturer&&<span className="text-xs text-forest-400">{d.manufacturer}</span>}
+          {d.plastic&&<span className="text-xs text-forest-300">· {d.plastic}</span>}
         </div>
-        {/* Bigger action buttons */}
-        {showStorage&&(
-          <button onClick={toggle} disabled={pending} title={d.inStorage?"Move to bag":"Move to storage"}
-            className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-sm font-medium text-forest-500 hover:bg-forest-100 hover:text-forest-800 transition-colors shrink-0">
-            {d.inStorage?"🎒":"📦"}
-          </button>
-        )}
-        <button onClick={openMeasure} title="Measure throw distance"
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+          <span className="text-xs tabular-nums text-forest-500">{d.speed}/{d.glide??'—'}/{d.turn??'—'}/{d.fade??'—'}</span>
+          {d.weightG&&<span className="text-xs text-forest-400">{d.weightG}g</span>}
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cls}`}>{label}</span>
+          {d.notes&&<span className="text-[10px] text-forest-400 italic">{d.notes}</span>}
+        </div>
+      </div>
+      {/* Bigger action buttons */}
+      {showStorage&&(
+        <button onClick={toggle} disabled={pending} title={d.inStorage?"Move to bag":"Move to storage"}
           className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-sm font-medium text-forest-500 hover:bg-forest-100 hover:text-forest-800 transition-colors shrink-0">
-          📏
+          {d.inStorage?"🎒":"📦"}
         </button>
-        <button onClick={onEdit}
-          className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-sm font-medium text-forest-500 hover:bg-forest-100 hover:text-forest-800 transition-colors shrink-0">
-          ✏️
-        </button>
-        <button onClick={remove} disabled={pending}
-          className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-red-300 hover:bg-red-50 hover:text-red-600 transition-colors shrink-0">
-          ✕
-        </button>
-      </li>
-      {measuring && <MeasureThrow disc={d} onClose={()=>setMeasuring(false)} onSuccess={()=>loadThrowStats()} />}
-    </>
+      )}
+      <button onClick={onEdit}
+        className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-sm font-medium text-forest-500 hover:bg-forest-100 hover:text-forest-800 transition-colors shrink-0">
+        ✏️
+      </button>
+      <button onClick={remove} disabled={pending}
+        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-red-300 hover:bg-red-50 hover:text-red-600 transition-colors shrink-0">
+        ✕
+      </button>
+    </li>
   );
 }
 

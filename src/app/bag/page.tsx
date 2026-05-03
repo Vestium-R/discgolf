@@ -9,6 +9,7 @@ import { WhatToThrow } from "@/components/WhatToThrow";
 import { CoursePlayPlanner } from "@/components/CoursePlayPlanner";
 import { DiscRecommender } from "@/components/DiscRecommender";
 import { ShareBag } from "@/components/ShareBag";
+import { MeasureThrowGPS } from "@/components/MeasureThrowGPS";
 import type { BagDisc, DiscType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -92,6 +93,8 @@ export default async function BagPage() {
       )}
 
       {/* Quick tools */}
+      <MeasureThrowGPS discs={discs} />
+
       {discs.filter(d => !d.inStorage).length >= 2 && (
         <div className="grid gap-3 sm:grid-cols-2">
           <WhatToThrow discs={discs} serverPrefs={userPrefs} />
