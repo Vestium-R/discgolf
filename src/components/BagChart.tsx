@@ -118,8 +118,6 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
 
     // S-curve: if turn and fade have opposite signs, the disc curves one way then back
     const hasSCurve = (turn < -0.5) && (fade > 0.5);
-    // Extreme turn: very understable discs need more dramatic curves
-    const extremeTurn = Math.abs(turn) >= 3;
 
     const x0=toFx(0), y0=toFy(0,maxFt);
     let c1x, c1y, c2x, c2y;
@@ -130,14 +128,8 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
       c1y = toFy(distFt * 0.25, maxFt);
       c2x = toFx(endLat * 0.6);
       c2y = toFy(distFt * 0.75, maxFt);
-    } else if (extremeTurn) {
-      // Extreme turn (like Paradox -4): dramatic arc
-      c1x = toFx(peakLat * 1.5);      // exaggerate peak
-      c1y = toFy(distFt * 0.25, maxFt); // peak earlier
-      c2x = toFx(peakLat * 0.8);      // hold near peak longer
-      c2y = toFy(distFt * 0.60, maxFt);
     } else {
-      // Standard curve
+      // Standard curve — let turn/fade physics do the work
       c1x = toFx(peakLat);
       c1y = toFy(distFt * 0.35, maxFt);
       c2x = toFx(peakLat * 0.5 + endLat * 0.5);
