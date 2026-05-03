@@ -146,9 +146,9 @@ function ruleRecommend(
 
       // Type zone: strongly prefer the right tool for the distance
       const typeBonus =
-        distFt < 150  && d.type === "putter"           ? -8 :
-        distFt < 150  && d.type === "midrange"         ? -4 :
-        distFt < 200  && d.type === "midrange"         ? -7 :
+        distFt <= 170 && d.type === "putter"           ? -8 : // putter primary for approach zone
+        distFt <= 170 && d.type === "midrange"         ? -3 : // midrange secondary
+        distFt < 200  && d.type === "midrange"         ? -7 : // midrange primary for 170-200ft
         distFt < 200  && d.type === "fairway_driver"   ? -2 :
         distFt < 310  && d.type === "midrange"         ? -7 : // midrange is ideal
         distFt < 310  && d.type === "fairway_driver"   ? -3 : // fairway ok but secondary
