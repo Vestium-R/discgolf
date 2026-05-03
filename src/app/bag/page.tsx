@@ -8,6 +8,7 @@ import { PlayerProfile } from "@/components/PlayerProfile";
 import { WhatToThrow } from "@/components/WhatToThrow";
 import { CoursePlayPlanner } from "@/components/CoursePlayPlanner";
 import { DiscRecommender } from "@/components/DiscRecommender";
+import { ShareBag } from "@/components/ShareBag";
 import type { BagDisc, DiscType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -96,6 +97,11 @@ export default async function BagPage() {
           <WhatToThrow discs={discs} serverPrefs={userPrefs} />
           <CoursePlayPlanner serverPrefs={userPrefs} />
         </div>
+      )}
+
+      {/* Share bag */}
+      {discs.filter(d => !d.inStorage).length > 0 && (
+        <ShareBag discs={discs} />
       )}
 
       {/* Disc recommender — always available once signed in */}

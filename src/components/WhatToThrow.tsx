@@ -84,14 +84,24 @@ function ruleRecommend(
 
   const totalOffset = styleOff + shapeOff;
 
+  // Check if wind aligns with or opposes dogleg — affects disc selection dramatically
+  const windAlignedWithDogleg =
+    (shape === "dogleg-left" && cross === "rtol") ||   // RTL wind helps push disc left into dogleg
+    (shape === "dogleg-right" && cross === "ltor");    // LTR wind helps push disc right into dogleg
+
+  // If wind is aligned with dogleg, we can use understable discs (wind helps the turn)
+  // If wind opposes dogleg, we need overstable (fight the wind)
+  const effectiveShapeOff = windAlignedWithDogleg ? -2.0 : shapeOff;
+  const effectiveTotal = styleOff + effectiveShapeOff;
+
   // Stability window by wind — calm is deliberately tighter to avoid extreme discs
   let stabMin: number, stabMax: number;
-  if      (windDir === "head" && windStr === "strong") { stabMin = 1;              stabMax = 6; }
-  else if (windDir === "head" && windStr === "light")  { stabMin = 0 + totalOffset; stabMax = 4 + totalOffset; }
-  else if (windDir === "tail" && windStr === "strong") { stabMin = -4 + totalOffset; stabMax = -0.5 + totalOffset; }
-  else if (windDir === "tail" && windStr === "light")  { stabMin = -3 + totalOffset; stabMax = 1 + totalOffset; }
-  else if (cross !== "none")                           { stabMin = 0 + totalOffset; stabMax = 5 + totalOffset; }
-  else /* calm */                                      { stabMin = -2.0 + totalOffset; stabMax = 2.0 + totalOffset; }
+  if      (windDir === "head" && windStr === "strong") { stabMin = 1;                stabMax = 6; }
+  else if (windDir === "head" && windStr === "light")  { stabMin = 0 + effectiveTotal; stabMax = 4 + effectiveTotal; }
+  else if (windDir === "tail" && windStr === "strong") { stabMin = -4 + effectiveTotal; stabMax = -0.5 + effectiveTotal; }
+  else if (windDir === "tail" && windStr === "light")  { stabMin = -3 + effectiveTotal; stabMax = 1 + effectiveTotal; }
+  else if (cross !== "none")                           { stabMin = -2.0 + effectiveTotal; stabMax = 3.0 + effectiveTotal; }
+  else /* calm */                                      { stabMin = -2.0 + effectiveTotal; stabMax = 2.0 + effectiveTotal; }
 
   // Wooded/tunnel: tightest neutral window — straightest disc wins
   if (woodedOverride) { stabMin = -0.8; stabMax = 0.8; }
@@ -176,8 +186,16 @@ function ruleRecommend(
       notes.push("strong tailwind — let it turn");
       if (disc.speed > maxSpeed) notes.push(`speed ${disc.speed} usable with wind`);
     } else if (windDir === "tail") notes.push("tailwind boost");
-    if (cross === "ltor") notes.push(s > 1 ? "fade fights L→R push" : "aim further left");
-    if (cross === "rtol") notes.push(s < 0 ? "turn + wind — flex shot" : "aim further right");
+
+    // Dogleg + wind interaction notes
+    if (shape === "dogleg-left" && cross === "rtol") notes.push("RTL wind helps turn into dogleg");
+    else if (shape === "dogleg-left" && cross === "ltor") notes.push("LTR wind fights — need stable");
+    else if (shape === "dogleg-right" && cross === "ltor") notes.push("LTR wind helps turn into dogleg");
+    else if (shape === "dogleg-right" && cross === "rtol") notes.push("RTL wind fights — need stable");
+    else {
+      if (cross === "ltor") notes.push(s > 1 ? "fade fights L→R push" : "aim further left");
+      if (cross === "rtol") notes.push(s < 0 ? "turn + wind — flex shot" : "aim further right");
+    }
 
     const power = df > distFt + 40 ? " · 70–80% power" : df < distFt - 40 ? " · full power" : "";
     return { disc, reason: notes.join(" · ") + power };
