@@ -84,14 +84,27 @@ function ruleRecommend(
 
   const totalOffset = styleOff + shapeOff;
 
-  // Check if wind aligns with or opposes dogleg — affects disc selection dramatically
+  // Check if wind aligns with, opposes, or doesn't interact with dogleg
   const windAlignedWithDogleg =
     (shape === "dogleg-left" && cross === "rtol") ||   // RTL wind helps push disc left into dogleg
     (shape === "dogleg-right" && cross === "ltor");    // LTR wind helps push disc right into dogleg
 
-  // If wind is aligned with dogleg, we can use understable discs (wind helps the turn)
-  // If wind opposes dogleg, we need overstable (fight the wind)
-  const effectiveShapeOff = windAlignedWithDogleg ? -2.0 : shapeOff;
+  const windOpposeDogleg =
+    (shape === "dogleg-left" && cross === "ltor") ||   // LTR wind opposes left turn
+    (shape === "dogleg-right" && cross === "rtol");    // RTL wind opposes right turn
+
+  // If wind is aligned with dogleg, use full understable offset (wind helps the turn)
+  // If wind opposes dogleg, use overstable offset instead (need to fight the wind)
+  // Otherwise, use standard dogleg offset
+  let effectiveShapeOff: number;
+  if (windAlignedWithDogleg) {
+    effectiveShapeOff = -2.0;  // understable needed, wind assists
+  } else if (windOpposeDogleg) {
+    effectiveShapeOff = 2.0;   // overstable needed, wind opposes
+  } else {
+    effectiveShapeOff = shapeOff;  // standard dogleg offset
+  }
+
   const effectiveTotal = styleOff + effectiveShapeOff;
 
   // Stability window by wind — calm is deliberately tighter to avoid extreme discs
@@ -156,7 +169,15 @@ function ruleRecommend(
         distFt < 360  && d.type === "distance_driver"  ? -2 :
         distFt >= 360 && d.type === "distance_driver"  ? -7 : // distance driver primary for 360+ft
         distFt >= 360 && d.type === "fairway_driver"   ? -2 : 0;
-      return { disc: d, score: distDelta + typeBonus + overkillPenalty };
+
+      // Dogleg shape matching: prefer discs whose turn naturally shapes the required curve
+      // Stronger bonus for longer holes where disc shaping matters more than distance precision
+      const shapeMatchBonus =
+        (shape === "dogleg-right" && effStab(d) < -1.5) ? (distFt >= 400 ? -4 : -2) :
+        (shape === "dogleg-left" && effStab(d) > 1.5) ? (distFt >= 400 ? -4 : -2) :
+        0;
+
+      return { disc: d, score: distDelta + typeBonus + overkillPenalty + shapeMatchBonus };
     })
     .sort((a, b) => a.score - b.score)
     .filter((item, idx, arr) => arr.findIndex(x => x.disc.discName === item.disc.discName) === idx)
