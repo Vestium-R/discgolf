@@ -11,10 +11,12 @@ export function DesktopNav() {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (statsRef.current && !statsRef.current.contains(e.target as Node)) {
-        if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
-          setOpenDropdown(null);
-        }
+      const target = e.target as Node;
+      const isOutsideStats = !statsRef.current?.contains(target);
+      const isOutsideMore = !moreRef.current?.contains(target);
+
+      if (isOutsideStats && isOutsideMore) {
+        setOpenDropdown(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -39,13 +41,13 @@ export function DesktopNav() {
           onClick={() =>
             setOpenDropdown(openDropdown === "stats" ? null : "stats")
           }
-          className={`rounded-full px-3 py-2 transition-colors ${
-            isActive("/stats") || isActive("/courses")
+          className={`rounded-full px-3 py-2 transition-colors cursor-pointer font-medium ${
+            isActive("/stats") || isActive("/courses") || openDropdown === "stats"
               ? "text-forest-800 bg-forest-50"
               : "text-forest-700 hover:bg-forest-50"
           }`}
         >
-          Stats
+          Stats {openDropdown === "stats" ? "▼" : ""}
         </button>
         {openDropdown === "stats" && (
           <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-50 min-w-max">
@@ -73,13 +75,13 @@ export function DesktopNav() {
       <div ref={moreRef} className="relative">
         <button
           onClick={() => setOpenDropdown(openDropdown === "more" ? null : "more")}
-          className={`rounded-full px-3 py-2 transition-colors ${
-            isActive("/seasons") || isActive("/setup") || isActive("/admin")
+          className={`rounded-full px-3 py-2 transition-colors cursor-pointer font-medium ${
+            isActive("/seasons") || isActive("/setup") || isActive("/admin") || openDropdown === "more"
               ? "text-forest-800 bg-forest-50"
               : "text-forest-700 hover:bg-forest-50"
           }`}
         >
-          More
+          More {openDropdown === "more" ? "▼" : ""}
         </button>
         {openDropdown === "more" && (
           <div className="absolute top-full right-0 mt-1 bg-white border border-forest-200 rounded-lg shadow-lg p-2 space-y-1 z-50 min-w-max">
