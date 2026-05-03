@@ -62,57 +62,68 @@ export default async function BagPage() {
   const gaps = analyzeBag(discs);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* ━━━━━ SETUP ZONE ━━━━━ */}
       <header>
         <h2 className="font-display text-2xl font-bold text-forest-800">My Bag</h2>
         <p className="text-sm text-forest-600">{discs.length} disc{discs.length !== 1 ? "s" : ""} · {user.email}</p>
       </header>
 
-      {/* Compact player profile — collapsible, not the main focus */}
       <PlayerProfile initial={userPrefs} />
 
       <AddDiscForm />
 
-      {/* In Bag — with gaps inline, AI button in header */}
-      {discs.filter(d => !d.inStorage).length > 0 && (
-        <BagList
-          discs={discs.filter(d => !d.inStorage)}
-          title={`In Bag (${discs.filter(d => !d.inStorage).length})`}
-          showStorage
-          gaps={gaps}
-        />
-      )}
+      {/* ━━━━━ MAIN BAG VIEW ━━━━━ */}
+      <div className="space-y-4">
+        {discs.filter(d => !d.inStorage).length > 0 && (
+          <BagList
+            discs={discs.filter(d => !d.inStorage)}
+            title={`In Bag (${discs.filter(d => !d.inStorage).length})`}
+            showStorage
+            gaps={gaps}
+          />
+        )}
 
-      {/* Storage — collapsible button */}
-      {discs.filter(d => d.inStorage).length > 0 && (
-        <BagList
-          discs={discs.filter(d => d.inStorage)}
-          showStorage
-          isStorage
-        />
-      )}
+        {discs.filter(d => d.inStorage).length > 0 && (
+          <BagList
+            discs={discs.filter(d => d.inStorage)}
+            showStorage
+            isStorage
+          />
+        )}
+      </div>
 
-      {/* Quick tools */}
-      <MeasureThrowGPS discs={discs} />
+      {/* ━━━━━ ON-COURSE TOOLS ━━━━━ */}
+      {discs.filter(d => !d.inStorage).length >= 1 && (
+        <div className="border-t-2 border-forest-100 pt-6 space-y-4">
+          <h3 className="text-xs font-semibold text-forest-600 uppercase tracking-widest">On-Course Tools</h3>
 
-      {discs.filter(d => !d.inStorage).length >= 2 && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <WhatToThrow discs={discs} serverPrefs={userPrefs} />
-          <CoursePlayPlanner serverPrefs={userPrefs} />
+          <MeasureThrowGPS discs={discs} />
+
+          {discs.filter(d => !d.inStorage).length >= 2 && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <WhatToThrow discs={discs} serverPrefs={userPrefs} />
+              <CoursePlayPlanner serverPrefs={userPrefs} />
+            </div>
+          )}
+
+          {discs.filter(d => !d.inStorage).length > 0 && (
+            <ShareBag discs={discs} />
+          )}
         </div>
       )}
 
-      {/* Share bag */}
-      {discs.filter(d => !d.inStorage).length > 0 && (
-        <ShareBag discs={discs} />
-      )}
+      {/* ━━━━━ ANALYSIS & LEARNING ━━━━━ */}
+      {discs.length > 0 && (
+        <div className="border-t-2 border-forest-100 pt-6 space-y-4">
+          <h3 className="text-xs font-semibold text-forest-600 uppercase tracking-widest">Analysis & Learning</h3>
 
-      {/* Disc recommender — always available once signed in */}
-      <DiscRecommender />
+          <DiscRecommender />
 
-      {/* Chart */}
-      {discs.filter(d => !d.inStorage).length >= 2 && (
-        <BagInteractive discs={discs.filter(d => !d.inStorage)} serverPrefs={userPrefs} />
+          {discs.filter(d => !d.inStorage).length >= 2 && (
+            <BagInteractive discs={discs.filter(d => !d.inStorage)} serverPrefs={userPrefs} />
+          )}
+        </div>
       )}
 
       {discs.length === 0 && (
