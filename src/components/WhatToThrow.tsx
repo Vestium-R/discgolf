@@ -152,10 +152,10 @@ function ruleRecommend(
         distFt < 200  && d.type === "fairway_driver"   ? -2 :
         distFt < 310  && d.type === "midrange"         ? -7 : // midrange is ideal
         distFt < 310  && d.type === "fairway_driver"   ? -3 : // fairway ok but secondary
-        distFt < 380  && d.type === "fairway_driver"   ? -7 :
-        distFt < 380  && d.type === "distance_driver"  ? -3 :
-        distFt >= 380 && d.type === "distance_driver"  ? -7 :
-        distFt >= 380 && d.type === "fairway_driver"   ? -2 : 0;
+        distFt < 360  && d.type === "fairway_driver"   ? -7 : // fairway primary for 310-360ft
+        distFt < 360  && d.type === "distance_driver"  ? -2 :
+        distFt >= 360 && d.type === "distance_driver"  ? -7 : // distance driver primary for 360+ft
+        distFt >= 360 && d.type === "fairway_driver"   ? -2 : 0;
       return { disc: d, score: distDelta + typeBonus + overkillPenalty };
     })
     .sort((a, b) => a.score - b.score)
