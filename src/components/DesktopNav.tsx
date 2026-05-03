@@ -27,7 +27,7 @@ export function DesktopNav() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <nav className="hidden sm:flex gap-1 text-sm overflow-x-auto scrollbar-none flex-1 justify-end">
+    <nav className="hidden sm:flex gap-1 text-sm flex-1 justify-end">
       <NavLink href="/" active={isActive("/")}>
         Home
       </NavLink>
