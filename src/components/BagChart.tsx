@@ -117,17 +117,25 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
     const endLat   = flip * (-(turn) * 2 - fade * 4);
 
     // S-curve: if turn and fade have opposite signs, the disc curves one way then back
-    const hasSCurve = (turn < -0.5) && (fade > 0.5); // understable disc with fade = S-curve
+    const hasSCurve = (turn < -0.5) && (fade > 0.5);
+    // Extreme turn: very understable discs need more dramatic curves
+    const extremeTurn = Math.abs(turn) >= 3;
 
     const x0=toFx(0), y0=toFy(0,maxFt);
     let c1x, c1y, c2x, c2y;
 
     if (hasSCurve) {
-      // S-curve: peak should be earlier (30%), fade-back should be gradual
-      c1x = toFx(peakLat * 1.2);      // exaggerate the turn peak
-      c1y = toFy(distFt * 0.30, maxFt);
-      c2x = toFx(endLat * 0.7);       // pull toward end but not fully
-      c2y = toFy(distFt * 0.70, maxFt);
+      // S-curve: peak early, fade-back late
+      c1x = toFx(peakLat * 1.3);
+      c1y = toFy(distFt * 0.25, maxFt);
+      c2x = toFx(endLat * 0.6);
+      c2y = toFy(distFt * 0.75, maxFt);
+    } else if (extremeTurn) {
+      // Extreme turn (like Paradox -4): dramatic arc
+      c1x = toFx(peakLat * 1.5);      // exaggerate peak
+      c1y = toFy(distFt * 0.25, maxFt); // peak earlier
+      c2x = toFx(peakLat * 0.8);      // hold near peak longer
+      c2y = toFy(distFt * 0.60, maxFt);
     } else {
       // Standard curve
       c1x = toFx(peakLat);
@@ -223,7 +231,7 @@ export function BagChart({ discs, prefs={} }: { discs: BagDisc[]; prefs?: ChartP
     <div className="space-y-3">
       <div className="flex gap-1">
         {(["scatter","flights"] as View[]).map(v=>(
-          <button key={v} onClick={()=>setView(v)}
+          <button key={v} onClick={()=>{setView(v); if(focused) setFocused(null);}}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
               view===v?"bg-forest-700 text-white":"bg-forest-100 text-forest-600 hover:bg-forest-200"
             }`}>
