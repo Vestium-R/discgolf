@@ -17,8 +17,8 @@ export type BagDisc = {
 export type DiscMismatch = {
   bagDisc: BagDisc;
   dbDisc: DiscRecord | null;
-  mismatchType: "not_found" | "speed" | "glide" | "turn" | "fade";
-  expected?: { speed?: number; glide?: number; turn?: number; fade?: number };
+  mismatchType: "not_found" | "manufacturer" | "speed" | "glide" | "turn" | "fade";
+  expected?: { speed?: number; glide?: number; turn?: number; fade?: number; manufacturer?: string };
 };
 
 export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
@@ -46,6 +46,16 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
         mismatchType: "not_found",
       });
       continue;
+    }
+
+    // Check manufacturer mismatch
+    if (bagDisc.manufacturer?.toLowerCase() !== dbDisc.manufacturer.toLowerCase()) {
+      mismatches.push({
+        bagDisc,
+        dbDisc,
+        mismatchType: "manufacturer",
+        expected: { manufacturer: dbDisc.manufacturer },
+      });
     }
 
     // Check each flight number
@@ -88,13 +98,16 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
 
 export function auditSummary(mismatches: DiscMismatch[]) {
   const notFound = mismatches.filter((m) => m.mismatchType === "not_found").length;
-  const hasFlightMismatches = mismatches.length - notFound;
+  const manufacturerMismatches = mismatches.filter((m) => m.mismatchType === "manufacturer").length;
+  const flightMismatches = mismatches.filter((m) => ["speed", "glide", "turn", "fade"].includes(m.mismatchType)).length;
 
   return {
     totalMismatches: mismatches.length,
     notFound,
-    flightNumberMismatches: hasFlightMismatches,
+    manufacturerMismatches,
+    flightNumberMismatches: flightMismatches,
     byType: {
+      manufacturer: manufacturerMismatches,
       speed: mismatches.filter((m) => m.mismatchType === "speed").length,
       glide: mismatches.filter((m) => m.mismatchType === "glide").length,
       turn: mismatches.filter((m) => m.mismatchType === "turn").length,

@@ -7,36 +7,47 @@ import { getRoster } from "@/lib/store";
 import type { DiscRecord } from "@/lib/discs-db";
 
 export async function getRosterForAudit() {
-  const user = await getUser();
-  if (!user) throw new Error("Not authenticated");
+  try {
+    const user = await getUser();
+    if (!user) throw new Error("Not authenticated");
 
-  return await getRoster();
+    const roster = await getRoster();
+    return roster || [];
+  } catch (error) {
+    console.error("getRosterForAudit error:", error);
+    throw error;
+  }
 }
 
 export async function auditUserBagDiscs(userId?: string) {
-  const user = await getUser();
-  if (!user) throw new Error("Not authenticated");
+  try {
+    const user = await getUser();
+    if (!user) throw new Error("Not authenticated");
 
-  const targetUserId = userId || user.id;
-  if (!targetUserId) throw new Error("No user ID available");
+    const targetUserId = userId || user.id;
+    if (!targetUserId) throw new Error("No user ID available");
 
-  const supabase = supabaseAdmin();
-  const { data: bagDiscs, error } = await supabase
-    .from("bag_discs")
-    .select("*")
-    .eq("user_id", targetUserId);
+    const supabase = supabaseAdmin();
+    const { data: bagDiscs, error } = await supabase
+      .from("bag_discs")
+      .select("*")
+      .eq("user_id", targetUserId);
 
-  if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
+    if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
 
-  const mismatches = auditBagDiscs(bagDiscs || []);
-  const summary = auditSummary(mismatches);
+    const mismatches = auditBagDiscs(bagDiscs || []);
+    const summary = auditSummary(mismatches);
 
-  return {
-    userId: targetUserId,
-    totalBagDiscs: bagDiscs?.length || 0,
-    mismatches,
-    summary,
-  };
+    return {
+      userId: targetUserId,
+      totalBagDiscs: bagDiscs?.length || 0,
+      mismatches,
+      summary,
+    };
+  } catch (error) {
+    console.error("auditUserBagDiscs error:", error);
+    throw error;
+  }
 }
 
 export async function auditAllBagDiscs() {
