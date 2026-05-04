@@ -112,9 +112,9 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
   const paths = discs.map(d=>{
     const turn=d.turn??0, fade=d.fade??0;
     const distFt = speedToFeet(d.speed);
-    // Lateral deviation in feet (RHBH): negative turn → left (-X), fade → left (-X)
-    const peakLat  = flip * (turn * 5);
-    const endLat   = flip * (turn * 2 - fade * 4);
+    // Lateral deviation in feet (RHBH): negative turn → right (+X), fade → left (-X)
+    const peakLat  = flip * (-(turn) * 5);
+    const endLat   = flip * (-(turn) * 2 - fade * 4);
 
     // S-curve: if turn and fade have opposite signs, the disc curves one way then back
     const hasSCurve = (turn < -0.5) && (fade > 0.5);
@@ -147,15 +147,15 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
 
   return (
     <svg viewBox={`0 0 ${FW} ${FH}`} className="w-full min-w-[300px] rounded-xl border border-forest-100 bg-white">
-      {/* Stability zones - left (understable), center (neutral), right (overstable) */}
-      <rect x={FPL} y={FPT} width={FPW/3} height={FPH} fill="#dcfce7" opacity={0.3}/>
+      {/* Stability zones - left (overstable), center (neutral), right (understable) */}
+      <rect x={FPL} y={FPT} width={FPW/3} height={FPH} fill="#fee2e2" opacity={0.3}/>
       <rect x={FPL + FPW/3} y={FPT} width={FPW/3} height={FPH} fill="#fef9c3" opacity={0.3}/>
-      <rect x={FPL + 2*FPW/3} y={FPT} width={FPW/3} height={FPH} fill="#fee2e2" opacity={0.3}/>
+      <rect x={FPL + 2*FPW/3} y={FPT} width={FPW/3} height={FPH} fill="#dcfce7" opacity={0.3}/>
 
       {/* Zone labels */}
-      <text x={FPL + FPW/6} y={FPT+12} textAnchor="middle" fontSize={8} fill="#16a34a" opacity={0.6} fontWeight="600">US</text>
+      <text x={FPL + FPW/6} y={FPT+12} textAnchor="middle" fontSize={8} fill="#ef4444" opacity={0.6} fontWeight="600">OS</text>
       <text x={FPL + FPW/2} y={FPT+12} textAnchor="middle" fontSize={8} fill="#d97706" opacity={0.6} fontWeight="600">Neutral</text>
-      <text x={FPL + 5*FPW/6} y={FPT+12} textAnchor="middle" fontSize={8} fill="#ef4444" opacity={0.6} fontWeight="600">OS</text>
+      <text x={FPL + 5*FPW/6} y={FPT+12} textAnchor="middle" fontSize={8} fill="#16a34a" opacity={0.6} fontWeight="600">US</text>
 
       {/* Grid */}
       {distTicks.map(v=>(
