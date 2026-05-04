@@ -90,7 +90,7 @@ function ScatterPlot({ discs, hovered, setHovered, showNames, onClickDisc, focus
 
 const FW = 580, FH = 360, FPL = 48, FPT = 16, FPR = 40, FPB = 36;
 const FPW = FW-FPL-FPR, FPH = FH-FPT-FPB;
-const LAT_RANGE = 60; // ±60 ft lateral each side
+const LAT_RANGE = 35; // ±35 ft lateral each side (zoomed in to see curves better)
 
 // Realistic distance estimate (feet) per speed rating for an average player
 function speedToFeet(speed: number) { return Math.round(100 + (speed - 1) * (320 / 13)); }
