@@ -1,5 +1,5 @@
 import { getUser } from "@/lib/auth";
-import { getBagDiscs, getOrLinkPlayerByAuthId, getUserPrefs } from "@/lib/store";
+import { getBagDiscs, getPlayerByAuthEmail, getUserPrefs } from "@/lib/store";
 import { SignInForm } from "@/components/SignInForm";
 import { AddDiscForm } from "@/components/AddDiscForm";
 import { BagList } from "@/components/BagList";
@@ -59,7 +59,7 @@ export default async function BagPage() {
     );
   }
 
-  const player = await getOrLinkPlayerByAuthId(user.id, user.email);
+  const player = await getPlayerByAuthEmail(user.email);
   if (!player) {
     return (
       <div className="space-y-6 max-w-sm mx-auto pt-6">
