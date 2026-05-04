@@ -130,12 +130,14 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
       c2y = toFy(distFt * 0.75, maxFt);
     } else {
       // Standard curve: disc flies mostly straight initially, then curves develop
-      // c1 stays close (early ~25% of flight), c2 where curve peaks (mid-late flight)
+      // c1: minimal curve early (straight for first 25%)
+      // c2: settled by late flight - pulled back by fade if present
       const fadeInfluence = Math.max(0, fade); // fade > 0 pulls back toward center
-      c1x = toFx(peakLat * 0.25);  // minimal curve early, disc flies straight
+      c1x = toFx(peakLat * 0.2);   // very minimal early deflection, flies straight
       c1y = toFy(distFt * 0.25, maxFt);
-      c2x = toFx(peakLat * (1 - fadeInfluence * 0.15) - fade * 2);  // peak curve before fade-back
-      c2y = toFy(distFt * 0.65, maxFt);
+      // c2 stays near endpoint when no fade, pulls back toward center when fade present
+      c2x = toFx(endLat + (peakLat - endLat) * Math.max(0, 0.4 - fadeInfluence * 0.15));
+      c2y = toFy(distFt * 0.7, maxFt);
     }
 
     const ex=toFx(endLat), ey=toFy(distFt, maxFt);
