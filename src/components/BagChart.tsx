@@ -147,15 +147,15 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
 
   return (
     <svg viewBox={`0 0 ${FW} ${FH}`} className="w-full min-w-[300px] rounded-xl border border-forest-100 bg-white">
-      {/* Stability zones - left (overstable), center (neutral), right (understable) */}
-      <rect x={FPL} y={FPT} width={FPW/3} height={FPH} fill="#fee2e2" opacity={0.3}/>
-      <rect x={FPL + FPW/3} y={FPT} width={FPW/3} height={FPH} fill="#fef9c3" opacity={0.3}/>
-      <rect x={FPL + 2*FPW/3} y={FPT} width={FPW/3} height={FPH} fill="#dcfce7" opacity={0.3}/>
+      {/* Stability zones - based on endLat ranges (-10 to +10 for neutral) */}
+      <rect x={FPL} y={FPT} width={toFx(-10)-FPL} height={FPH} fill="#fee2e2" opacity={0.3}/>
+      <rect x={toFx(-10)} y={FPT} width={toFx(10)-toFx(-10)} height={FPH} fill="#fef9c3" opacity={0.3}/>
+      <rect x={toFx(10)} y={FPT} width={FPL+FPW-toFx(10)} height={FPH} fill="#dcfce7" opacity={0.3}/>
 
       {/* Zone labels */}
-      <text x={FPL + FPW/6} y={FPT+12} textAnchor="middle" fontSize={8} fill="#ef4444" opacity={0.6} fontWeight="600">OS</text>
-      <text x={FPL + FPW/2} y={FPT+12} textAnchor="middle" fontSize={8} fill="#d97706" opacity={0.6} fontWeight="600">Neutral</text>
-      <text x={FPL + 5*FPW/6} y={FPT+12} textAnchor="middle" fontSize={8} fill="#16a34a" opacity={0.6} fontWeight="600">US</text>
+      <text x={toFx(-15)} y={FPT+12} textAnchor="middle" fontSize={8} fill="#ef4444" opacity={0.6} fontWeight="600">OS</text>
+      <text x={toFx(0)} y={FPT+12} textAnchor="middle" fontSize={8} fill="#d97706" opacity={0.6} fontWeight="600">Neutral</text>
+      <text x={toFx(15)} y={FPT+12} textAnchor="middle" fontSize={8} fill="#16a34a" opacity={0.6} fontWeight="600">US</text>
 
       {/* Grid */}
       {distTicks.map(v=>(
