@@ -388,7 +388,6 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Axiom", name: "Disarray", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
   { manufacturer: "Axiom", name: "Electron Pixel", type: "putter", speed: 2, glide: 4, turn: 0, fade: 0 },
   { manufacturer: "Axiom", name: "Excite", type: "distance_driver", speed: 14, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Axiom", name: "Fireball", type: "distance_driver", speed: 9, glide: 3, turn: 0, fade: 3 },
   { manufacturer: "Axiom", name: "Hex", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },
   { manufacturer: "Axiom", name: "Insanity", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 1 },
   { manufacturer: "Axiom", name: "Inspire", type: "fairway_driver", speed: 6, glide: 5, turn: -1, fade: 1 },
@@ -744,7 +743,6 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Prodigy", name: "P4", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
 
   // ── Clash Discs ───────────────────────────────────────────────────────────
-  { manufacturer: "Clash Discs", name: "Butter", type: "putter", speed: 2, glide: 5, turn: -1, fade: 1 },
   { manufacturer: "Clash Discs", name: "Cherry", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "Clash Discs", name: "Popcorn", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Clash Discs", name: "Spice", type: "putter", speed: 2, glide: 4, turn: 0, fade: 2 },
@@ -919,7 +917,6 @@ export const DISC_DB: DiscRecord[] = [
   // Solar Flare is above in confirmed via discgolfdojo section
 
   // ── Axiom (confirmed via axiomdiscs.com and atlanticdiscgolf.com) ──────────
-  { manufacturer: "Axiom", name: "Pyro", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 2.5 },
   { manufacturer: "Axiom", name: "Time Lapse", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "Axiom", name: "Illusion", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2.5 },
   { manufacturer: "Axiom", name: "Impetus", type: "fairway_driver", speed: 9, glide: 6, turn: -2, fade: 2 },
@@ -983,9 +980,6 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── MVP (from bag_discs) ──────────────────────────────────────────────────
   { manufacturer: "MVP", name: "Bokeh", type: "fairway_driver", speed: 7, glide: 6, turn: 0, fade: 1 },            // bag confirmed
-
-  // ── Infinite Discs (from bag_discs) ───────────────────────────────────────
-  { manufacturer: "Infinite Discs", name: "Kotuku", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },      // bag confirmed
 
   // ── Trash Panda Discs (comprehensive) ──────────────────────────────────
   // Putters
