@@ -700,11 +700,39 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Clash Discs", name: "Spice", type: "putter", speed: 2, glide: 4, turn: 0, fade: 2 },
   { manufacturer: "Clash Discs", name: "Soda", type: "midrange", speed: 5, glide: 6, turn: -2, fade: 1 },
 
-  // ── Thought Space Athletics ───────────────────────────────────────────────
-  { manufacturer: "Thought Space Athletics", name: "Votum", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
-  { manufacturer: "Thought Space Athletics", name: "Ethos", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 1 },
-  { manufacturer: "Thought Space Athletics", name: "Arch", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Thought Space Athletics", name: "Mantra", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
+  // ── Thought Space Athletics (comprehensive) ──────────────────────────────
+  // Putters
+  { manufacturer: "Thought Space Athletics", name: "Alter", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Aura Votum", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Muse", type: "putter", speed: 3, glide: 3, turn: 0, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Nebula Votum", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Pneuma", type: "putter", speed: 2, glide: 3, turn: 0, fade: 0 },
+  { manufacturer: "Thought Space Athletics", name: "Praxis", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Temple", type: "putter", speed: 4, glide: 3, turn: 0, fade: 3 },
+  // Midranges
+  { manufacturer: "Thought Space Athletics", name: "Crux", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Mana", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Pathfinder", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Vessel", type: "midrange", speed: 4, glide: 3, turn: 0, fade: 3 },
+  // Fairway drivers
+  { manufacturer: "Thought Space Athletics", name: "Coalesce", type: "fairway_driver", speed: 9, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Thought Space Athletics", name: "Ethos Strafe", type: "fairway_driver", speed: 7, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Mantra", type: "fairway_driver", speed: 9, glide: 6, turn: -2, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Nebula Pathfinder", type: "fairway_driver", speed: 9, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Nuance", type: "fairway_driver", speed: 7, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Omen", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 4 },
+  { manufacturer: "Thought Space Athletics", name: "Persona", type: "fairway_driver", speed: 8, glide: 5, turn: -3, fade: 1 },
+  { manufacturer: "Thought Space Athletics", name: "Votum", type: "fairway_driver", speed: 7, glide: 5, turn: 0, fade: 3 },
+  // Distance drivers
+  { manufacturer: "Thought Space Athletics", name: "Animus", type: "distance_driver", speed: 10, glide: 4, turn: 0, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Aura", type: "distance_driver", speed: 13, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Aura Tyrant", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Thought Space Athletics", name: "Construct", type: "distance_driver", speed: 10, glide: 6, turn: -1, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Ethos Construct", type: "distance_driver", speed: 14, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Thought Space Athletics", name: "Expanse", type: "distance_driver", speed: 11, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Requiem", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Thought Space Athletics", name: "Synapse", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Thought Space Athletics", name: "Tyrant", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
 
   // ── Westside Discs (more) ─────────────────────────────────────────────────
   { manufacturer: "Westside Discs", name: "Maiden", type: "putter", speed: 2, glide: 4, turn: -1, fade: 1 },
@@ -805,8 +833,6 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Kastaplast", name: "Reko", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },   // ADG p52 confirmed — was 4 glide
   { manufacturer: "Kastaplast", name: "Reko X", type: "putter", speed: 3, glide: 3, turn: 0, fade: 2 },
 
-  // ── Thought Space Athletics (confirmed) ───────────────────────────────────
-  { manufacturer: "Thought Space Athletics", name: "Omen", type: "distance_driver", speed: 12, glide: 5, turn: -2, fade: 2 },
 
   // ── Westside Discs (confirmed via atlanticdiscgolf.com) ───────────────────
   { manufacturer: "Westside Discs", name: "Adder", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 4 },
@@ -910,6 +936,61 @@ export const DISC_DB: DiscRecord[] = [
 
   // ── Infinite Discs (from bag_discs) ───────────────────────────────────────
   { manufacturer: "Infinite Discs", name: "Kotuku", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },      // bag confirmed
+
+  // ── Trash Panda Discs (comprehensive) ──────────────────────────────────
+  // Putters
+  { manufacturer: "Trash Panda", name: "Inner Core", type: "putter", speed: 2, glide: 4, turn: 0, fade: 0 },
+  { manufacturer: "Trash Panda", name: "Outer Core", type: "putter", speed: 2, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "Trash Panda", name: "Base Bandit", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "Trash Panda", name: "Trash Panda", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  // Midranges
+  { manufacturer: "Trash Panda", name: "Canyon", type: "midrange", speed: 4, glide: 3, turn: 0, fade: 2 },
+  { manufacturer: "Trash Panda", name: "Dune", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 0 },
+  { manufacturer: "Trash Panda", name: "Raccoon", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },
+  { manufacturer: "Trash Panda", name: "Glow Raccoon", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },
+  // Fairway drivers
+  { manufacturer: "Trash Panda", name: "Ozone", type: "fairway_driver", speed: 8, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "Trash Panda", name: "Scrounger", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Trash Panda", name: "Glow Scrounger", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
+  // Distance drivers
+  { manufacturer: "Trash Panda", name: "Marauder", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Trash Panda", name: "Glow Marauder", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Trash Panda", name: "Procyon", type: "distance_driver", speed: 11, glide: 4, turn: -1, fade: 2 },
+
+  // ── Westside Discs (comprehensive updated) ────────────────────────────
+  // Putters
+  { manufacturer: "Westside Discs", name: "Swan 1", type: "putter", speed: 1, glide: 2, turn: 0, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Swan 2", type: "putter", speed: 1, glide: 2, turn: 0, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Harp", type: "putter", speed: 4, glide: 3, turn: 0, fade: 3 },
+  // Midranges
+  { manufacturer: "Westside Discs", name: "Stag", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Tursas", type: "midrange", speed: 5, glide: 6, turn: -1, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Shield", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "VIP Stag", type: "midrange", speed: 5, glide: 5, turn: -1, fade: 1 },
+  { manufacturer: "Westside Discs", name: "VIP Shield", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "BT Hard Harp", type: "midrange", speed: 4, glide: 3, turn: 0, fade: 3 },
+  // Fairway drivers
+  { manufacturer: "Westside Discs", name: "Sword", type: "fairway_driver", speed: 9, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Longbowman", type: "fairway_driver", speed: 8, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Maiden", type: "fairway_driver", speed: 8, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Westside Discs", name: "BT Medium Maiden", type: "fairway_driver", speed: 8, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Ethos Strafe", type: "fairway_driver", speed: 7, glide: 5, turn: -1, fade: 2 },
+  // Distance drivers
+  { manufacturer: "Westside Discs", name: "King", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Warship", type: "distance_driver", speed: 14, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "World", type: "distance_driver", speed: 13, glide: 6, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Underworld", type: "distance_driver", speed: 12, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Destiny", type: "distance_driver", speed: 12, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Adder", type: "distance_driver", speed: 14, glide: 5, turn: 0, fade: 4 },
+  { manufacturer: "Westside Discs", name: "Stealth", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Phantom", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Great One", type: "distance_driver", speed: 14, glide: 6, turn: -1, fade: 3 },
+  { manufacturer: "Westside Discs", name: "VIP Phantom", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
+  { manufacturer: "Westside Discs", name: "VIP Stealth", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Westside Discs", name: "VIP Great One", type: "distance_driver", speed: 14, glide: 6, turn: -1, fade: 3 },
+  { manufacturer: "Westside Discs", name: "VIP Underworld", type: "distance_driver", speed: 12, glide: 6, turn: -2, fade: 2 },
+  { manufacturer: "Westside Discs", name: "VIP Adder", type: "distance_driver", speed: 14, glide: 5, turn: 0, fade: 4 },
+  { manufacturer: "Westside Discs", name: "BT Soft Swan 2", type: "putter", speed: 2, glide: 3, turn: 0, fade: 2 },
 ];
 
 /** Return sorted matches for a search query (disc name or manufacturer). */
