@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { auditUserBagDiscs, auditAllBagDiscs, fixBagDiscFlightNumbers } from "@/app/admin/audit-discs-action";
+import { auditUserBagDiscs, auditAllBagDiscs, fixBagDiscFlightNumbers, updateDiscInDatabase } from "@/app/admin/audit-discs-action";
 import type { DiscMismatch } from "@/lib/disc-audit";
 import { DISC_DB } from "@/lib/discs-db";
 
@@ -314,9 +314,23 @@ function DiscEditorForm({
   onSave: (disc: typeof DISC_DB[0]) => void;
 }) {
   const [formData, setFormData] = useState(disc);
+  const [saving, setSaving] = useState(false);
 
   function handleChange(key: string, value: string | number) {
     setFormData({ ...formData, [key]: value });
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await updateDiscInDatabase(formData);
+      alert(`Disc saved: ${formData.name}`);
+      onSave(formData);
+    } catch (error) {
+      alert(`Save failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -398,12 +412,13 @@ function DiscEditorForm({
         </div>
       </div>
       <div className="flex gap-2">
-        <button onClick={() => onSave(formData)} className="btn-primary text-sm flex-1">
-          Save
+        <button onClick={handleSave} disabled={saving} className="btn-primary text-sm flex-1">
+          {saving ? "Saving..." : "Save"}
         </button>
         <button
           onClick={onCancel}
-          className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50"
+          disabled={saving}
+          className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
           Cancel
         </button>
