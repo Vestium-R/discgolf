@@ -83,8 +83,8 @@ export async function updateDiscInDatabase(disc: DiscRecord) {
   const user = await getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const fs = await import("fs");
-  const path = await import("path");
+  const fs = require("fs");
+  const path = require("path");
 
   const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
   let content = fs.readFileSync(dbPath, "utf-8");
@@ -109,8 +109,8 @@ export async function addDiscToDatabase(disc: DiscRecord) {
   const user = await getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const fs = await import("fs");
-  const path = await import("path");
+  const fs = require("fs");
+  const path = require("path");
 
   const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
   let content = fs.readFileSync(dbPath, "utf-8");
