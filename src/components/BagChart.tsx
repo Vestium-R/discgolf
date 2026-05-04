@@ -125,26 +125,23 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
     let c1x, c1y, c2x, c2y;
 
     if (hasSCurve) {
-      // S-curve: peak early, fade-back late
-      c1x = toFx(peakLat * 1.3);
-      c1y = toFy(distFt * 0.25, maxFt);
-      c2x = toFx(endLat * 0.6);
+      // S-curve: flies one way, then fades back (gradual, not instant)
+      c1x = toFx(peakLat * 0.8);
+      c1y = toFy(distFt * 0.35, maxFt);
+      c2x = toFx(endLat * 0.5);
       c2y = toFy(distFt * 0.75, maxFt);
     } else if (Math.abs(turn) < 0.5 && fade > 0) {
-      // Pure fade disc: flies straight then fades (no turn component)
+      // Pure fade disc: flies perfectly straight, then fades at very end
       c1x = toFx(0);
-      c1y = toFy(distFt * 0.4, maxFt);
-      c2x = toFx(endLat * 0.5);  // midway to endpoint, start of fade
-      c2y = toFy(distFt * 0.7, maxFt);
+      c1y = toFy(distFt * 0.3, maxFt);
+      c2x = toFx(endLat * 0.6);  // pull toward endpoint in final stretch
+      c2y = toFy(distFt * 0.8, maxFt);
     } else {
-      // Standard curve: disc flies STRAIGHT for majority, curves only at END
-      // Reference: Paradox flies straight for 200+ feet, then subtle curve at end
-      const fadeInfluence = Math.max(0, fade);
-      c1x = toFx(peakLat * 0.05);  // almost straight for first half of flight
-      c1y = toFy(distFt * 0.5, maxFt);   // halfway through flight
-      // c2 where curve becomes visible, pulled by fade if present
-      c2x = toFx(endLat + (peakLat - endLat) * Math.max(0, 0.3 - fadeInfluence * 0.1));
-      c2y = toFy(distFt * 0.85, maxFt);  // late in flight, near the end
+      // Standard curve: disc flies straight for ~80% of distance, curves only in final 20%
+      c1x = toFx(0);  // perfectly straight for first control point
+      c1y = toFy(distFt * 0.2, maxFt);   // very early (20% distance)
+      c2x = toFx(endLat * 0.75);  // pull strongly toward endpoint
+      c2y = toFy(distFt * 0.88, maxFt);  // very late in flight (88%)
     }
 
     const ex=toFx(endLat), ey=toFy(distFt, maxFt);
