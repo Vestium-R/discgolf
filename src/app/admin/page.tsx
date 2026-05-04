@@ -13,6 +13,7 @@ import {
 } from "@/app/actions";
 import { SignInForm } from "@/components/SignInForm";
 import { BadgeCrown } from "@/components/BadgeCrown";
+import { AuditPage } from "@/app/admin/audit-page";
 
 export default async function AdminPage({
   searchParams,
@@ -247,6 +248,13 @@ export default async function AdminPage({
         <form action={backfillAllRoundsAction} className="mt-3">
           <button className="btn-primary">Backfill all UDisc rounds</button>
         </form>
+      </section>
+
+      <section className="card p-4">
+        <h3 className="font-display font-bold text-forest-800">Disc Database Audit</h3>
+        <div className="mt-3">
+          <AuditPage />
+        </div>
       </section>
 
       <section className="card p-4">
