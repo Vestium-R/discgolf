@@ -95,16 +95,18 @@ export async function updateDiscInDatabase(disc: DiscRecord) {
     const user = await getUser();
     if (!user) throw new Error("Not authenticated");
 
-    const fs = require("fs");
-    const path = require("path");
+    const fs = require("fs") as typeof import("fs");
+    const path = require("path") as typeof import("path");
 
     const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
+    console.log("updateDiscInDatabase: dbPath =", dbPath);
 
     if (!fs.existsSync(dbPath)) {
-      throw new Error(`Database file not found: ${dbPath}`);
+      throw new Error(`Database file not found at ${dbPath}`);
     }
 
     let content = fs.readFileSync(dbPath, "utf-8");
+    console.log("updateDiscInDatabase: Read file, size =", content.length);
 
     // Find the disc entry to replace
     const escapedMfg = disc.manufacturer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -117,16 +119,18 @@ export async function updateDiscInDatabase(disc: DiscRecord) {
     const replacement = `{ manufacturer: "${disc.manufacturer.replace(/"/g, '\\"')}", name: "${disc.name.replace(/"/g, '\\"')}", type: "${disc.type}", speed: ${disc.speed}, glide: ${disc.glide}, turn: ${disc.turn}, fade: ${disc.fade} }`;
 
     if (!pattern.test(content)) {
-      throw new Error(`Disc not found: ${disc.manufacturer} ${disc.name}`);
+      throw new Error(`Disc not found in database: ${disc.manufacturer} ${disc.name}`);
     }
 
     content = content.replace(pattern, replacement);
     fs.writeFileSync(dbPath, content, "utf-8");
 
     console.log(`Updated disc: ${disc.manufacturer} ${disc.name}`);
+    return { success: true, message: `Updated ${disc.name}` };
   } catch (error) {
-    console.error("updateDiscInDatabase error:", error);
-    throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("updateDiscInDatabase error:", message);
+    throw new Error(message);
   }
 }
 
@@ -139,16 +143,18 @@ export async function addDiscToDatabase(disc: DiscRecord) {
       throw new Error("Manufacturer and name are required");
     }
 
-    const fs = require("fs");
-    const path = require("path");
+    const fs = require("fs") as typeof import("fs");
+    const path = require("path") as typeof import("path");
 
     const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
+    console.log("addDiscToDatabase: dbPath =", dbPath);
 
     if (!fs.existsSync(dbPath)) {
-      throw new Error(`Database file not found: ${dbPath}`);
+      throw new Error(`Database file not found at ${dbPath}`);
     }
 
     let content = fs.readFileSync(dbPath, "utf-8");
+    console.log("addDiscToDatabase: Read file, size =", content.length);
 
     // Check if disc already exists
     const escapedMfg = disc.manufacturer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -174,8 +180,10 @@ export async function addDiscToDatabase(disc: DiscRecord) {
     fs.writeFileSync(dbPath, content, "utf-8");
 
     console.log(`Added disc: ${disc.manufacturer} ${disc.name}`);
+    return { success: true, message: `Added ${disc.name}` };
   } catch (error) {
-    console.error("addDiscToDatabase error:", error);
-    throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("addDiscToDatabase error:", message);
+    throw new Error(message);
   }
 }

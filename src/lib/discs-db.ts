@@ -1213,21 +1213,25 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Prodigy", name: "X4", type: "distance_driver", speed: 12, glide: 6, turn: -2, fade: 2 },
   { manufacturer: "Prodigy", name: "X5", type: "distance_driver", speed: 12, glide: 6, turn: -3, fade: 2 },
 
-  // ── RPM Discs (comprehensive) ────────────────────────────────────────────
-  // Putters
-  { manufacturer: "RPM", name: "Tūī", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
-  { manufacturer: "RPM", name: "Kea", type: "putter", speed: 3, glide: 3, turn: 0, fade: 2 },
-  { manufacturer: "RPM", name: "Piwakawaka", type: "putter", speed: 3, glide: 3, turn: -2, fade: 1 },
-  // Midranges
-  { manufacturer: "RPM", name: "Kotuku", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 1 },
-  { manufacturer: "RPM", name: "Ruru", type: "midrange", speed: 4, glide: 4, turn: 0, fade: 3 },
-  // Fairway drivers
-  { manufacturer: "RPM", name: "Kārearea", type: "fairway_driver", speed: 8, glide: 5, turn: -1, fade: 2 },
-  { manufacturer: "RPM", name: "Huia", type: "fairway_driver", speed: 9, glide: 5, turn: -2, fade: 2 },
-  // Distance drivers
-  { manufacturer: "RPM", name: "Weka", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
-  { manufacturer: "RPM", name: "Moa", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
-  { manufacturer: "RPM", name: "Māhoe", type: "distance_driver", speed: 11, glide: 6, turn: -3, fade: 2 },
+  // ── RPM Discs ────────────────────────────────────────────────────────────
+  { manufacturer: "RPM", name: "Arcturus", type: "midrange", speed: 5, glide: 6, turn: -1, fade: 0 },
+  { manufacturer: "RPM", name: "Huia", type: "fairway_driver", speed: 7, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "RPM", name: "Kahu", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "RPM", name: "Kahu OS", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "RPM", name: "Kahu XG", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "RPM", name: "Kea", type: "midrange", speed: 4, glide: 3, turn: 0, fade: 3 },
+  { manufacturer: "RPM", name: "Kiwi", type: "distance_driver", speed: 10, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "RPM", name: "Kiwi Raptor", type: "fairway_driver", speed: 10, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "RPM", name: "Kotare", type: "distance_driver", speed: 12, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "RPM", name: "Kotuku", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "RPM", name: "Pekapeka", type: "fairway_driver", speed: 9, glide: 5, turn: -3, fade: 1 },
+  { manufacturer: "RPM", name: "Piwakawaka", type: "midrange", speed: 5, glide: 6, turn: -1, fade: 0 },
+  { manufacturer: "RPM", name: "Ruru", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "RPM", name: "Takapu", type: "putter", speed: 2, glide: 3, turn: 0, fade: 2 },
+  { manufacturer: "RPM", name: "Taniwha", type: "fairway_driver", speed: 7, glide: 6, turn: -3, fade: 0 },
+  { manufacturer: "RPM", name: "Tara Iti", type: "distance_driver", speed: 10, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "RPM", name: "TeMoko", type: "midrange", speed: 3, glide: 4, turn: 0, fade: 0 },
+  { manufacturer: "RPM", name: "Tui", type: "putter", speed: 3, glide: 4, turn: -1, fade: 0 },
 ];
 
 /** Return sorted matches for a search query (disc name or manufacturer). */

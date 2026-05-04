@@ -60,7 +60,7 @@ export default async function AdminPage({
   const [roster, settings, history] = await Promise.all([getRoster(), getSettings(), getHistory()]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-display text-2xl font-bold text-forest-800">Admin</h2>
@@ -82,20 +82,27 @@ export default async function AdminPage({
         </div>
       )}
 
-      <section className="card p-4">
-        <h3 className="font-display font-bold text-forest-800">Current season</h3>
-        <form action={updateSeasonAction} className="mt-2 flex items-center gap-2">
-          <input type="number" name="currentSeason" defaultValue={settings.currentSeason} className="w-24 input-pill" />
-          <button className="btn-primary">Save</button>
-        </form>
-        <p className="mt-2 text-xs text-forest-600">The season that new rounds land in by default.</p>
-      </section>
+      <details className="card p-0" open>
+        <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
+          ▼ Current season
+        </summary>
+        <div className="p-4 border-t border-forest-100 space-y-2">
+          <form action={updateSeasonAction} className="flex items-center gap-2">
+            <input type="number" name="currentSeason" defaultValue={settings.currentSeason} className="w-24 input-pill" />
+            <button className="btn-primary">Save</button>
+          </form>
+          <p className="text-xs text-forest-600">The season that new rounds land in by default.</p>
+        </div>
+      </details>
 
-      <section className="card p-4">
-        <h3 className="font-display font-bold text-forest-800">Season configs</h3>
-        <p className="text-xs text-forest-600 mb-3">
-          Who starts the season with the badge, what badge image to show, and the past champion.
-        </p>
+      <details className="card p-0">
+        <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
+          ▼ Season configs
+        </summary>
+        <div className="p-4 border-t border-forest-100 space-y-4">
+          <p className="text-xs text-forest-600">
+            Who starts the season with the badge, what badge image to show, and the past champion.
+          </p>
         <ul className="space-y-4 divide-y divide-forest-100">
           {history.map((h) => {
             const initial = h.initialBadgeHolderPlayerId ? roster.find((p) => p.id === h.initialBadgeHolderPlayerId) : null;
@@ -188,11 +195,15 @@ export default async function AdminPage({
           </div>
           <button className="btn-primary">Add season</button>
         </form>
-      </section>
+        </div>
+      </details>
 
-      <section className="card p-4">
-        <h3 className="font-display font-bold text-forest-800">Roster</h3>
-        <p className="text-xs text-forest-600 mb-3">
+      <details className="card p-0">
+        <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
+          ▼ Roster
+        </summary>
+        <div className="p-4 border-t border-forest-100 space-y-3">
+        <p className="text-xs text-forest-600 mb-2">
           UDisc handles (from the scorecard, e.g. <code>jeffreyr</code>) let the parser auto-match.
           Active players show in standings; inactive players are hidden until they appear in a new
           UDisc round (which auto-activates them).
@@ -234,10 +245,14 @@ export default async function AdminPage({
           <input name="udiscHandle" placeholder="UDisc handle (optional)" className="flex-1 min-w-[140px] input-pill" />
           <button className="btn-primary">Add player</button>
         </form>
-      </section>
+        </div>
+      </details>
 
-      <section className="card p-4">
-        <h3 className="font-display font-bold text-forest-800">Backfill rounds</h3>
+      <details className="card p-0">
+        <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
+          ▼ Backfill rounds
+        </summary>
+        <div className="p-4 border-t border-forest-100 space-y-3">
         <p className="mt-1 text-sm text-forest-600">
           Re-parse every round that has a UDisc link to pull per-player scores and weather.
           Positions aren&apos;t changed. Safe to run repeatedly.
@@ -245,27 +260,34 @@ export default async function AdminPage({
         {ok?.startsWith("backfill") && (
           <p className="mt-2 text-sm text-forest-800">✓ {ok.replace("backfill:", "").replace(/,/g, " · ")}</p>
         )}
-        <form action={backfillAllRoundsAction} className="mt-3">
+        <form action={backfillAllRoundsAction}>
           <button className="btn-primary">Backfill all UDisc rounds</button>
         </form>
-      </section>
+        </div>
+      </details>
 
-      <section className="card p-4">
-        <h3 className="font-display font-bold text-forest-800">Disc Database Audit</h3>
-        <div className="mt-3">
+      <details className="card p-0">
+        <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
+          ▼ Disc Database Audit
+        </summary>
+        <div className="p-4 border-t border-forest-100">
           <AuditPage />
         </div>
-      </section>
+      </details>
 
-      <section className="card p-4">
-        <h3 className="font-display font-bold text-forest-800">Links</h3>
-        <div className="mt-2 flex flex-wrap gap-2">
+      <details className="card p-0">
+        <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
+          ▼ Links
+        </summary>
+        <div className="p-4 border-t border-forest-100">
+        <div className="flex flex-wrap gap-2">
           <Link href="/rounds" className="btn-secondary">All rounds</Link>
           <Link href="/add" className="btn-secondary">Add round (public)</Link>
           <Link href="/rules" className="btn-secondary">Rules</Link>
           <Link href="/diagnose" className="btn-secondary">Diagnostics</Link>
         </div>
-      </section>
+        </div>
+      </details>
     </div>
   );
 }
