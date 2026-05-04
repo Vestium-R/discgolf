@@ -272,7 +272,7 @@ export async function recommendDiscAction(opts: {
     .filter(d => !opts.brand || d.manufacturer.toLowerCase().includes(opts.brand.toLowerCase()))
     // plastic filter is passed to AI as context, not filtered here (disc DB doesn't have plastic)
     .slice(0, 40)
-    .map(d => `• ${d.name} (${d.manufacturer}) — ${DISC_TYPE_LABELS[d.type]} — ${d.speed}/${d.glide}/${d.turn}/${d.fade}`)
+    .map(d => `• ${d.name} (${d.manufacturer}) — ${DISC_TYPE_LABELS[d.type as DiscType]} — ${d.speed}/${d.glide}/${d.turn}/${d.fade}`)
     .join("\n");
 
   const owned = userDiscs.filter(d => !d.inStorage).map(d => `${d.discName} (${d.manufacturer ?? ""})`).join(", ");

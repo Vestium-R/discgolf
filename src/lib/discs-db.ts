@@ -14,7 +14,7 @@ export type DiscRecord = {
   fade: number;
 };
 
-export const DISC_DB: DiscRecord[] = [
+export const DISC_DB = [
   // ── Innova (comprehensive) ──────────────────────────────────────────────────
   // Putters
   { manufacturer: "Innova", name: "Aviar", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
@@ -635,8 +635,8 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Mint Discs", name: "Longhorn", type: "distance_driver", speed: 11, glide: 4, turn: -1, fade: 3 },
 
   // ── Elevation Disc Golf ───────────────────────────────────────────────────
-  { manufacturer: "Elevation", name: "Alpenglow", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
-  { manufacturer: "Elevation", name: "Alpenglow Rush", type: "putter", speed: 3, glide: 4, turn: -1, fade: 1 },
+  { manufacturer: "Elevation Disc Golf", name: "Alpenglow", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Elevation Disc Golf", name: "Alpenglow Rush", type: "putter", speed: 3, glide: 4, turn: -1, fade: 1 },
 
   // ── Løkid Disc Golf ───────────────────────────────────────────────────────
   { manufacturer: "Løkid", name: "Loki", type: "putter", speed: 2, glide: 3, turn: 0, fade: 2 },
@@ -795,8 +795,8 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Legacy Discs", name: "Protege", type: "fairway_driver", speed: 7, glide: 5, turn: -2, fade: 2 },
 
   // ── Elevation Disc Golf ───────────────────────────────────────────────────
-  { manufacturer: "Elevation", name: "Rush", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Elevation", name: "Summit", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
+  { manufacturer: "Elevation Disc Golf", name: "Rush", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Elevation Disc Golf", name: "Summit", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 3 },
 
   // ── Guru Disc Golf ────────────────────────────────────────────────────────
   { manufacturer: "Guru", name: "Shaman", type: "putter", speed: 2, glide: 3, turn: 0, fade: 1 },
@@ -1619,11 +1619,11 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Gateway", name: "Spirit", type: "distance_driver", speed: 11, glide: 5, turn: 1, fade: 5 },
   { manufacturer: "Gateway", name: "Warrior", type: "midrange", speed: 5, glide: 4, turn: -1, fade: 3 },
   { manufacturer: "Gateway", name: "Warspear", type: "putter", speed: 2, glide: 3, turn: 0, fade: 2.5 },
-  { manufacturer: "Gateway Disc Sports", name: "Aura", type: "distance_driver", speed: 12, glide: 6, turn: -2, fade: 1 },
-  { manufacturer: "Gateway Disc Sports", name: "Ghoul", type: "putter", speed: 3, glide: 3, turn: 0, fade: 3 },
-  { manufacturer: "Gateway Disc Sports", name: "Javelin", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
-  { manufacturer: "Gateway Disc Sports", name: "Odyssey Control Driver", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 1 },
-  { manufacturer: "Gateway Disc Sports", name: "Witch Doctor", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2.5 },
+  { manufacturer: "Gateway", name: "Aura", type: "distance_driver", speed: 12, glide: 6, turn: -2, fade: 1 },
+  { manufacturer: "Gateway", name: "Ghoul", type: "putter", speed: 3, glide: 3, turn: 0, fade: 3 },
+  { manufacturer: "Gateway", name: "Javelin", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Gateway", name: "Odyssey Control Driver", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Gateway", name: "Witch Doctor", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2.5 },
   { manufacturer: "Goliath Discs", name: "Ambush", type: "distance_driver", speed: 12, glide: 6, turn: -3, fade: 2 },
   { manufacturer: "Goliath Discs", name: "Chainbreaker", type: "fairway_driver", speed: 9, glide: 3, turn: 0, fade: 4 },
   { manufacturer: "Goliath Discs", name: "Genesis", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
@@ -2109,42 +2109,42 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Viking", name: "Rune", type: "putter", speed: 2, glide: 4, turn: 0, fade: 0 },
   { manufacturer: "Viking", name: "Thunder God Thor", type: "distance_driver", speed: 14, glide: 5, turn: 0, fade: 2 },
   { manufacturer: "Viking", name: "Valhalla", type: "distance_driver", speed: 12, glide: 5, turn: 0, fade: 2 },
-  { manufacturer: "Westside", name: "Ahti", type: "fairway_driver", speed: 9, glide: 3, turn: 0, fade: 4 },
-  { manufacturer: "Westside", name: "Anvil", type: "midrange", speed: 4, glide: 2, turn: 0, fade: 4 },
-  { manufacturer: "Westside", name: "Bard", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 3 },
-  { manufacturer: "Westside", name: "Bear", type: "fairway_driver", speed: 8, glide: 6, turn: -0.5, fade: 2.5 },
-  { manufacturer: "Westside", name: "Boatman", type: "distance_driver", speed: 11, glide: 5, turn: 0, fade: 2 },
-  { manufacturer: "Westside", name: "Catapult", type: "distance_driver", speed: 14, glide: 4, turn: -0.5, fade: 3 },
-  { manufacturer: "Westside", name: "Crown", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
-  { manufacturer: "Westside", name: "Destiny", type: "distance_driver", speed: 14, glide: 6, turn: -2, fade: 3 },
-  { manufacturer: "Westside", name: "Fortress", type: "fairway_driver", speed: 10, glide: 4, turn: 0, fade: 3 },
-  { manufacturer: "Westside", name: "Gatekeeper", type: "midrange", speed: 4, glide: 5, turn: 0, fade: 2 },
-  { manufacturer: "Westside", name: "Giant", type: "distance_driver", speed: 13, glide: 4, turn: 0, fade: 3.5 },
-  { manufacturer: "Westside", name: "Harp", type: "midrange", speed: 4, glide: 3, turn: 0, fade: 3 },
-  { manufacturer: "Westside", name: "Hatchet", type: "fairway_driver", speed: 9, glide: 6, turn: -2, fade: 1 },
-  { manufacturer: "Westside", name: "King", type: "distance_driver", speed: 14, glide: 5, turn: -1.5, fade: 3 },
-  { manufacturer: "Westside", name: "Longbowman", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },
-  { manufacturer: "Westside", name: "Maiden", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
-  { manufacturer: "Westside", name: "Northman", type: "fairway_driver", speed: 10, glide: 5, turn: -1, fade: 2 },
-  { manufacturer: "Westside", name: "Pine", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },
-  { manufacturer: "Westside", name: "Queen", type: "distance_driver", speed: 14, glide: 5, turn: -2, fade: 2 },
-  { manufacturer: "Westside", name: "Sampo", type: "fairway_driver", speed: 10, glide: 4, turn: -1, fade: 2 },
-  { manufacturer: "Westside", name: "Seer", type: "fairway_driver", speed: 7, glide: 5, turn: -2, fade: 1 },
-  { manufacturer: "Westside", name: "Shield", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
-  { manufacturer: "Westside", name: "Sling", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 1 },
-  { manufacturer: "Westside", name: "Sorcerer", type: "distance_driver", speed: 13, glide: 5, turn: -0.5, fade: 3 },
-  { manufacturer: "Westside", name: "Stag", type: "fairway_driver", speed: 8, glide: 6, turn: -1, fade: 2 },
-  { manufacturer: "Westside", name: "Swan", type: "putter", speed: 3, glide: 3, turn: -1, fade: 0 },
-  { manufacturer: "Westside", name: "Swan 1 Reborn", type: "putter", speed: 3, glide: 3, turn: -2.5, fade: 0 },
-  { manufacturer: "Westside", name: "Sword", type: "distance_driver", speed: 12, glide: 5, turn: -0.5, fade: 2 },
-  { manufacturer: "Westside", name: "The Adder", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 4 },
-  { manufacturer: "Westside", name: "Tursas", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 1 },
-  { manufacturer: "Westside", name: "Underworld", type: "fairway_driver", speed: 7, glide: 6, turn: -3, fade: 1 },
-  { manufacturer: "Westside", name: "War Horse", type: "distance_driver", speed: 13, glide: 4, turn: 0, fade: 4 },
-  { manufacturer: "Westside", name: "Warship", type: "midrange", speed: 5, glide: 6, turn: 0, fade: 1 },
-  { manufacturer: "Westside", name: "World", type: "distance_driver", speed: 14, glide: 4, turn: -0.5, fade: 3 },
-  { manufacturer: "Westside Golf Discs", name: "Prince", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
-  { manufacturer: "Westside Golf Discs", name: "Tide", type: "distance_driver", speed: 12, glide: 6, turn: -0.5, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Ahti", type: "fairway_driver", speed: 9, glide: 3, turn: 0, fade: 4 },
+  { manufacturer: "Westside Discs", name: "Anvil", type: "midrange", speed: 4, glide: 2, turn: 0, fade: 4 },
+  { manufacturer: "Westside Discs", name: "Bard", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Bear", type: "fairway_driver", speed: 8, glide: 6, turn: -0.5, fade: 2.5 },
+  { manufacturer: "Westside Discs", name: "Boatman", type: "distance_driver", speed: 11, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Catapult", type: "distance_driver", speed: 14, glide: 4, turn: -0.5, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Crown", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Destiny", type: "distance_driver", speed: 14, glide: 6, turn: -2, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Fortress", type: "fairway_driver", speed: 10, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Gatekeeper", type: "midrange", speed: 4, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Giant", type: "distance_driver", speed: 13, glide: 4, turn: 0, fade: 3.5 },
+  { manufacturer: "Westside Discs", name: "Harp", type: "midrange", speed: 4, glide: 3, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Hatchet", type: "fairway_driver", speed: 9, glide: 6, turn: -2, fade: 1 },
+  { manufacturer: "Westside Discs", name: "King", type: "distance_driver", speed: 14, glide: 5, turn: -1.5, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Longbowman", type: "fairway_driver", speed: 9, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Maiden", type: "putter", speed: 3, glide: 4, turn: 0, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Northman", type: "fairway_driver", speed: 10, glide: 5, turn: -1, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Pine", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Queen", type: "distance_driver", speed: 14, glide: 5, turn: -2, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Sampo", type: "fairway_driver", speed: 10, glide: 4, turn: -1, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Seer", type: "fairway_driver", speed: 7, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Shield", type: "putter", speed: 3, glide: 3, turn: 0, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Sling", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Sorcerer", type: "distance_driver", speed: 13, glide: 5, turn: -0.5, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Stag", type: "fairway_driver", speed: 8, glide: 6, turn: -1, fade: 2 },
+  { manufacturer: "Westside Discs", name: "Swan", type: "putter", speed: 3, glide: 3, turn: -1, fade: 0 },
+  { manufacturer: "Westside Discs", name: "Swan 1 Reborn", type: "putter", speed: 3, glide: 3, turn: -2.5, fade: 0 },
+  { manufacturer: "Westside Discs", name: "Sword", type: "distance_driver", speed: 12, glide: 5, turn: -0.5, fade: 2 },
+  { manufacturer: "Westside Discs", name: "The Adder", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 4 },
+  { manufacturer: "Westside Discs", name: "Tursas", type: "midrange", speed: 5, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Westside Discs", name: "Underworld", type: "fairway_driver", speed: 7, glide: 6, turn: -3, fade: 1 },
+  { manufacturer: "Westside Discs", name: "War Horse", type: "distance_driver", speed: 13, glide: 4, turn: 0, fade: 4 },
+  { manufacturer: "Westside Discs", name: "Warship", type: "midrange", speed: 5, glide: 6, turn: 0, fade: 1 },
+  { manufacturer: "Westside Discs", name: "World", type: "distance_driver", speed: 14, glide: 4, turn: -0.5, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Prince", type: "distance_driver", speed: 13, glide: 5, turn: 0, fade: 3 },
+  { manufacturer: "Westside Discs", name: "Tide", type: "distance_driver", speed: 12, glide: 6, turn: -0.5, fade: 3 },
   { manufacturer: "Wild Discs", name: "Addax", type: "midrange", speed: 5, glide: 5, turn: 0, fade: 2 },
   { manufacturer: "Wild Discs", name: "Angler", type: "midrange", speed: 4, glide: 3, turn: 0, fade: 3 },
   { manufacturer: "Wild Discs", name: "Great White", type: "distance_driver", speed: 13, glide: 5, turn: -1, fade: 3 },
@@ -2246,7 +2246,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Kastaplast", name: "Impa", type: "unknown", speed: 11, glide: 6, turn: -4, fade: 1 },
   { manufacturer: "Kastaplast", name: "Tuff", type: "unknown", speed: 3, glide: 4, turn: 0, fade: 2 },
   { manufacturer: "Latitude 64", name: "Fire", type: "unknown", speed: 5, glide: 3, turn: 0, fade: 3 },
-  { manufacturer: "Lone Star Discs", name: "BB6", type: "unknown", speed: 4, glide: 5, turn: -2, fade: 1 },
+  { manufacturer: "Lone Star Disc", name: "BB6", type: "unknown", speed: 4, glide: 5, turn: -2, fade: 1 },
   { manufacturer: "Løft Discs", name: "Bohrium", type: "unknown", speed: 14, glide: 6, turn: -1, fade: 3 },
   { manufacturer: "Løft Discs", name: "Hydrogen", type: "unknown", speed: 1, glide: 2, turn: 0, fade: 0 },
   { manufacturer: "Løft Discs", name: "Neon", type: "unknown", speed: 3, glide: 1, turn: 0, fade: 3 },
@@ -2302,5 +2302,5 @@ export function searchDiscs(query: string): DiscRecord[] {
       const bStarts = bName.startsWith(q) ? 0 : 1;
       return aStarts - bStarts || aName.localeCompare(bName);
     })
-    .slice(0, 20);
+    .slice(0, 20) as DiscRecord[];
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { auditUserBagDiscs, auditAllBagDiscs, fixBagDiscFlightNumbers, updateDiscInDatabase, addDiscToDatabase, getRosterForAudit } from "@/app/admin/audit-discs-action";
 import type { DiscMismatch } from "@/lib/disc-audit";
-import { DISC_DB } from "@/lib/discs-db";
+import { DISC_DB, type DiscRecord } from "@/lib/discs-db";
 
 type AuditResult = Awaited<ReturnType<typeof auditUserBagDiscs>>;
 
@@ -388,15 +388,19 @@ function DiscEditorForm({
   const [saving, setSaving] = useState(false);
 
   function handleChange(key: string, value: string | number) {
-    setFormData({ ...formData, [key]: value });
+    if (key === "type") {
+      setFormData({ ...formData, type: value as DiscRecord["type"] });
+    } else {
+      setFormData({ ...formData, [key]: value });
+    }
   }
 
   async function handleSave() {
     setSaving(true);
     try {
-      await updateDiscInDatabase(formData);
+      await updateDiscInDatabase(formData as DiscRecord);
       alert(`Disc saved: ${formData.name}`);
-      onSave(formData);
+      onSave(formData as DiscRecord);
     } catch (error) {
       alert(`Save failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {

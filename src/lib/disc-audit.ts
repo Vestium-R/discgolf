@@ -52,7 +52,7 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
     if (bagDisc.manufacturer?.toLowerCase() !== dbDisc.manufacturer.toLowerCase()) {
       mismatches.push({
         bagDisc,
-        dbDisc,
+        dbDisc: dbDisc as DiscRecord,
         mismatchType: "manufacturer",
         expected: { manufacturer: dbDisc.manufacturer },
       });
@@ -62,7 +62,7 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
     if (bagDisc.speed !== dbDisc.speed) {
       mismatches.push({
         bagDisc,
-        dbDisc,
+        dbDisc: dbDisc as DiscRecord,
         mismatchType: "speed",
         expected: { speed: dbDisc.speed },
       });
@@ -70,7 +70,7 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
     if (bagDisc.glide !== null && bagDisc.glide !== dbDisc.glide) {
       mismatches.push({
         bagDisc,
-        dbDisc,
+        dbDisc: dbDisc as DiscRecord,
         mismatchType: "glide",
         expected: { glide: dbDisc.glide },
       });
@@ -78,7 +78,7 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
     if (bagDisc.turn !== null && bagDisc.turn !== dbDisc.turn) {
       mismatches.push({
         bagDisc,
-        dbDisc,
+        dbDisc: dbDisc as DiscRecord,
         mismatchType: "turn",
         expected: { turn: dbDisc.turn },
       });
@@ -86,7 +86,7 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
     if (bagDisc.fade !== null && bagDisc.fade !== dbDisc.fade) {
       mismatches.push({
         bagDisc,
-        dbDisc,
+        dbDisc: dbDisc as DiscRecord,
         mismatchType: "fade",
         expected: { fade: dbDisc.fade },
       });
