@@ -119,29 +119,29 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
     const endLat   = flip * (turnCurve * 4 - fade * 4);
 
     // S-curve: turn one way, then fade back the other (gradual S, not instant)
-    const hasSCurve = (turn < -0.5) && (fade > 1.0);
+    const hasSCurve = (turn < -0.5) && (fade >= 1.0);
 
     const x0=toFx(0), y0=toFy(0,maxFt);
     let c1x, c1y, c2x, c2y;
 
     if (hasSCurve) {
       // S-curve: flies one way, then fades back (gradual, not instant)
-      c1x = toFx(peakLat * 0.8);
-      c1y = toFy(distFt * 0.35, maxFt);
-      c2x = toFx(endLat * 0.5);
-      c2y = toFy(distFt * 0.75, maxFt);
+      c1x = toFx(peakLat * 0.9);  // push toward the turn direction
+      c1y = toFy(distFt * 0.4, maxFt);  // let turn develop in first 40%
+      c2x = toFx(endLat * 0.5);  // then pull back toward endpoint
+      c2y = toFy(distFt * 0.85, maxFt);
     } else if (Math.abs(turn) < 0.5 && fade > 0) {
       // Pure fade disc: flies perfectly straight, then fades at very end
       c1x = toFx(0);
-      c1y = toFy(distFt * 0.3, maxFt);
-      c2x = toFx(endLat * 0.6);  // pull toward endpoint in final stretch
-      c2y = toFy(distFt * 0.8, maxFt);
+      c1y = toFy(distFt * 0.15, maxFt);
+      c2x = toFx(endLat * 0.4);  // gentle pull toward endpoint
+      c2y = toFy(distFt * 0.92, maxFt);
     } else {
-      // Standard curve: disc flies straight for ~80% of distance, curves only in final 20%
+      // Standard curve: disc flies flat for ~90% of distance, curves only in final 10%
       c1x = toFx(0);  // perfectly straight for first control point
-      c1y = toFy(distFt * 0.2, maxFt);   // very early (20% distance)
-      c2x = toFx(endLat * 0.75);  // pull strongly toward endpoint
-      c2y = toFy(distFt * 0.88, maxFt);  // very late in flight (88%)
+      c1y = toFy(distFt * 0.15, maxFt);   // very early (15% distance)
+      c2x = toFx(endLat * 0.4);  // gentle pull toward endpoint (not aggressive)
+      c2y = toFy(distFt * 0.92, maxFt);  // very late in flight (92%)
     }
 
     const ex=toFx(endLat), ey=toFy(distFt, maxFt);
