@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { auditUserBagDiscs, auditAllBagDiscs, fixBagDiscFlightNumbers, updateDiscInDatabase } from "@/app/admin/audit-discs-action";
+import { useState, useEffect } from "react";
+import { auditUserBagDiscs, auditAllBagDiscs, fixBagDiscFlightNumbers, updateDiscInDatabase, addDiscToDatabase, getRosterForAudit } from "@/app/admin/audit-discs-action";
 import type { DiscMismatch } from "@/lib/disc-audit";
 import { DISC_DB } from "@/lib/discs-db";
 
@@ -14,6 +14,15 @@ export function AuditPage() {
   const [fixing, setFixing] = useState(false);
   const [auditMode, setAuditMode] = useState<"user" | "all">("user");
   const [editorOpen, setEditorOpen] = useState(false);
+  const [roster, setRoster] = useState<Array<{ id: string; name: string }>>([]);
+  const [rosterLoading, setRosterLoading] = useState(true);
+
+  useEffect(() => {
+    getRosterForAudit()
+      .then(setRoster)
+      .catch((error) => console.error("Failed to load roster:", error))
+      .finally(() => setRosterLoading(false));
+  }, []);
 
   async function handleAudit() {
     setLoading(true);
@@ -113,13 +122,19 @@ export function AuditPage() {
         </div>
 
         {auditMode === "user" && (
-          <input
-            type="text"
-            placeholder="User ID (leave empty for your bag)"
+          <select
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
             className="input-pill text-sm w-full"
-          />
+            disabled={rosterLoading}
+          >
+            <option value="">— Select a player —</option>
+            {roster.map((player) => (
+              <option key={player.id} value={player.id}>
+                {player.name}
+              </option>
+            ))}
+          </select>
         )}
 
         <button onClick={handleAudit} disabled={loading} className="btn-primary w-full">
@@ -241,6 +256,7 @@ function DiscEditor() {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<typeof DISC_DB>([]);
   const [editing, setEditing] = useState<(typeof DISC_DB)[0] | null>(null);
+  const [adding, setAdding] = useState(false);
 
   function handleSearch(query: string) {
     setSearch(query);
@@ -262,8 +278,22 @@ function DiscEditor() {
         disc={editing}
         onCancel={() => setEditing(null)}
         onSave={(updated) => {
-          alert(`Disc updated: ${updated.name}. Note: Changes are in-memory only. Export to file to persist.`);
+          alert(`Disc updated: ${updated.name}`);
           setEditing(null);
+        }}
+      />
+    );
+  }
+
+  if (adding) {
+    return (
+      <DiscAddForm
+        onCancel={() => setAdding(false)}
+        onSave={(newDisc) => {
+          alert(`Disc added: ${newDisc.name}`);
+          setAdding(false);
+          setSearch("");
+          setResults([]);
         }}
       />
     );
@@ -271,13 +301,21 @@ function DiscEditor() {
 
   return (
     <div className="space-y-3">
-      <input
-        type="text"
-        placeholder="Search discs by name or manufacturer..."
-        value={search}
-        onChange={(e) => handleSearch(e.target.value)}
-        className="input-pill text-sm w-full"
-      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Search discs by name or manufacturer..."
+          value={search}
+          onChange={(e) => handleSearch(e.target.value)}
+          className="input-pill text-sm flex-1"
+        />
+        <button
+          onClick={() => setAdding(true)}
+          className="btn-primary text-sm px-3 whitespace-nowrap"
+        >
+          + Add Disc
+        </button>
+      </div>
       {results.length > 0 && (
         <div className="space-y-1 max-h-64 overflow-y-auto">
           {results.map((disc, i) => (
@@ -414,6 +452,141 @@ function DiscEditorForm({
       <div className="flex gap-2">
         <button onClick={handleSave} disabled={saving} className="btn-primary text-sm flex-1">
           {saving ? "Saving..." : "Save"}
+        </button>
+        <button
+          onClick={onCancel}
+          disabled={saving}
+          className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DiscAddForm({
+  onCancel,
+  onSave,
+}: {
+  onCancel: () => void;
+  onSave: (disc: typeof DISC_DB[0]) => void;
+}) {
+  const [formData, setFormData] = useState({
+    manufacturer: "",
+    name: "",
+    type: "putter" as const,
+    speed: 2,
+    glide: 3,
+    turn: 0,
+    fade: 1,
+  });
+  const [saving, setSaving] = useState(false);
+
+  function handleChange(key: string, value: string | number) {
+    setFormData({ ...formData, [key]: value });
+  }
+
+  async function handleSave() {
+    if (!formData.manufacturer.trim() || !formData.name.trim()) {
+      alert("Manufacturer and name are required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await addDiscToDatabase(formData);
+      onSave(formData);
+    } catch (error) {
+      alert(`Save failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="bg-white border border-green-300 rounded p-4 space-y-3">
+      <div className="font-semibold text-green-900">Add New Disc</div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-semibold text-gray-700">Manufacturer *</label>
+          <input
+            type="text"
+            value={formData.manufacturer}
+            onChange={(e) => handleChange("manufacturer", e.target.value)}
+            className="input-pill text-sm w-full"
+            placeholder="e.g. Innova"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-700">Name *</label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => handleChange("name", e.target.value)}
+            className="input-pill text-sm w-full"
+            placeholder="e.g. Aviar"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-700">Type</label>
+          <select
+            value={formData.type}
+            onChange={(e) => handleChange("type", e.target.value)}
+            className="input-pill text-sm w-full"
+          >
+            <option value="putter">Putter</option>
+            <option value="midrange">Midrange</option>
+            <option value="fairway_driver">Fairway Driver</option>
+            <option value="distance_driver">Distance Driver</option>
+          </select>
+        </div>
+        <div className="col-span-2 grid grid-cols-4 gap-2">
+          <div>
+            <label className="text-xs font-semibold text-gray-700">Speed</label>
+            <input
+              type="number"
+              value={formData.speed}
+              onChange={(e) => handleChange("speed", parseFloat(e.target.value))}
+              className="input-pill text-sm w-full"
+              step="0.5"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-700">Glide</label>
+            <input
+              type="number"
+              value={formData.glide}
+              onChange={(e) => handleChange("glide", parseFloat(e.target.value))}
+              className="input-pill text-sm w-full"
+              step="0.5"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-700">Turn</label>
+            <input
+              type="number"
+              value={formData.turn}
+              onChange={(e) => handleChange("turn", parseFloat(e.target.value))}
+              className="input-pill text-sm w-full"
+              step="0.5"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-700">Fade</label>
+            <input
+              type="number"
+              value={formData.fade}
+              onChange={(e) => handleChange("fade", parseFloat(e.target.value))}
+              className="input-pill text-sm w-full"
+              step="0.5"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={handleSave} disabled={saving} className="btn-primary text-sm flex-1">
+          {saving ? "Adding..." : "Add Disc"}
         </button>
         <button
           onClick={onCancel}
