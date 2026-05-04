@@ -127,7 +127,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`rounded-full px-3 py-2 transition-colors whitespace-nowrap shrink-0 ${
+      className={`block rounded-full px-3 py-2 transition-colors whitespace-nowrap shrink-0 ${
         active
           ? "text-forest-800 bg-forest-50"
           : "text-forest-700 hover:bg-forest-50"

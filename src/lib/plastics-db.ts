@@ -114,7 +114,6 @@ export const PLASTICS: PlasticRecord[] = [
   { manufacturer:"Lone Star Disc", name:"Alpha",     stabilityOffset: 0,    durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Lone Star Disc", name:"Bravo",     stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Lone Star Disc", name:"Lima",      stabilityOffset: 0.5,  durability:4, breakIn:"slow",   firmness:"firm"     },
-  { manufacturer:"Lone Star Disc", name:"Royal Soft",stabilityOffset:-0.5,  durability:3, breakIn:"fast",   firmness:"soft"     },
 
   // ── Gateway ──────────────────────────────────────────────────────────────────
   { manufacturer:"Gateway", name:"Evolution Platinum",stabilityOffset: 0.5, durability:5, breakIn:"slow",   firmness:"firm"     },
