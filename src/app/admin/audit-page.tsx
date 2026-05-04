@@ -19,12 +19,22 @@ export function AuditPage() {
 
   useEffect(() => {
     getRosterForAudit()
-      .then(setRoster)
-      .catch((error) => console.error("Failed to load roster:", error))
+      .then((data) => {
+        setRoster(Array.isArray(data) ? data : []);
+      })
+      .catch((error) => {
+        console.error("Failed to load roster:", error);
+        setRoster([]);
+      })
       .finally(() => setRosterLoading(false));
   }, []);
 
   async function handleAudit() {
+    if (auditMode === "user" && !userId) {
+      alert("Please select a player first");
+      return;
+    }
+
     setLoading(true);
     try {
       const result =
@@ -33,6 +43,7 @@ export function AuditPage() {
           : await auditAllBagDiscs();
       setAuditResult(result);
     } catch (error) {
+      console.error("Audit error:", error);
       alert(`Audit failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setLoading(false);

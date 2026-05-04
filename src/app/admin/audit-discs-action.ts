@@ -18,14 +18,15 @@ export async function auditUserBagDiscs(userId?: string) {
   if (!user) throw new Error("Not authenticated");
 
   const targetUserId = userId || user.id;
+  if (!targetUserId) throw new Error("No user ID available");
 
-  const supabase = await supabaseSession();
+  const supabase = supabaseAdmin();
   const { data: bagDiscs, error } = await supabase
     .from("bag_discs")
     .select("*")
     .eq("user_id", targetUserId);
 
-  if (error) throw error;
+  if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
 
   const mismatches = auditBagDiscs(bagDiscs || []);
   const summary = auditSummary(mismatches);
