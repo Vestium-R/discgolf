@@ -112,9 +112,11 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
   const paths = discs.map(d=>{
     const turn=d.turn??0, fade=d.fade??0;
     const distFt = speedToFeet(d.speed);
-    // Lateral deviation in feet (RHBH): negative turn → right (+X), fade → left (-X)
-    const peakLat  = flip * (-(turn) * 5);
-    const endLat   = flip * (-(turn) * 4 - fade * 4);
+    // Lateral deviation in feet:
+    // Negative turn (understable) = curves; positive turn (overstable) = resists, flies straight
+    const turnCurve = Math.max(0, -(turn));  // only apply turn for negative (understable) turns
+    const peakLat  = flip * (turnCurve * 5);
+    const endLat   = flip * (turnCurve * 4 - fade * 4);
 
     // S-curve: turn one way, then fade back the other (gradual S, not instant)
     const hasSCurve = (turn < -0.5) && (fade > 1.0);
