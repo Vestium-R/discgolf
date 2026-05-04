@@ -22,6 +22,9 @@ export function AuditPage() {
     getRosterForAudit()
       .then((data) => {
         console.log("Roster loaded:", data?.length || 0, "players");
+        if (data && data.length > 0) {
+          console.log("First player:", JSON.stringify(data[0]));
+        }
         setRoster(Array.isArray(data) ? data : []);
       })
       .catch((error) => {
