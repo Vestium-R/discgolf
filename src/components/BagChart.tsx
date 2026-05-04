@@ -137,15 +137,14 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
       c2x = toFx(endLat * 0.5);  // midway to endpoint, start of fade
       c2y = toFy(distFt * 0.7, maxFt);
     } else {
-      // Standard curve: disc flies mostly straight initially, then curves develop
-      // c1: minimal curve early (straight for first 25%)
-      // c2: settled by late flight - pulled back by fade if present
-      const fadeInfluence = Math.max(0, fade); // fade > 0 pulls back toward center
-      c1x = toFx(peakLat * 0.2);   // very minimal early deflection, flies straight
-      c1y = toFy(distFt * 0.25, maxFt);
-      // c2 stays near endpoint when no fade, pulls back toward center when fade present
-      c2x = toFx(endLat + (peakLat - endLat) * Math.max(0, 0.4 - fadeInfluence * 0.15));
-      c2y = toFy(distFt * 0.7, maxFt);
+      // Standard curve: disc flies STRAIGHT for majority, curves only at END
+      // Reference: Paradox flies straight for 200+ feet, then subtle curve at end
+      const fadeInfluence = Math.max(0, fade);
+      c1x = toFx(peakLat * 0.05);  // almost straight for first half of flight
+      c1y = toFy(distFt * 0.5, maxFt);   // halfway through flight
+      // c2 where curve becomes visible, pulled by fade if present
+      c2x = toFx(endLat + (peakLat - endLat) * Math.max(0, 0.3 - fadeInfluence * 0.1));
+      c2y = toFy(distFt * 0.85, maxFt);  // late in flight, near the end
     }
 
     const ex=toFx(endLat), ey=toFy(distFt, maxFt);
