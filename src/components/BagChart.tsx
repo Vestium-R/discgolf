@@ -130,11 +130,11 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
       c2y = toFy(distFt * 0.75, maxFt);
     } else {
       // Standard curve: turn dominates. Control points follow the turn magnitude.
-      // For discs with minimal fade, weight second control toward end (no fade-back)
+      // For discs with positive fade, second control pulls back toward center/left
       const fadeInfluence = Math.max(0, fade); // fade > 0 pulls back toward center
       c1x = toFx(peakLat * 1.1);
       c1y = toFy(distFt * 0.33, maxFt);
-      c2x = toFx(endLat + (peakLat - endLat) * fadeInfluence * 0.3);
+      c2x = toFx(endLat - (peakLat - endLat) * fadeInfluence * 0.3);
       c2y = toFy(distFt * 0.67, maxFt);
     }
 
