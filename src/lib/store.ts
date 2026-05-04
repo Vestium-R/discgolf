@@ -5,6 +5,8 @@ type PlayerRow = {
   id: string;
   name: string;
   slug: string;
+  email: string | null;
+  auth_id: string | null;
   udisc_handle: string | null;
   udisc_avatar_url: string | null;
   active: boolean;
@@ -127,11 +129,40 @@ export async function getRoster(): Promise<Player[]> {
   return (data as PlayerRow[]).map(mapPlayer);
 }
 
-export async function upsertPlayer(p: Player): Promise<void> {
+export async function getOrLinkPlayerByAuthId(authId: string, email: string): Promise<Player | null> {
+  // First try: player already linked to this auth ID
+  const { data: linked } = await supabaseAdmin()
+    .from("players")
+    .select("*")
+    .eq("auth_id", authId)
+    .single();
+  if (linked) return mapPlayer(linked as PlayerRow);
+
+  // Second try: find by email and link
+  const { data: byEmail } = await supabaseAdmin()
+    .from("players")
+    .select("*")
+    .eq("email", email)
+    .single();
+  if (byEmail) {
+    // Link them
+    await supabaseAdmin()
+      .from("players")
+      .update({ auth_id: authId })
+      .eq("id", byEmail.id);
+    return mapPlayer(byEmail as PlayerRow);
+  }
+
+  return null;
+}
+
+export async function upsertPlayer(p: Player, email?: string, authId?: string): Promise<void> {
   const { error } = await supabaseAdmin().from("players").upsert({
     id: p.id,
     name: p.name,
     slug: p.slug,
+    email: email ?? null,
+    auth_id: authId ?? null,
     udisc_handle: p.udiscHandle ?? null,
     udisc_avatar_url: p.udiscAvatarUrl ?? null,
     active: p.active,
