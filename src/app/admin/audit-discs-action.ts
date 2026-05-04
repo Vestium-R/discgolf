@@ -3,6 +3,7 @@
 import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { auditBagDiscs, auditSummary } from "@/lib/disc-audit";
+import type { DiscRecord } from "@/lib/discs-db";
 
 export async function auditUserBagDiscs(userId?: string) {
   const user = await getUser();
@@ -47,4 +48,22 @@ export async function auditAllBagDiscs() {
     mismatches,
     summary,
   };
+}
+
+export async function fixBagDiscFlightNumbers(bagDiscId: string, dbDisc: DiscRecord) {
+  const user = await getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("bag_discs")
+    .update({
+      speed: dbDisc.speed,
+      glide: dbDisc.glide,
+      turn: dbDisc.turn,
+      fade: dbDisc.fade,
+    })
+    .eq("id", bagDiscId);
+
+  if (error) throw error;
 }
