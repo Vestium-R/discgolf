@@ -8,25 +8,35 @@ import type { DiscRecord } from "@/lib/discs-db";
 
 export async function getRosterForAudit() {
   try {
+    console.log("getRosterForAudit: Starting");
     const user = await getUser();
+    console.log("getRosterForAudit: User =", user?.email);
     if (!user) throw new Error("Not authenticated");
 
+    console.log("getRosterForAudit: Calling getRoster");
     const roster = await getRoster();
+    console.log("getRosterForAudit: Got roster with", roster?.length, "players");
     return roster || [];
   } catch (error) {
-    console.error("getRosterForAudit error:", error);
-    throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("getRosterForAudit error:", message);
+    console.error("getRosterForAudit error details:", error);
+    // Return empty array instead of throwing to prevent the entire component from failing
+    return [];
   }
 }
 
 export async function auditUserBagDiscs(userId?: string) {
   try {
+    console.log("auditUserBagDiscs: Starting, userId =", userId);
     const user = await getUser();
+    console.log("auditUserBagDiscs: User =", user?.email);
     if (!user) throw new Error("Not authenticated");
 
     const targetUserId = userId || user.id;
     if (!targetUserId) throw new Error("No user ID available");
 
+    console.log("auditUserBagDiscs: Fetching bag discs for user", targetUserId);
     const supabase = supabaseAdmin();
     const { data: bagDiscs, error } = await supabase
       .from("bag_discs")
@@ -35,6 +45,7 @@ export async function auditUserBagDiscs(userId?: string) {
 
     if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
 
+    console.log("auditUserBagDiscs: Got", bagDiscs?.length, "discs");
     const mismatches = auditBagDiscs(bagDiscs || []);
     const summary = auditSummary(mismatches);
 
@@ -45,49 +56,70 @@ export async function auditUserBagDiscs(userId?: string) {
       summary,
     };
   } catch (error) {
-    console.error("auditUserBagDiscs error:", error);
-    throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("auditUserBagDiscs error:", message);
+    console.error("auditUserBagDiscs error details:", error);
+    throw new Error(`Audit failed: ${message}`);
   }
 }
 
 export async function auditAllBagDiscs() {
-  const user = await getUser();
-  if (!user) throw new Error("Not authenticated");
+  try {
+    console.log("auditAllBagDiscs: Starting");
+    const user = await getUser();
+    console.log("auditAllBagDiscs: User =", user?.email);
+    if (!user) throw new Error("Not authenticated");
 
-  const supabase = supabaseAdmin();
-  const { data: bagDiscs, error } = await supabase.from("bag_discs").select("*");
+    console.log("auditAllBagDiscs: Fetching all bag discs");
+    const supabase = supabaseAdmin();
+    const { data: bagDiscs, error } = await supabase.from("bag_discs").select("*");
 
-  if (error) throw error;
+    if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
 
-  const mismatches = auditBagDiscs(bagDiscs || []);
-  const summary = auditSummary(mismatches);
+    console.log("auditAllBagDiscs: Got", bagDiscs?.length, "discs");
+    const mismatches = auditBagDiscs(bagDiscs || []);
+    const summary = auditSummary(mismatches);
 
-  return {
-    userId: "all",
-    totalBagDiscs: bagDiscs?.length || 0,
-    mismatches,
-    summary,
-  };
+    return {
+      userId: "all",
+      totalBagDiscs: bagDiscs?.length || 0,
+      mismatches,
+      summary,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("auditAllBagDiscs error:", message);
+    console.error("auditAllBagDiscs error details:", error);
+    throw new Error(`Audit failed: ${message}`);
+  }
 }
 
 export async function fixBagDiscFlightNumbers(bagDiscId: string, dbDisc: DiscRecord) {
-  const user = await getUser();
-  if (!user) throw new Error("Not authenticated");
+  try {
+    console.log("fixBagDiscFlightNumbers: Fixing", bagDiscId);
+    const user = await getUser();
+    if (!user) throw new Error("Not authenticated");
 
-  const supabase = supabaseAdmin();
-  const { error } = await supabase
-    .from("bag_discs")
-    .update({
-      disc_name: dbDisc.name,
-      manufacturer: dbDisc.manufacturer,
-      speed: dbDisc.speed,
-      glide: dbDisc.glide,
-      turn: dbDisc.turn,
-      fade: dbDisc.fade,
-    })
-    .eq("id", bagDiscId);
+    const supabase = supabaseAdmin();
+    const { error } = await supabase
+      .from("bag_discs")
+      .update({
+        disc_name: dbDisc.name,
+        manufacturer: dbDisc.manufacturer,
+        speed: dbDisc.speed,
+        glide: dbDisc.glide,
+        turn: dbDisc.turn,
+        fade: dbDisc.fade,
+      })
+      .eq("id", bagDiscId);
 
-  if (error) throw error;
+    if (error) throw new Error(`Supabase error: ${error.message}`);
+    console.log("fixBagDiscFlightNumbers: Fixed", dbDisc.name);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("fixBagDiscFlightNumbers error:", message);
+    throw new Error(message);
+  }
 }
 
 export async function updateDiscInDatabase(disc: DiscRecord) {
