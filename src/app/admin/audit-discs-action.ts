@@ -62,7 +62,7 @@ export async function fixBagDiscFlightNumbers(bagDiscId: string, dbDisc: DiscRec
   const user = await getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const supabase = await supabaseSession();
+  const supabase = supabaseAdmin();
   const { error } = await supabase
     .from("bag_discs")
     .update({
