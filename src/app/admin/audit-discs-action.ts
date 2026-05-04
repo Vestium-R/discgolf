@@ -195,19 +195,26 @@ export async function addDiscToDatabase(disc: DiscRecord) {
       `manufacturer:\\s*"${escapedMfg}"\\s*,\\s*name:\\s*"${escapedName}"`
     );
 
+    console.log("addDiscToDatabase: Checking if disc exists:", escapedMfg, escapedName);
     if (existsPattern.test(content)) {
       throw new Error(`Disc already exists: ${disc.manufacturer} ${disc.name}`);
     }
 
     // Create the new disc entry
     const newDisc = `  { manufacturer: "${disc.manufacturer.replace(/"/g, '\\"')}", name: "${disc.name.replace(/"/g, '\\"')}", type: "${disc.type}", speed: ${disc.speed}, glide: ${disc.glide}, turn: ${disc.turn}, fade: ${disc.fade} },\n`;
+    console.log("addDiscToDatabase: New disc entry:", newDisc);
 
-    // Try to insert before the final ];
-    if (!content.includes("];")) {
-      throw new Error("Database file format invalid - missing closing ];");
+    // Find the DISC_DB closing ]; by looking for the pattern (last disc object followed by ]);
+    const discDbEndPattern = /(\},\s*)\];/m;
+    if (!discDbEndPattern.test(content)) {
+      console.log("addDiscToDatabase: File content around last lines:", content.slice(-200));
+      throw new Error("Database file format invalid - cannot find DISC_DB closing ];");
     }
 
-    content = content.replace(/\];$/, `${newDisc}];`);
+    const beforeReplace = content.length;
+    content = content.replace(discDbEndPattern, `$1\n${newDisc}];`);
+    const afterReplace = content.length;
+    console.log("addDiscToDatabase: File size before:", beforeReplace, "after:", afterReplace);
 
     fs.writeFileSync(dbPath, content, "utf-8");
 
@@ -216,6 +223,77 @@ export async function addDiscToDatabase(disc: DiscRecord) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("addDiscToDatabase error:", message);
+    throw new Error(message);
+  }
+}
+
+export async function fixBagDiscsUserIds() {
+  try {
+    console.log("fixBagDiscsUserIds: Starting");
+    const user = await getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    const supabase = supabaseAdmin();
+
+    // Mapping 1: jeffrey-rijkse
+    console.log("fixBagDiscsUserIds: Applying jeffrey-rijkse mapping");
+    const { error: err1 } = await supabase
+      .from("bag_discs")
+      .update({ user_id: "jeffrey-rijkse" })
+      .eq("user_id", "e33d8a43-3646-40ec-a92d-d1ff654c155d");
+    if (err1) throw new Error(`Failed to update jeffrey-rijkse: ${err1.message}`);
+
+    // Mapping 2: mathieu-jacob
+    console.log("fixBagDiscsUserIds: Applying mathieu-jacob mapping");
+    const { error: err2 } = await supabase
+      .from("bag_discs")
+      .update({ user_id: "mathieu-jacob" })
+      .eq("user_id", "c60544c5-faad-4605-9164-0d122ab0dce2");
+    if (err2) throw new Error(`Failed to update mathieu-jacob: ${err2.message}`);
+
+    // Mapping 3: reginald-roth
+    console.log("fixBagDiscsUserIds: Applying reginald-roth mapping");
+    const { error: err3 } = await supabase
+      .from("bag_discs")
+      .update({ user_id: "reginald-roth" })
+      .eq("user_id", "62e39edd-90a7-45ef-b99c-801909f576fa");
+    if (err3) throw new Error(`Failed to update reginald-roth: ${err3.message}`);
+
+    // Mapping 4: john-cormier
+    console.log("fixBagDiscsUserIds: Applying john-cormier mapping");
+    const { error: err4 } = await supabase
+      .from("bag_discs")
+      .update({ user_id: "john-cormier" })
+      .eq("user_id", "9a3d2575-283b-45d8-a755-2c0e46e7180b");
+    if (err4) throw new Error(`Failed to update john-cormier: ${err4.message}`);
+
+    // Check for remaining invalid UUIDs
+    console.log("fixBagDiscsUserIds: Checking for remaining invalid user_ids");
+    const { data: allBagDiscs, error: fetchErr } = await supabase
+      .from("bag_discs")
+      .select("user_id");
+    if (fetchErr) throw new Error(`Failed to fetch bag_discs: ${fetchErr.message}`);
+
+    const { data: players, error: playerErr } = await supabase
+      .from("players")
+      .select("id");
+    if (playerErr) throw new Error(`Failed to fetch players: ${playerErr.message}`);
+
+    const validIds = new Set(players.map(p => p.id));
+    const uniqueUserIds = [...new Set(allBagDiscs.map(d => d.user_id))];
+    const remainingInvalid = uniqueUserIds.filter(id => !validIds.has(id));
+
+    console.log("fixBagDiscsUserIds: Complete");
+    console.log("fixBagDiscsUserIds: Remaining invalid UUIDs:", remainingInvalid);
+
+    return {
+      success: true,
+      message: "Fixed 4 user_id mappings",
+      remainingInvalidIds: remainingInvalid,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("fixBagDiscsUserIds error:", message);
     throw new Error(message);
   }
 }

@@ -4,6 +4,7 @@ import type { BagDisc, Player, Round, RoundVariant, SeasonHistory, Settings } fr
 type PlayerRow = {
   id: string;
   name: string;
+  slug: string;
   udisc_handle: string | null;
   udisc_avatar_url: string | null;
   active: boolean;
@@ -42,6 +43,7 @@ function mapPlayer(r: PlayerRow): Player {
   return {
     id: r.id,
     name: r.name,
+    slug: r.slug,
     udiscHandle: r.udisc_handle ?? undefined,
     udiscAvatarUrl: r.udisc_avatar_url ?? undefined,
     active: r.active,
@@ -129,6 +131,7 @@ export async function upsertPlayer(p: Player): Promise<void> {
   const { error } = await supabaseAdmin().from("players").upsert({
     id: p.id,
     name: p.name,
+    slug: p.slug,
     udisc_handle: p.udiscHandle ?? null,
     udisc_avatar_url: p.udiscAvatarUrl ?? null,
     active: p.active,

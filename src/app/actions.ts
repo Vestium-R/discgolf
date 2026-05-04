@@ -181,8 +181,9 @@ export async function addPlayerAction(formData: FormData): Promise<void> {
   const udiscHandle = String(formData.get("udiscHandle") ?? "").trim();
   if (!name) return;
   const roster = await getRoster();
-  const id = uniqueId(slug(name), roster.map((p) => p.id));
-  await upsertPlayer({ id, name, udiscHandle: udiscHandle || undefined, active: true });
+  const id = crypto.randomUUID();
+  const playerSlug = uniqueId(slug(name), roster.map((p) => p.slug));
+  await upsertPlayer({ id, name, slug: playerSlug, udiscHandle: udiscHandle || undefined, active: true });
   revalidatePath("/admin");
   revalidatePath("/");
 }
