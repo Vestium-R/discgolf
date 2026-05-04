@@ -115,6 +115,14 @@ export const PLASTICS: PlasticRecord[] = [
   { manufacturer:"Lone Star Disc", name:"Bravo",     stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Lone Star Disc", name:"Lima",      stabilityOffset: 0.5,  durability:4, breakIn:"slow",   firmness:"firm"     },
 
+  // ── Discmania ─────────────────────────────────────────────────────────────────
+  { manufacturer:"Discmania", name:"C-line",         stabilityOffset: 0.3,  durability:5, breakIn:"slow",   firmness:"firm"     },
+  { manufacturer:"Discmania", name:"S-line",         stabilityOffset:-0.3,  durability:4, breakIn:"medium", firmness:"medium"   },
+  { manufacturer:"Discmania", name:"Active",         stabilityOffset:-0.5,  durability:3, breakIn:"fast",   firmness:"medium"   },
+  { manufacturer:"Discmania", name:"Evolution",      stabilityOffset: 0.5,  durability:5, breakIn:"slow",   firmness:"firm"     },
+  { manufacturer:"Discmania", name:"Metal Flake C-line", stabilityOffset: 0.5, durability:5, breakIn:"slow", firmness:"firm"   },
+  { manufacturer:"Discmania", name:"Special Blend S-line", stabilityOffset: 0, durability:4, breakIn:"slow", firmness:"flexible" },
+
   // ── Clash Discs ──────────────────────────────────────────────────────────────
   { manufacturer:"Clash Discs", name:"Softy",        stabilityOffset:-0.5, durability:3, breakIn:"fast",   firmness:"soft"     },
   { manufacturer:"Clash Discs", name:"Steady",       stabilityOffset: 0,   durability:4, breakIn:"slow",   firmness:"medium"   },
