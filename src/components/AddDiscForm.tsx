@@ -137,7 +137,7 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
               onChange={e => pickPlastic(e.target.value)}
               defaultValue="">
               <option value="">— Select plastic —</option>
-              {availablePlastics.map(p => (
+              {[...availablePlastics].sort((a, b) => a.name.localeCompare(b.name)).map(p => (
                 <option key={p.name} value={p.name}>
                   {p.name} {p.stabilityOffset > 0 ? "↑OS" : p.stabilityOffset < 0 ? "↓US" : "·"} {DUR_STARS(p.durability)}
                 </option>
