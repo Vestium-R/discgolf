@@ -42,6 +42,9 @@ export const PLASTICS: PlasticRecord[] = [
   { manufacturer:"Discraft", name:"Jawbreaker",      stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Discraft", name:"X",               stabilityOffset:-0.5,  durability:3, breakIn:"fast",   firmness:"medium"   },
   { manufacturer:"Discraft", name:"Pro D",           stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
+  { manufacturer:"Discraft", name:"Pro-D",          stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
+  { manufacturer:"Discraft", name:"Z",               stabilityOffset: 0.5,  durability:5, breakIn:"slow",   firmness:"firm"     },
+  { manufacturer:"Discraft", name:"Putter Line",     stabilityOffset: 0,    durability:3, breakIn:"medium", firmness:"medium"   },
   { manufacturer:"Discraft", name:"Biofuzion",       stabilityOffset: 0.3,  durability:4, breakIn:"slow",   firmness:"firm"     },
 
   // ── Dynamic Discs / Latitude 64 / Westside ───────────────────────────────────
