@@ -128,6 +128,12 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
       c1y = toFy(distFt * 0.25, maxFt);
       c2x = toFx(endLat * 0.6);
       c2y = toFy(distFt * 0.75, maxFt);
+    } else if (Math.abs(turn) < 0.5 && fade > 0) {
+      // Pure fade disc: flies straight then fades (no turn component)
+      c1x = toFx(0);
+      c1y = toFy(distFt * 0.4, maxFt);
+      c2x = toFx(endLat * 0.5);  // midway to endpoint, start of fade
+      c2y = toFy(distFt * 0.7, maxFt);
     } else {
       // Standard curve: disc flies mostly straight initially, then curves develop
       // c1: minimal curve early (straight for first 25%)
