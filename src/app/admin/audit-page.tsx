@@ -41,20 +41,10 @@ export function AuditPage() {
 
   async function handleFixMismatch(mismatch: DiscMismatch) {
     if (!mismatch.dbDisc) {
-      alert("Cannot auto-fix disc not in database. Please resolve manually.");
-      return;
+      throw new Error(`Cannot auto-fix: ${mismatch.bagDisc.disc_name} not in database`);
     }
 
-    setFixing(true);
-    try {
-      await fixBagDiscFlightNumbers(mismatch.bagDisc.id, mismatch.dbDisc);
-      alert("Fixed! Refreshing audit...");
-      await handleAudit();
-    } catch (error) {
-      alert(`Fix failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-    } finally {
-      setFixing(false);
-    }
+    await fixBagDiscFlightNumbers(mismatch.bagDisc.id, mismatch.dbDisc);
   }
 
   async function handleFixAll() {
@@ -70,9 +60,20 @@ export function AuditPage() {
 
     setFixing(true);
     try {
-      await Promise.all(fixable.map((m) => handleFixMismatch(m)));
-      alert("All fixed!");
+      let fixed = 0;
+      let failed = 0;
+      for (const mismatch of fixable) {
+        try {
+          await handleFixMismatch(mismatch);
+          fixed++;
+        } catch (error) {
+          failed++;
+        }
+      }
       await handleAudit();
+      if (failed > 0) {
+        alert(`Fixed ${fixed}, failed ${failed}`);
+      }
     } catch (error) {
       alert(`Batch fix failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
@@ -179,7 +180,14 @@ export function AuditPage() {
                 <MismatchRow
                   key={i}
                   mismatch={mismatch}
-                  onFix={() => handleFixMismatch(mismatch)}
+                  onFix={async () => {
+                    try {
+                      await handleFixMismatch(mismatch);
+                      await handleAudit();
+                    } catch (error) {
+                      alert(`Fix failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+                    }
+                  }}
                   fixing={fixing}
                 />
               ))}

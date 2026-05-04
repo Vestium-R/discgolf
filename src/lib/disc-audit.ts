@@ -26,11 +26,18 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
 
   for (const bagDisc of bagDiscs) {
     // Find matching disc in DB by name and manufacturer
-    const dbDisc = DISC_DB.find(
+    let dbDisc = DISC_DB.find(
       (d) =>
         d.name.toLowerCase() === bagDisc.disc_name.toLowerCase() &&
         d.manufacturer.toLowerCase() === (bagDisc.manufacturer || "").toLowerCase()
     );
+
+    // If not found by exact match, try by name alone (in case manufacturer is wrong)
+    if (!dbDisc) {
+      dbDisc = DISC_DB.find(
+        (d) => d.name.toLowerCase() === bagDisc.disc_name.toLowerCase()
+      );
+    }
 
     if (!dbDisc) {
       mismatches.push({
