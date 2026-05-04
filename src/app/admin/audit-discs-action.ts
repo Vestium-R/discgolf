@@ -66,6 +66,8 @@ export async function fixBagDiscFlightNumbers(bagDiscId: string, dbDisc: DiscRec
   const { error } = await supabase
     .from("bag_discs")
     .update({
+      disc_name: dbDisc.name,
+      manufacturer: dbDisc.manufacturer,
       speed: dbDisc.speed,
       glide: dbDisc.glide,
       turn: dbDisc.turn,

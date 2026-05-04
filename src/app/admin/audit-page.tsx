@@ -62,17 +62,24 @@ export function AuditPage() {
     try {
       let fixed = 0;
       let failed = 0;
+
       for (const mismatch of fixable) {
         try {
-          await handleFixMismatch(mismatch);
+          await fixBagDiscFlightNumbers(mismatch.bagDisc.id, mismatch.dbDisc!);
           fixed++;
         } catch (error) {
+          console.error("Failed to fix:", mismatch.bagDisc.disc_name, error);
           failed++;
         }
       }
+
+      // Refresh audit to show updated data
       await handleAudit();
+
       if (failed > 0) {
         alert(`Fixed ${fixed}, failed ${failed}`);
+      } else {
+        alert(`Fixed ${fixed} discs`);
       }
     } catch (error) {
       alert(`Batch fix failed: ${error instanceof Error ? error.message : "Unknown error"}`);
