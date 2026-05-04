@@ -91,55 +91,91 @@ export async function fixBagDiscFlightNumbers(bagDiscId: string, dbDisc: DiscRec
 }
 
 export async function updateDiscInDatabase(disc: DiscRecord) {
-  const user = await getUser();
-  if (!user) throw new Error("Not authenticated");
+  try {
+    const user = await getUser();
+    if (!user) throw new Error("Not authenticated");
 
-  const fs = require("fs");
-  const path = require("path");
+    const fs = require("fs");
+    const path = require("path");
 
-  const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
-  let content = fs.readFileSync(dbPath, "utf-8");
+    const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
 
-  // Find the disc entry to replace
-  const pattern = new RegExp(
-    `\\{\\s*manufacturer:\\s*"${disc.manufacturer.replace(/[.*+?^${}()|\\[\\]\\\\]/g, "\\$&")}"\\s*,\\s*name:\\s*"${disc.name.replace(/[.*+?^${}()|\\[\\]\\\\]/g, "\\$&")}"\\s*,\\s*type:\\s*"${disc.type}"\\s*,\\s*speed:\\s*[\\d.-]+\\s*,\\s*glide:\\s*[\\d.-]+\\s*,\\s*turn:\\s*[\\d.-]+\\s*,\\s*fade:\\s*[\\d.-]+\\s*\\}`,
-    "g"
-  );
+    if (!fs.existsSync(dbPath)) {
+      throw new Error(`Database file not found: ${dbPath}`);
+    }
 
-  const replacement = `{ manufacturer: "${disc.manufacturer}", name: "${disc.name}", type: "${disc.type}", speed: ${disc.speed}, glide: ${disc.glide}, turn: ${disc.turn}, fade: ${disc.fade} }`;
+    let content = fs.readFileSync(dbPath, "utf-8");
 
-  if (!pattern.test(content)) {
-    throw new Error(`Disc not found: ${disc.manufacturer} ${disc.name}`);
+    // Find the disc entry to replace
+    const escapedMfg = disc.manufacturer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedName = disc.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(
+      `\\{\\s*manufacturer:\\s*"${escapedMfg}"\\s*,\\s*name:\\s*"${escapedName}"\\s*,\\s*type:\\s*"${disc.type}"\\s*,\\s*speed:\\s*[\\d.-]+\\s*,\\s*glide:\\s*[\\d.-]+\\s*,\\s*turn:\\s*[\\d.-]+\\s*,\\s*fade:\\s*[\\d.-]+\\s*\\}`,
+      "g"
+    );
+
+    const replacement = `{ manufacturer: "${disc.manufacturer.replace(/"/g, '\\"')}", name: "${disc.name.replace(/"/g, '\\"')}", type: "${disc.type}", speed: ${disc.speed}, glide: ${disc.glide}, turn: ${disc.turn}, fade: ${disc.fade} }`;
+
+    if (!pattern.test(content)) {
+      throw new Error(`Disc not found: ${disc.manufacturer} ${disc.name}`);
+    }
+
+    content = content.replace(pattern, replacement);
+    fs.writeFileSync(dbPath, content, "utf-8");
+
+    console.log(`Updated disc: ${disc.manufacturer} ${disc.name}`);
+  } catch (error) {
+    console.error("updateDiscInDatabase error:", error);
+    throw error;
   }
-
-  content = content.replace(pattern, replacement);
-  fs.writeFileSync(dbPath, content, "utf-8");
 }
 
 export async function addDiscToDatabase(disc: DiscRecord) {
-  const user = await getUser();
-  if (!user) throw new Error("Not authenticated");
+  try {
+    const user = await getUser();
+    if (!user) throw new Error("Not authenticated");
 
-  const fs = require("fs");
-  const path = require("path");
+    if (!disc.manufacturer || !disc.name) {
+      throw new Error("Manufacturer and name are required");
+    }
 
-  const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
-  let content = fs.readFileSync(dbPath, "utf-8");
+    const fs = require("fs");
+    const path = require("path");
 
-  // Check if disc already exists
-  const existsPattern = new RegExp(
-    `manufacturer:\\s*"${disc.manufacturer.replace(/[.*+?^${}()|\\[\\]\\\\]/g, "\\$&")}"\\s*,\\s*name:\\s*"${disc.name.replace(/[.*+?^${}()|\\[\\]\\\\]/g, "\\$&")}"`
-  );
+    const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
 
-  if (existsPattern.test(content)) {
-    throw new Error(`Disc already exists: ${disc.manufacturer} ${disc.name}`);
+    if (!fs.existsSync(dbPath)) {
+      throw new Error(`Database file not found: ${dbPath}`);
+    }
+
+    let content = fs.readFileSync(dbPath, "utf-8");
+
+    // Check if disc already exists
+    const escapedMfg = disc.manufacturer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedName = disc.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const existsPattern = new RegExp(
+      `manufacturer:\\s*"${escapedMfg}"\\s*,\\s*name:\\s*"${escapedName}"`
+    );
+
+    if (existsPattern.test(content)) {
+      throw new Error(`Disc already exists: ${disc.manufacturer} ${disc.name}`);
+    }
+
+    // Create the new disc entry
+    const newDisc = `  { manufacturer: "${disc.manufacturer.replace(/"/g, '\\"')}", name: "${disc.name.replace(/"/g, '\\"')}", type: "${disc.type}", speed: ${disc.speed}, glide: ${disc.glide}, turn: ${disc.turn}, fade: ${disc.fade} },\n`;
+
+    // Try to insert before the final ];
+    if (!content.includes("];")) {
+      throw new Error("Database file format invalid - missing closing ];");
+    }
+
+    content = content.replace(/\];$/, `${newDisc}];`);
+
+    fs.writeFileSync(dbPath, content, "utf-8");
+
+    console.log(`Added disc: ${disc.manufacturer} ${disc.name}`);
+  } catch (error) {
+    console.error("addDiscToDatabase error:", error);
+    throw error;
   }
-
-  // Find the last closing bracket and insert before it
-  const newDisc = `  { manufacturer: "${disc.manufacturer}", name: "${disc.name}", type: "${disc.type}", speed: ${disc.speed}, glide: ${disc.glide}, turn: ${disc.turn}, fade: ${disc.fade} },\n`;
-
-  // Insert before the final ];
-  content = content.replace(/\n\];$/, `\n${newDisc}];`);
-
-  fs.writeFileSync(dbPath, content, "utf-8");
 }
