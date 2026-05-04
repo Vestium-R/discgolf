@@ -119,6 +119,8 @@ export const PLASTICS: PlasticRecord[] = [
   { manufacturer:"Lone Star Disc", name:"Alpha",     stabilityOffset: 0,    durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Lone Star Disc", name:"Bravo",     stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Lone Star Disc", name:"Lima",      stabilityOffset: 0.5,  durability:4, breakIn:"slow",   firmness:"firm"     },
+  { manufacturer:"Lone Star Disc", name:"V1",        stabilityOffset: 0.3,  durability:4, breakIn:"slow",   firmness:"medium"   },
+  { manufacturer:"Lone Star Disc", name:"V2",        stabilityOffset: 0.5,  durability:5, breakIn:"slow",   firmness:"firm"     },
 
   // ── Discmania ─────────────────────────────────────────────────────────────────
   { manufacturer:"Discmania", name:"C-line",         stabilityOffset: 0.3,  durability:5, breakIn:"slow",   firmness:"firm"     },
