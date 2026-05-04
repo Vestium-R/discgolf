@@ -55,6 +55,7 @@ export const PLASTICS: PlasticRecord[] = [
   { manufacturer:"Latitude 64",   name:"Opto",       stabilityOffset:-0.3,  durability:4, breakIn:"medium", firmness:"medium"   },
   { manufacturer:"Latitude 64",   name:"Opto Air",   stabilityOffset: 0.5,  durability:4, breakIn:"slow",   firmness:"firm"     },
   { manufacturer:"Latitude 64",   name:"Gold Line",  stabilityOffset: 0,    durability:4, breakIn:"slow",   firmness:"flexible" },
+  { manufacturer:"Latitude 64",   name:"Retro",      stabilityOffset: 0,    durability:4, breakIn:"slow",   firmness:"medium"   },
   { manufacturer:"Latitude 64",   name:"Zero Soft",  stabilityOffset:-0.5,  durability:3, breakIn:"fast",   firmness:"soft"     },
   { manufacturer:"Latitude 64",   name:"Zero Hard",  stabilityOffset:-0.5,  durability:4, breakIn:"medium", firmness:"flexible" },
   { manufacturer:"Westside Discs",name:"VIP",        stabilityOffset:-0.3,  durability:4, breakIn:"medium", firmness:"medium"   },
@@ -102,6 +103,7 @@ export const PLASTICS: PlasticRecord[] = [
   { manufacturer:"Mint Discs", name:"Apex",          stabilityOffset: 0.5,  durability:5, breakIn:"slow",   firmness:"firm"     },
   { manufacturer:"Mint Discs", name:"Sublime",       stabilityOffset: 0.3,  durability:4, breakIn:"slow",   firmness:"medium"   },
   { manufacturer:"Mint Discs", name:"Eternal",       stabilityOffset:-0.3,  durability:4, breakIn:"medium", firmness:"medium"   },
+  { manufacturer:"Mint Discs", name:"Royal Soft",    stabilityOffset:-0.5,  durability:3, breakIn:"fast",   firmness:"soft"     },
 
   // ── Thought Space Athletics ──────────────────────────────────────────────────
   { manufacturer:"Thought Space Athletics", name:"Nebula",   stabilityOffset: 0.5, durability:5, breakIn:"slow",   firmness:"firm"   },
@@ -112,6 +114,7 @@ export const PLASTICS: PlasticRecord[] = [
   { manufacturer:"Lone Star Disc", name:"Alpha",     stabilityOffset: 0,    durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Lone Star Disc", name:"Bravo",     stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Lone Star Disc", name:"Lima",      stabilityOffset: 0.5,  durability:4, breakIn:"slow",   firmness:"firm"     },
+  { manufacturer:"Lone Star Disc", name:"Royal Soft",stabilityOffset:-0.5,  durability:3, breakIn:"fast",   firmness:"soft"     },
 
   // ── Gateway ──────────────────────────────────────────────────────────────────
   { manufacturer:"Gateway", name:"Evolution Platinum",stabilityOffset: 0.5, durability:5, breakIn:"slow",   firmness:"firm"     },
