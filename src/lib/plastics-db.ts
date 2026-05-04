@@ -28,6 +28,8 @@ export const PLASTICS: PlasticRecord[] = [
   { manufacturer:"Innova", name:"XT",                stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Innova", name:"Pro",               stabilityOffset:-0.5,  durability:3, breakIn:"fast",   firmness:"medium"   },
   { manufacturer:"Innova", name:"KC Pro",            stabilityOffset:-0.5,  durability:3, breakIn:"medium", firmness:"hard"     },
+  { manufacturer:"Innova", name:"R-Pro",             stabilityOffset:-0.3,  durability:3, breakIn:"medium", firmness:"flexible" },
+  { manufacturer:"Innova", name:"JK Pro",            stabilityOffset:-0.3,  durability:4, breakIn:"slow",   firmness:"flexible" },
   { manufacturer:"Innova", name:"DX",                stabilityOffset: 0,    durability:1, breakIn:"fast",   firmness:"soft"     },
   { manufacturer:"Innova", name:"EchoStar",          stabilityOffset:-0.5,  durability:3, breakIn:"fast",   firmness:"medium"   },
 
