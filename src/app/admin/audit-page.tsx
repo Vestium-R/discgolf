@@ -18,8 +18,10 @@ export function AuditPage() {
   const [rosterLoading, setRosterLoading] = useState(true);
 
   useEffect(() => {
+    console.log("Loading roster...");
     getRosterForAudit()
       .then((data) => {
+        console.log("Roster loaded:", data?.length || 0, "players");
         setRoster(Array.isArray(data) ? data : []);
       })
       .catch((error) => {
@@ -37,10 +39,12 @@ export function AuditPage() {
 
     setLoading(true);
     try {
+      console.log("Starting audit, mode:", auditMode, "userId:", userId);
       const result =
         auditMode === "user" && userId
           ? await auditUserBagDiscs(userId)
           : await auditAllBagDiscs();
+      console.log("Audit result:", result);
       setAuditResult(result);
     } catch (error) {
       console.error("Audit error:", error);
