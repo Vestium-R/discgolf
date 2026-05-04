@@ -222,6 +222,18 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
         </div>
       </div>
 
+      {/* Condition */}
+      <div>
+        <label className="text-xs font-semibold text-forest-700 block mb-1">Condition</label>
+        <select name="notes" className="input-pill text-sm w-full">
+          <option value="">—</option>
+          <option value="Fresh">Fresh</option>
+          <option value="Slightly beat">Slightly beat</option>
+          <option value="Beat in">Beat in</option>
+          <option value="OS flip">OS flip</option>
+        </select>
+      </div>
+
       <button type="submit" disabled={pending} className="btn-primary w-full">
         {pending ? "Adding…" : "Add to bag"}
       </button>

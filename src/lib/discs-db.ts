@@ -190,7 +190,6 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Axiom", name: "Insanity", type: "fairway_driver", speed: 9, glide: 5, turn: -2.5, fade: 1.5 }, // was 14/5/-2/2 — completely wrong
   { manufacturer: "Axiom", name: "Paradox", type: "midrange", speed: 5, glide: 4, turn: -4, fade: 0 },          // ADG — understable midrange
   { manufacturer: "Axiom", name: "Pitch", type: "putter", speed: 1, glide: 7, turn: -0.5, fade: 0 },           // new — ADG p5
-  { manufacturer: "Axiom", name: "Proxy", type: "putter", speed: 3, glide: 3.5, turn: -1, fade: 0.5 },         // ADG confirmed
   { manufacturer: "Axiom", name: "Rhythm", type: "fairway_driver", speed: 7, glide: 5.5, turn: -2, fade: 1 },  // was 5/5/-0.5/2
   { manufacturer: "Axiom", name: "Tantrum", type: "distance_driver", speed: 14.5, glide: 5, turn: -1.5, fade: 3 }, // new — was wrong
   { manufacturer: "Axiom", name: "Tenacity", type: "distance_driver", speed: 13, glide: 5, turn: -2.5, fade: 2 }, // new
@@ -442,7 +441,6 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "Axiom", name: "Pixel", type: "putter", speed: 2, glide: 4, turn: 0, fade: 0.5 },   // axiomdiscs.com — speed was 2.5
   { manufacturer: "Axiom", name: "Alias", type: "putter", speed: 2, glide: 4, turn: -1, fade: 0.5 },
   { manufacturer: "Axiom", name: "Envy", type: "putter", speed: 3, glide: 4, turn: 0, fade: 2 },
-  { manufacturer: "Axiom", name: "Crave", type: "fairway_driver", speed: 8, glide: 5.5, turn: -2, fade: 2 },
   { manufacturer: "Axiom", name: "Rhythm", type: "midrange", speed: 5, glide: 5, turn: -0.5, fade: 2 },
   { manufacturer: "Axiom", name: "Theory", type: "distance_driver", speed: 10, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "Axiom", name: "Tantrum", type: "distance_driver", speed: 14, glide: 6, turn: -1, fade: 3 },
@@ -560,6 +558,7 @@ export const DISC_DB: DiscRecord[] = [
   { manufacturer: "AGL Discs", name: "Beech", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 3 },
 
   // ── Lone Star Disc (confirmed) ────────────────────────────────────────────
+  { manufacturer: "Lone Star Disc", name: "Armadillo", type: "putter", speed: 1, glide: 2, turn: 0, fade: 1 },
   { manufacturer: "Lone Star Disc", name: "Bayonet", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Lone Star Disc", name: "Brazos", type: "fairway_driver", speed: 7, glide: 5, turn: 0, fade: 3 },
 
