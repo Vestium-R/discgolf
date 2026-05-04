@@ -118,8 +118,9 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
     const peakLat  = flip * (turnCurve * 5);
     const endLat   = flip * (turnCurve * 4 - fade * 4);
 
-    // S-curve: turn one way, then fade back the other (gradual S, not instant)
-    const hasSCurve = (turn < -0.5) && (fade >= 1.0);
+    // S-curve: turn one way, then fade back the other (only if fade is significant relative to turn)
+    // Trail (-1/1) triggers S-curve; Mamba (-5/1) doesn't since fade is negligible vs turn
+    const hasSCurve = (turn < -0.5) && (fade >= 1.0) && (fade / Math.abs(turn) > 0.3);
 
     const x0=toFx(0), y0=toFy(0,maxFt);
     let c1x, c1y, c2x, c2y;
