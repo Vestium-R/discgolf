@@ -6,7 +6,7 @@ import { addDiscAction } from "@/app/bag/actions";
 import { getPlasticsForManufacturer, type PlasticRecord } from "@/lib/plastics-db";
 
 const TYPE_ORDER: DiscType[] = ["distance_driver", "fairway_driver", "midrange", "putter"];
-const COLORS = ["red","orange","yellow","green","blue","purple","pink","white","black","grey","teal"];
+const COLORS = ["black","blue","green","grey","orange","pink","purple","red","teal","white","yellow"].sort();
 
 const STAB_LABEL: Record<string, string> = {
   "Most Overstable": "most OS", "Overstable": "OS",
@@ -186,10 +186,11 @@ export function AddDiscForm({ defaultOpen = false }: { defaultOpen?: boolean }) 
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-semibold text-forest-700 block mb-1">Color</label>
-          <select name="color" className="input-pill text-sm">
-            <option value="">—</option>
-            {COLORS.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
-          </select>
+          <input name="color" type="text" list="color-list" placeholder="e.g. blue, crimson"
+            className="input-pill text-sm" />
+          <datalist id="color-list">
+            {COLORS.map(c => <option key={c} value={c} />)}
+          </datalist>
         </div>
         <div>
           <label className="text-xs font-semibold text-forest-700 block mb-1">Weight (g)</label>
