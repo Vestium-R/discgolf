@@ -130,10 +130,11 @@ export async function submitLinkedRoundAction(formData: FormData): Promise<void>
 
     if (assignedId === "__new__") {
       // Create a fresh roster player with the UDisc display name
-      const newId = uniqueId(slug(e.rawName), liveRoster.map((p) => p.id));
-      await upsertPlayer({ id: newId, name: e.rawName, active: true });
-      liveRoster.push({ id: newId, name: e.rawName, active: true });
-      playerId = newId;
+      const id = crypto.randomUUID();
+      const playerSlug = uniqueId(slug(e.rawName), liveRoster.map((p) => p.slug));
+      await upsertPlayer({ id, name: e.rawName, slug: playerSlug, active: true });
+      liveRoster.push({ id, name: e.rawName, slug: playerSlug, active: true });
+      playerId = id;
     } else if (assignedId) {
       playerId = assignedId;
     } else if (autoMatch) {
