@@ -24,7 +24,7 @@ export function BagInteractive({ discs, serverPrefs }: { discs: BagDisc[]; serve
     if (serverPrefs) {
       setPrefs(p => ({ ...p, ...serverToBagPrefs(serverPrefs) }));
     }
-  }, []); // eslint-disable-line
+  }, [serverPrefs]);
 
   return (
     <section className="card p-4 space-y-3">

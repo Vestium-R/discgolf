@@ -7,7 +7,6 @@ export type ChartPrefs = {
   throwStyle?: "RHBH" | "LHFH" | "RHFH" | "LHBH";
   showNamesChart?: boolean;
   showNamesFlight?: boolean;
-  maxDist?: number;  // player's max throwing distance in feet
 };
 
 // ── Stability scatter plot ────────────────────────────────────────────────────
@@ -101,10 +100,10 @@ function toFy(distFt: number, maxFt: number) {
   return FPT + FPH - Math.min(distFt/maxFt, 1)*FPH;
 }
 
-function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onClickDisc, focused, playerMaxDist }: {
+function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onClickDisc, focused }: {
   discs: BagDisc[]; hovered: string|null; focused: string|null;
   setHovered: (id:string|null)=>void; showNames: boolean; flipLateral: boolean;
-  onClickDisc: (id: string) => void; playerMaxDist?: number;
+  onClickDisc: (id: string) => void;
 }) {
   if (discs.length===0) return null;
   const maxFt = Math.max(...discs.map(d=>speedToFeet(d.speed)), 150);
@@ -112,16 +111,12 @@ function FlightPaths({ discs, hovered, setHovered, showNames, flipLateral, onCli
 
   const paths = discs.map(d=>{
     const turn=d.turn??0, fade=d.fade??0;
-    const typicalDistFt = speedToFeet(d.speed);
-    // Scale lateral deviation based on player's actual max distance vs typical
-    const distanceFactor = playerMaxDist ? Math.min(1, playerMaxDist / typicalDistFt) : 1;
-    const distFt = playerMaxDist ? playerMaxDist : typicalDistFt;
+    const distFt = speedToFeet(d.speed);
     // Lateral deviation in feet:
     // Negative turn (understable) = curves; positive turn (overstable) = resists, flies straight
     const turnCurve = Math.max(0, -(turn));  // only apply turn for negative (understable) turns
-    // Scale curves based on distance factor (weaker players develop less turn/fade)
-    const peakLat  = flip * (turnCurve * 5) * distanceFactor;
-    const endLat   = flip * (turnCurve * 4 - fade * 4) * distanceFactor;
+    const peakLat  = flip * (turnCurve * 5);
+    const endLat   = flip * (turnCurve * 4 - fade * 4);
 
     // S-curve: turn one way, then fade back the other (only for moderate turners, not strong ones)
     // Trail (-1/1) → S-curve; Lobster (-3/1), Mamba (-5/1) → standard curve (too much turn dominance)
@@ -258,7 +253,7 @@ export function BagChart({ discs, prefs={} }: { discs: BagDisc[]; prefs?: ChartP
 
       {view==="scatter"
         ? <ScatterPlot discs={visibleDiscs} hovered={hovered} setHovered={setHovered} showNames={prefs.showNamesChart??false} onClickDisc={handleClick} focused={focused}/>
-        : <FlightPaths discs={visibleDiscs} hovered={hovered} setHovered={setHovered} showNames={prefs.showNamesFlight??true} flipLateral={flipLateral} onClickDisc={handleClick} focused={focused} playerMaxDist={prefs.maxDist}/>}
+        : <FlightPaths discs={visibleDiscs} hovered={hovered} setHovered={setHovered} showNames={prefs.showNamesFlight??true} flipLateral={flipLateral} onClickDisc={handleClick} focused={focused}/>}
       {focused && (
         <p className="text-[11px] text-forest-500 text-center">
           Showing <strong>{discs.find(d=>d.id===focused)?.discName}</strong> only ·{" "}
