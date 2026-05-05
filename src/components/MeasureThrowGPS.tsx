@@ -84,6 +84,10 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
 
     // Start watching position immediately to let GPS warm up
     let capturedStart: GPSPoint | null = null;
+    let bestAccuracy = Infinity;
+    let bestPosition: GPSPoint | null = null;
+    const startTime = Date.now();
+
     const id = navigator.geolocation.watchPosition(
       (pos) => {
         const current: GPSPoint = {
@@ -93,10 +97,22 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
           timestamp: Date.now(),
         };
 
+        // Track best position in case we need to auto-lock
+        if (pos.coords.accuracy < bestAccuracy) {
+          bestAccuracy = pos.coords.accuracy;
+          bestPosition = current;
+        }
+
         // Capture first position as starting point when accuracy is good (< 10ft)
         if (!capturedStart && pos.coords.accuracy < 10) {
           capturedStart = current;
           setStartPoint(current);
+        }
+
+        // Auto-lock after 10 seconds if no good fix yet (for wooded areas)
+        if (!capturedStart && Date.now() - startTime > 10000 && bestPosition) {
+          capturedStart = bestPosition;
+          setStartPoint(bestPosition);
         }
 
         // Update current position and distance
