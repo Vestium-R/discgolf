@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getUser } from "@/lib/auth";
 import { getRoster, getRounds, getSettings, getHistory } from "@/lib/store";
 import {
   availableSeasons,
@@ -14,11 +15,12 @@ import { BadgeCrown } from "@/components/BadgeCrown";
 import { prettyDate } from "@/lib/format";
 
 export default async function StatsPage() {
-  const [roster, rounds, settings, history] = await Promise.all([
+  const [roster, rounds, settings, history, user] = await Promise.all([
     getRoster(),
     getRounds(),
     getSettings(),
     getHistory(),
+    getUser(),
   ]);
   const seasons = availableSeasons(rounds, settings.currentSeason, history.map((h) => h.season));
 
@@ -55,9 +57,12 @@ export default async function StatsPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="font-display text-2xl font-bold text-forest-800">Stats</h2>
-        <p className="text-sm text-forest-600">All-time numbers across every season.</p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-forest-800">Stats</h2>
+          <p className="text-sm text-forest-600">All-time numbers across every season.</p>
+        </div>
+        {user && <Link href="/my-throws" className="btn-primary whitespace-nowrap">📏 My throws</Link>}
       </header>
 
       {/* OVERVIEW TILES */}

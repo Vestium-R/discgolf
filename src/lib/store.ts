@@ -571,6 +571,96 @@ export type DiscThrowStats = {
   worstDistanceFt: number;
 };
 
+export type DiscThrow = {
+  id: string;
+  userId: AuthUserId;
+  bagDiscId: string;
+  discName: string;
+  manufacturer?: string;
+  distanceFt: number;
+  windMph?: number;
+  windDirection?: string;
+  courseName?: string;
+  holeNumber?: number;
+  notes?: string;
+  createdAt: string;
+};
+
+export async function getUserThrows(
+  userId: AuthUserId,
+  filters?: {
+    bagDiscId?: string;
+    minDistanceFt?: number;
+    maxDistanceFt?: number;
+    courseName?: string;
+  }
+): Promise<DiscThrow[]> {
+  let query = supabaseAdmin()
+    .from("disc_throws")
+    .select(
+      `
+      id,
+      user_id,
+      bag_disc_id,
+      distance_ft,
+      wind_mph,
+      wind_direction,
+      course_name,
+      hole_number,
+      notes,
+      created_at,
+      bag_discs(disc_name, manufacturer)
+    `
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (filters?.bagDiscId) {
+    query = query.eq("bag_disc_id", filters.bagDiscId);
+  }
+  if (filters?.minDistanceFt) {
+    query = query.gte("distance_ft", filters.minDistanceFt);
+  }
+  if (filters?.maxDistanceFt) {
+    query = query.lte("distance_ft", filters.maxDistanceFt);
+  }
+  if (filters?.courseName) {
+    query = query.eq("course_name", filters.courseName);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const throws = (data as unknown as Array<{
+    id: string;
+    user_id: string;
+    bag_disc_id: string;
+    distance_ft: number;
+    wind_mph?: number;
+    wind_direction?: string;
+    course_name?: string;
+    hole_number?: number;
+    notes?: string;
+    created_at: string;
+    bag_discs: { disc_name: string; manufacturer?: string } | null;
+  }>) || [];
+
+  return throws.map((t) => ({
+    id: t.id,
+    userId: t.user_id as AuthUserId,
+    bagDiscId: t.bag_disc_id,
+    discName: t.bag_discs?.disc_name || "Unknown disc",
+    manufacturer: t.bag_discs?.manufacturer,
+    distanceFt: t.distance_ft,
+    windMph: t.wind_mph ?? undefined,
+    windDirection: t.wind_direction ?? undefined,
+    courseName: t.course_name ?? undefined,
+    holeNumber: t.hole_number ?? undefined,
+    notes: t.notes ?? undefined,
+    createdAt: t.created_at,
+  }));
+}
+
 export async function getDiscThrowStats(userId: AuthUserId): Promise<Map<string, DiscThrowStats>> {
   const { data, error } = await supabaseAdmin()
     .from("disc_throws")
