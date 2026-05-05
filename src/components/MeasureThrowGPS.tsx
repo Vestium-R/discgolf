@@ -322,7 +322,7 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
                   <select value={courseSlug} onChange={(e) => loadCourse(e.target.value)} className="input-pill text-xs w-full">
                     <option value="">— Pick a course —</option>
                     {COURSES.filter(g => g.courses.length).map(g => (
-                      <optgroup key={g.name} label={g.name}>
+                      <optgroup key={g.province} label={g.province}>
                         {g.courses.map(c => <option key={c.slug} value={c.slug}>{c.name} ({c.city})</option>)}
                       </optgroup>
                     ))}
