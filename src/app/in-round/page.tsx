@@ -1,5 +1,5 @@
 import { getUser } from "@/lib/auth";
-import { getBagDiscs, getPlayerByAuthEmail, getUserPrefs } from "@/lib/store";
+import { getBagDiscs, getPlayerByAuthEmail, getUserPrefs, getUserThrows } from "@/lib/store";
 import { SignInForm } from "@/components/SignInForm";
 import { InRoundClient } from "@/components/InRoundClient";
 
@@ -38,10 +38,11 @@ export default async function InRoundPage() {
     );
   }
 
-  const [discs, userPrefs] = await Promise.all([
+  const [discs, userPrefs, throws] = await Promise.all([
     getBagDiscs(user.id),
     getUserPrefs(user.id),
+    getUserThrows(user.id),
   ]);
 
-  return <InRoundClient discs={discs} userPrefs={userPrefs} />;
+  return <InRoundClient discs={discs} userPrefs={userPrefs} throws={throws} userId={user.id} />;
 }

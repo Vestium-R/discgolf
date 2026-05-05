@@ -1,16 +1,22 @@
 "use client";
+import Link from "next/link";
 import type { BagDisc } from "@/lib/types";
-import type { UserPrefs } from "@/lib/store";
+import type { UserPrefs, DiscThrow } from "@/lib/store";
 import { WhatToThrow } from "@/components/WhatToThrow";
 import { BagList } from "@/components/BagList";
 import { MeasureThrowGPS } from "@/components/MeasureThrowGPS";
+import { ThrowsClient } from "@/components/ThrowsClient";
 
 export function InRoundClient({
   discs,
   userPrefs,
+  throws,
+  userId,
 }: {
   discs: BagDisc[];
   userPrefs: UserPrefs | null;
+  throws?: DiscThrow[];
+  userId?: string;
 }) {
   const bagDiscs = discs.filter((d) => !d.inStorage);
 
@@ -70,6 +76,17 @@ export function InRoundClient({
           )}
         </div>
       </div>
+
+      {/* My Throws section */}
+      {throws && throws.length > 0 && userId && (
+        <section className="space-y-4 mt-6 pt-6 border-t border-forest-100">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display font-bold text-forest-800">📏 My Throws</h3>
+            <Link href="/my-throws" className="text-xs text-blue-600 hover:underline">View all</Link>
+          </div>
+          <ThrowsClient initialThrows={throws} userId={userId} />
+        </section>
+      )}
 
       {/* Sticky "Measure throw" — sits above BottomNav on mobile */}
       <div className="fixed bottom-14 inset-x-0 z-40 px-4 pb-2 sm:hidden">
