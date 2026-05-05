@@ -89,8 +89,8 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
       setWatchId(null);
     }
 
-    if (!startPoint || distanceFt < 50 || distanceFt > 600) {
-      setError("Distance must be 50–600 ft");
+    if (!startPoint || distanceFt < 30 || distanceFt > 600) {
+      setError("Distance must be 30–600 ft");
       return;
     }
 

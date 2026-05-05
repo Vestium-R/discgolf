@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
     const { bagDiscId, distanceFt, windMph, windDirection, courseName, holeNumber, notes } = await req.json();
 
-    if (!bagDiscId || !distanceFt || distanceFt < 50 || distanceFt > 600) {
+    if (!bagDiscId || !distanceFt || distanceFt < 30 || distanceFt > 600) {
       return NextResponse.json({ error: "Invalid throw data" }, { status: 400 });
     }
 
