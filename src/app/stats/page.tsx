@@ -62,7 +62,19 @@ export default async function StatsPage() {
           <h2 className="font-display text-2xl font-bold text-forest-800">Stats</h2>
           <p className="text-sm text-forest-600">All-time numbers across every season.</p>
         </div>
-        {user && <Link href="/my-throws" className="btn-primary whitespace-nowrap">📏 My throws</Link>}
+        {user && (
+          <div className="relative group">
+            <button className="btn-primary whitespace-nowrap">📊 My Stats ▼</button>
+            <div className="absolute right-0 top-full mt-1 hidden group-hover:block bg-white border border-forest-200 rounded-lg shadow-lg z-50">
+              <Link href={`/players/${user.id}`} className="block px-4 py-2 text-sm text-forest-800 hover:bg-forest-50">
+                Profile
+              </Link>
+              <Link href="/my-throws" className="block px-4 py-2 text-sm text-forest-800 hover:bg-forest-50 border-t border-forest-100">
+                📏 My throws
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* OVERVIEW TILES */}
