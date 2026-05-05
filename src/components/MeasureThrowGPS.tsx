@@ -93,8 +93,8 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
           timestamp: Date.now(),
         };
 
-        // Capture first position as starting point when accuracy is decent
-        if (!capturedStart && pos.coords.accuracy < 50) {
+        // Capture first position as starting point when accuracy is good (< 10ft)
+        if (!capturedStart && pos.coords.accuracy < 10) {
           capturedStart = current;
           setStartPoint(current);
         }
@@ -241,7 +241,7 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
                 <div className="text-sm text-forest-600 mt-2">feet</div>
                 {currentPoint && (
                   <div className="text-xs text-forest-500 mt-3">
-                    Accuracy: ±{Math.round(currentPoint.accuracy)} ft
+                    Accuracy: ±{Math.round(currentPoint.accuracy)} ft {currentPoint.accuracy < 10 ? "✓" : "(waiting for better fix)"}
                   </div>
                 )}
               </div>
