@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { getUser } from "@/lib/auth";
 import { BottomNav } from "@/components/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { DesktopNav } from "@/components/DesktopNav";
@@ -17,7 +18,9 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const user = await getUser();
+
   return (
     <html lang="en">
       <body className="min-h-screen">
@@ -28,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               The Patch
             </Link>
             {/* Top nav — desktop only; mobile uses the bottom tab bar */}
-            <DesktopNav />
+            <DesktopNav userId={user?.id} />
           </div>
         </header>
 

@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import type { AuthUserId } from "@/lib/id-validation";
 
-export function DesktopNav() {
+export function DesktopNav({ userId }: { userId?: AuthUserId }) {
   const pathname = usePathname() ?? "";
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -59,6 +60,14 @@ export function DesktopNav() {
               : "opacity-0 pointer-events-none"
           }`}
         >
+          {userId && (
+            <>
+              <NavLink href="/my-stats" active={isActive("/players/")}>
+                👤 My Stats
+              </NavLink>
+              <div className="h-px bg-forest-100 my-1" />
+            </>
+          )}
           <NavLink href="/stats" active={isActive("/stats")}>
             Stats
           </NavLink>
