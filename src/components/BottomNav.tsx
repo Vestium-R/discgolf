@@ -8,11 +8,11 @@ const primaryTabs = [
   { href: "/in-round", label: "In Round", icon: "🥏" },
   { href: "/add",      label: "Add",      icon: "+",  add: true },
   { href: "/bag",      label: "Bag",      icon: "🎒" },
-  { href: "/stats",    label: "Stats",    icon: "📊" },
+  { href: "/rounds",   label: "Rounds",   icon: "🗂️" },
 ];
 
 const moreTabs = [
-  { href: "/rounds",  label: "Rounds",  icon: "🗂️" },
+  { href: "/stats",   label: "Stats",   icon: "📊" },
   { href: "/seasons", label: "Seasons", icon: "🏆" },
   { href: "/courses", label: "Courses", icon: "📍" },
   { href: "/rules",   label: "Rules",   icon: "📋" },

@@ -11,6 +11,7 @@ import {
   getRounds,
   getSettings,
   insertRound,
+  migratePlayerIdsInRounds,
   saveSettings,
   setPlayerActive,
   setPlayerAvatarIfMissing,
@@ -398,6 +399,15 @@ export async function updateRoundScoresAction(formData: FormData): Promise<void>
   await updateRoundResults(id, results);
   revalidatePath(`/rounds/${id}`);
   revalidatePath("/rounds");
+}
+
+export async function migratePlayerIdsAction(): Promise<void> {
+  await requireAdmin();
+  const result = await migratePlayerIdsInRounds();
+  revalidatePath("/");
+  revalidatePath("/stats");
+  revalidatePath("/rounds");
+  redirect(`/admin?ok=Migrated ${result.updated} rounds${result.errors.length > 0 ? `. Errors: ${result.errors.join(", ")}` : ""}`);
 }
 
 export async function signOutAction(): Promise<void> {

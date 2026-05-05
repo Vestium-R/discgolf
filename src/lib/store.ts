@@ -255,6 +255,47 @@ export async function getSettings(): Promise<Settings> {
   return { currentSeason: (data as SettingsRow).current_season };
 }
 
+// ─── Migrations ─────────────────────────────────────────────────────────────
+
+export async function migratePlayerIdsInRounds(): Promise<{ updated: number; errors: string[] }> {
+  const [players, rounds] = await Promise.all([getRoster(), getRounds()]);
+  const slugToId = new Map(players.map(p => [p.slug, p.id]));
+
+  let updated = 0;
+  const errors: string[] = [];
+
+  for (const round of rounds) {
+    const updatedResults = round.results.map(res => {
+      const uuid = slugToId.get(res.playerId);
+      if (!uuid && res.playerId.length < 36) {
+        // Old format player ID, needs migration
+        if (!uuid) {
+          errors.push(`Round ${round.id}: Could not find player for "${res.playerId}"`);
+          return res; // Keep old ID if can't find mapping
+        }
+        return { ...res, playerId: uuid };
+      }
+      return res; // Already UUID or can't determine
+    });
+
+    // Only update if there were changes
+    if (JSON.stringify(updatedResults) !== JSON.stringify(round.results)) {
+      const { error } = await supabaseAdmin()
+        .from("rounds")
+        .update({ results: updatedResults })
+        .eq("id", round.id);
+
+      if (error) {
+        errors.push(`Round ${round.id}: ${error.message}`);
+      } else {
+        updated++;
+      }
+    }
+  }
+
+  return { updated, errors };
+}
+
 // ─── User prefs ─────────────────────────────────────────────────────────────
 
 export type UserPrefs = {

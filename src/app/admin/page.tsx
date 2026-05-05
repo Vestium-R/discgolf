@@ -5,6 +5,7 @@ import {
   addPlayerAction,
   autoInactivateAction,
   backfillAllRoundsAction,
+  migratePlayerIdsAction,
   signOutAction,
   togglePlayerActiveAction,
   updatePlayerAction,
@@ -262,6 +263,21 @@ export default async function AdminPage({
         )}
         <form action={backfillAllRoundsAction}>
           <button className="btn-primary">Backfill all UDisc rounds</button>
+        </form>
+        </div>
+      </details>
+
+      <details className="card p-0">
+        <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
+          ▼ Migrate player IDs
+        </summary>
+        <div className="p-4 border-t border-forest-100 space-y-3">
+        <p className="text-sm text-forest-600">
+          Convert old player IDs (slugs like &quot;jeffrey-rijkse&quot;) in rounds to UUID format.
+          This fixes stats/rounds showing 0 points after the UUID migration.
+        </p>
+        <form action={migratePlayerIdsAction}>
+          <button className="btn-primary">Migrate round player IDs to UUID</button>
         </form>
         </div>
       </details>
