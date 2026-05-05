@@ -89,8 +89,8 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
       setWatchId(null);
     }
 
-    if (!startPoint || distanceFt < 30 || distanceFt > 600) {
-      setError("Distance must be 30–600 ft");
+    if (!startPoint || distanceFt < 50 || distanceFt > 600) {
+      setError("Distance must be 50–600 ft");
       return;
     }
 
@@ -120,14 +120,17 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
           }),
         });
 
-        if (!res.ok) throw new Error("Failed to log throw");
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Failed to log throw");
+        }
         setOpen(false);
         setStage("idle");
         setStartPoint(null);
         setDistanceFt(0);
         setSelectedDiscId(null);
       } catch (err) {
-        setError(String(err));
+        setError(err instanceof Error ? err.message : String(err));
       }
     });
   }
@@ -149,7 +152,19 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
         <div className="flex items-center justify-between">
           <h3 className="font-display font-bold text-forest-800">Measure throw</h3>
           <button
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                setWatchId(null);
+              }
+              setOpen(false);
+              setStage("idle");
+              setStartPoint(null);
+              setCurrentPoint(null);
+              setDistanceFt(0);
+              setSelectedDiscId(null);
+              setError(null);
+            }}
             className="text-xs text-forest-400"
           >
             ✕
@@ -185,9 +200,15 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
                 )}
               </div>
             </div>
-            <p className="text-xs text-forest-700 text-center">
-              🟢 GPS tracking active. Walk to the landing spot.
-            </p>
+            {currentPoint ? (
+              <p className="text-xs text-forest-700 text-center">
+                🟢 GPS tracking active. Walk to the landing spot.
+              </p>
+            ) : (
+              <p className="text-xs text-forest-700 text-center">
+                📍 Waiting for GPS signal...
+              </p>
+            )}
             <button
               onClick={stopTracking}
               className="btn-primary w-full bg-green-600 hover:bg-green-700"
