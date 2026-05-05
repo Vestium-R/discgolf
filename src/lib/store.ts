@@ -562,6 +562,55 @@ export type DataIntegrityReport = {
   checkedAt: string;
 };
 
+export type DiscThrowStats = {
+  bagDiscId: string;
+  throwCount: number;
+  totalDistanceFt: number;
+  avgDistanceFt: number;
+  bestDistanceFt: number;
+  worstDistanceFt: number;
+};
+
+export async function getDiscThrowStats(userId: AuthUserId): Promise<Map<string, DiscThrowStats>> {
+  const { data, error } = await supabaseAdmin()
+    .from("disc_throws")
+    .select("bag_disc_id, distance_ft")
+    .eq("user_id", userId);
+
+  if (error) throw error;
+
+  const throws = (data as Array<{ bag_disc_id: string; distance_ft: number }>) || [];
+  const statsByDisc = new Map<string, DiscThrowStats>();
+
+  for (const t of throws) {
+    const stats = statsByDisc.get(t.bag_disc_id) ?? {
+      bagDiscId: t.bag_disc_id,
+      throwCount: 0,
+      totalDistanceFt: 0,
+      avgDistanceFt: 0,
+      bestDistanceFt: 0,
+      worstDistanceFt: Infinity,
+    };
+
+    stats.throwCount += 1;
+    stats.totalDistanceFt += t.distance_ft;
+    stats.bestDistanceFt = Math.max(stats.bestDistanceFt, t.distance_ft);
+    stats.worstDistanceFt = Math.min(stats.worstDistanceFt, t.distance_ft);
+    stats.avgDistanceFt = Math.round(stats.totalDistanceFt / stats.throwCount);
+
+    statsByDisc.set(t.bag_disc_id, stats);
+  }
+
+  // Fix infinity for worst if no throws
+  for (const stats of statsByDisc.values()) {
+    if (stats.worstDistanceFt === Infinity) {
+      stats.worstDistanceFt = 0;
+    }
+  }
+
+  return statsByDisc;
+}
+
 export async function runDataIntegrityChecks(): Promise<DataIntegrityReport> {
   const supabase = supabaseAdmin();
   const [playersRes, roundsRes, historyRes, bagDiscsRes] = await Promise.all([

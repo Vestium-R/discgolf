@@ -1,6 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import type { BagDisc, DiscType } from "@/lib/types";
+import type { DiscThrowStats } from "@/lib/store";
 import { DISC_TYPE_COLORS, DISC_TYPE_LABELS } from "@/lib/types";
 import { removeDiscAction, toggleStorageAction, updateDiscAction } from "@/app/bag/actions";
 import { analyzeBagDiscsAction } from "@/app/bag/ai-analyze";
@@ -119,7 +120,7 @@ function EditForm({disc,onDone}:{disc:BagDisc;onDone:()=>void}) {
 }
 
 // ── Disc row ──────────────────────────────────────────────────────────────────
-function DiscRow({d,editing,onEdit,onStopEdit,showStorage}:{d:BagDisc;editing:boolean;onEdit:()=>void;onStopEdit:()=>void;showStorage?:boolean}) {
+function DiscRow({d,editing,onEdit,onStopEdit,showStorage,stats}:{d:BagDisc;editing:boolean;onEdit:()=>void;onStopEdit:()=>void;showStorage?:boolean;stats?:DiscThrowStats}) {
   const [pending,startT] = useTransition();
   const {label,cls} = stabInfo(d);
   const dot = d.color?(COLOR_HEX[d.color.toLowerCase()]||DISC_TYPE_COLORS[d.type]):DISC_TYPE_COLORS[d.type];
@@ -144,6 +145,11 @@ function DiscRow({d,editing,onEdit,onStopEdit,showStorage}:{d:BagDisc;editing:bo
           {d.weightG&&<span className="text-xs text-forest-400">{d.weightG}g</span>}
           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cls}`}>{label}</span>
           {d.notes&&<span className="text-[10px] text-forest-400 italic">{d.notes}</span>}
+          {stats&&stats.throwCount>0&&(
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+              {stats.throwCount} throw{stats.throwCount!==1?'s':''} · {stats.avgDistanceFt}ft avg
+            </span>
+          )}
         </div>
       </div>
       {/* Bigger action buttons */}
@@ -166,8 +172,8 @@ function DiscRow({d,editing,onEdit,onStopEdit,showStorage}:{d:BagDisc;editing:bo
 }
 
 // ── BagList ───────────────────────────────────────────────────────────────────
-export function BagList({discs,title,showStorage,gaps,isStorage}:{
-  discs:BagDisc[];title?:string;showStorage?:boolean;gaps?:string[];isStorage?:boolean;
+export function BagList({discs,title,showStorage,gaps,isStorage,throwStats}:{
+  discs:BagDisc[];title?:string;showStorage?:boolean;gaps?:string[];isStorage?:boolean;throwStats?:Map<string,DiscThrowStats>;
 }) {
   const [sort,setSort] = useState<SortKey>("type");
   const [editId,setEditId] = useState<string|null>(null);
@@ -198,7 +204,7 @@ export function BagList({discs,title,showStorage,gaps,isStorage}:{
           <div className="card overflow-hidden mt-1">
             <ul className="divide-y divide-forest-50">
               {discs.map(d=>(
-                <DiscRow key={d.id} d={d} editing={editId===d.id} showStorage
+                <DiscRow key={d.id} d={d} editing={editId===d.id} showStorage stats={throwStats?.get(d.id)}
                   onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>
               ))}
             </ul>
@@ -244,7 +250,7 @@ export function BagList({discs,title,showStorage,gaps,isStorage}:{
             <span className="text-xs text-forest-400 ml-auto">{g.discs.length}</span>
           </div>
           <ul className="divide-y divide-forest-50">
-            {g.discs.map(d=><DiscRow key={d.id} d={d} editing={editId===d.id} showStorage={showStorage} onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>)}
+            {g.discs.map(d=><DiscRow key={d.id} d={d} editing={editId===d.id} showStorage={showStorage} stats={throwStats?.get(d.id)} onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>)}
           </ul>
         </div>
       )) : sort==="manufacturer" ? groupByBrand(discs).map(g=>(
@@ -254,12 +260,12 @@ export function BagList({discs,title,showStorage,gaps,isStorage}:{
             <span className="text-xs text-forest-400 ml-2">{g.discs.length}</span>
           </div>
           <ul className="divide-y divide-forest-50">
-            {g.discs.map(d=><DiscRow key={d.id} d={d} editing={editId===d.id} showStorage={showStorage} onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>)}
+            {g.discs.map(d=><DiscRow key={d.id} d={d} editing={editId===d.id} showStorage={showStorage} stats={throwStats?.get(d.id)} onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>)}
           </ul>
         </div>
       )) : (
         <ul className="divide-y divide-forest-50">
-          {sortDiscs(discs,sort).map(d=><DiscRow key={d.id} d={d} editing={editId===d.id} showStorage={showStorage} onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>)}
+          {sortDiscs(discs,sort).map(d=><DiscRow key={d.id} d={d} editing={editId===d.id} showStorage={showStorage} stats={throwStats?.get(d.id)} onEdit={()=>setEditId(d.id)} onStopEdit={()=>setEditId(null)}/>)}
         </ul>
       )}
 

@@ -1,5 +1,5 @@
 import { getUser } from "@/lib/auth";
-import { getBagDiscs, getPlayerByAuthEmail, getUserPrefs } from "@/lib/store";
+import { getBagDiscs, getPlayerByAuthEmail, getUserPrefs, getDiscThrowStats } from "@/lib/store";
 import { SignInForm } from "@/components/SignInForm";
 import { AddDiscForm } from "@/components/AddDiscForm";
 import { BagList } from "@/components/BagList";
@@ -74,7 +74,7 @@ export default async function BagPage() {
     );
   }
 
-  const [discs, userPrefs] = await Promise.all([getBagDiscs(user.id), getUserPrefs(user.id)]);
+  const [discs, userPrefs, throwStats] = await Promise.all([getBagDiscs(user.id), getUserPrefs(user.id), getDiscThrowStats(user.id)]);
   const gaps = analyzeBag(discs);
 
   return (
@@ -97,6 +97,7 @@ export default async function BagPage() {
             title={`In Bag (${discs.filter(d => !d.inStorage).length})`}
             showStorage
             gaps={gaps}
+            throwStats={throwStats}
           />
         )}
 
@@ -105,6 +106,7 @@ export default async function BagPage() {
             discs={discs.filter(d => d.inStorage)}
             showStorage
             isStorage
+            throwStats={throwStats}
           />
         )}
       </div>
