@@ -235,61 +235,34 @@ export async function fixBagDiscsUserIds() {
 
     const supabase = supabaseAdmin();
 
-    // Mapping 1: jeffrey-rijkse
-    console.log("fixBagDiscsUserIds: Applying jeffrey-rijkse mapping");
-    const { error: err1 } = await supabase
-      .from("bag_discs")
-      .update({ user_id: "jeffrey-rijkse" })
-      .eq("user_id", "e33d8a43-3646-40ec-a92d-d1ff654c155d");
-    if (err1) throw new Error(`Failed to update jeffrey-rijkse: ${err1.message}`);
+    // bag_discs.user_id references auth.users.id (always UUID)
+    // This audit checks that all user_ids in bag_discs are valid auth.users UUIDs
+    console.log("fixBagDiscsUserIds: Auditing bag_discs.user_id values");
 
-    // Mapping 2: mathieu-jacob
-    console.log("fixBagDiscsUserIds: Applying mathieu-jacob mapping");
-    const { error: err2 } = await supabase
-      .from("bag_discs")
-      .update({ user_id: "mathieu-jacob" })
-      .eq("user_id", "c60544c5-faad-4605-9164-0d122ab0dce2");
-    if (err2) throw new Error(`Failed to update mathieu-jacob: ${err2.message}`);
-
-    // Mapping 3: reginald-roth
-    console.log("fixBagDiscsUserIds: Applying reginald-roth mapping");
-    const { error: err3 } = await supabase
-      .from("bag_discs")
-      .update({ user_id: "reginald-roth" })
-      .eq("user_id", "62e39edd-90a7-45ef-b99c-801909f576fa");
-    if (err3) throw new Error(`Failed to update reginald-roth: ${err3.message}`);
-
-    // Mapping 4: john-cormier
-    console.log("fixBagDiscsUserIds: Applying john-cormier mapping");
-    const { error: err4 } = await supabase
-      .from("bag_discs")
-      .update({ user_id: "john-cormier" })
-      .eq("user_id", "9a3d2575-283b-45d8-a755-2c0e46e7180b");
-    if (err4) throw new Error(`Failed to update john-cormier: ${err4.message}`);
-
-    // Check for remaining invalid UUIDs
-    console.log("fixBagDiscsUserIds: Checking for remaining invalid user_ids");
     const { data: allBagDiscs, error: fetchErr } = await supabase
       .from("bag_discs")
       .select("user_id");
     if (fetchErr) throw new Error(`Failed to fetch bag_discs: ${fetchErr.message}`);
 
-    const { data: players, error: playerErr } = await supabase
-      .from("players")
-      .select("id");
-    if (playerErr) throw new Error(`Failed to fetch players: ${playerErr.message}`);
-
-    const validIds = new Set(players.map(p => p.id));
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const uniqueUserIds = [...new Set(allBagDiscs.map(d => d.user_id))];
-    const remainingInvalid = uniqueUserIds.filter(id => !validIds.has(id));
+    const validUUIDs = uniqueUserIds.filter(id => uuidRegex.test(id));
+    const invalidIds = uniqueUserIds.filter(id => !uuidRegex.test(id));
 
     console.log("fixBagDiscsUserIds: Complete");
-    console.log("fixBagDiscsUserIds: Remaining invalid UUIDs:", remainingInvalid);
+    console.log("fixBagDiscsUserIds: Total unique user_ids:", uniqueUserIds.length);
+    console.log("fixBagDiscsUserIds: Valid UUID format:", validUUIDs.length);
+    console.log("fixBagDiscsUserIds: Invalid format:", invalidIds.length);
+
+    if (invalidIds.length > 0) {
+      console.warn("fixBagDiscsUserIds: WARNING - Found invalid user_ids:", invalidIds);
+    }
 
     return {
       success: true,
-      message: "Fixed 4 user_id mappings",
-      remainingInvalidIds: remainingInvalid,
+      message: `Audit complete: ${validUUIDs.length}/${uniqueUserIds.length} valid UUIDs`,
+      validUUIDs,
+      invalidIds,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "./supabase/server";
 import type { BagDisc, Player, Round, RoundVariant, SeasonHistory, Settings } from "./types";
+import { validateRoundResultIds, validateSeasonHistoryIds } from "./id-validation";
 
 type PlayerRow = {
   id: string;
@@ -94,6 +95,12 @@ function mapHistory(r: HistoryRow): SeasonHistory {
 }
 
 export async function upsertSeasonHistory(h: SeasonHistory): Promise<void> {
+  // Validate player ID references
+  const validation = validateSeasonHistoryIds(h.championPlayerId, h.initialBadgeHolderPlayerId, h.season);
+  if (!validation.valid) {
+    throw new Error(`Invalid player IDs in season ${h.season}: ${validation.errors.join("; ")}`);
+  }
+
   const sb = supabaseAdmin();
   const base: Record<string, unknown> = {
     season: h.season,
@@ -163,6 +170,13 @@ export async function getRounds(): Promise<Round[]> {
 }
 
 export async function insertRound(r: Round): Promise<void> {
+  // Validate player IDs in results
+  const playerIds = r.results.map(res => res.playerId);
+  const validation = validateRoundResultIds(playerIds, `round ${r.id}`);
+  if (!validation.valid) {
+    throw new Error(`Invalid player IDs in round: ${validation.errors.join("; ")}`);
+  }
+
   const { error } = await supabaseAdmin().from("rounds").insert({
     id: r.id,
     date: r.date,
@@ -195,6 +209,13 @@ export async function updateRoundCounts(id: string, counts: boolean): Promise<vo
 }
 
 export async function updateRoundResults(id: string, results: Round["results"]): Promise<void> {
+  // Validate player IDs in results
+  const playerIds = results.map(res => res.playerId);
+  const validation = validateRoundResultIds(playerIds, `round ${id}`);
+  if (!validation.valid) {
+    throw new Error(`Invalid player IDs in round: ${validation.errors.join("; ")}`);
+  }
+
   const { error } = await supabaseAdmin().from("rounds").update({ results }).eq("id", id);
   if (error) throw error;
 }
