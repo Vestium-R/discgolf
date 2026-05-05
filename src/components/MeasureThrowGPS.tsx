@@ -1,6 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
 import type { BagDisc } from "@/lib/types";
+import { COURSES } from "@/components/CourseList";
+import { fetchCourseHolesAction, type HoleData } from "@/app/bag/course-holes-action";
 
 type Stage = "idle" | "tracking" | "confirm" | "select-disc";
 
@@ -36,13 +38,38 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
   const [error, setError] = useState<string | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [courseName, setCourseName] = useState<string>("");
-  const [holeNumber, setHoleNumber] = useState<string>("");
-  const [windMph, setWindMph] = useState<string>("");
-  const [windDirection, setWindDirection] = useState<string>("");
+  const [courseSlug, setCourseSlug] = useState<string>("");
+  const [holes, setHoles] = useState<HoleData[]>([]);
+  const [selectedHole, setSelectedHole] = useState<HoleData | null>(null);
+  const [loadingHoles, setLoadingHoles] = useState(false);
+  const [windDir, setWindDir] = useState<"none" | "head" | "tail">("none");
+  const [windStr, setWindStr] = useState<"light" | "strong">("light");
+  const [windCross, setWindCross] = useState<"none" | "ltor" | "rtol">("none");
 
   const bagDiscs = discs.filter(d => !d.inStorage);
   const selectedDisc = selectedDiscId ? bagDiscs.find(d => d.id === selectedDiscId) : null;
+
+  function loadCourse(slug: string) {
+    setCourseSlug(slug);
+    setSelectedHole(null);
+    setHoles([]);
+    if (!slug) return;
+
+    setLoadingHoles(true);
+    startTransition(async () => {
+      const res = await fetchCourseHolesAction(slug);
+      setLoadingHoles(false);
+      if (res.ok) {
+        setHoles(res.holes);
+      }
+    });
+  }
+
+  function getWindDirection(): string | null {
+    if (windDir === "none") return null;
+    if (windCross !== "none") return `cross_${windCross}`;
+    return windDir;
+  }
 
   function startTracking() {
     setError(null);
@@ -117,10 +144,10 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
           body: JSON.stringify({
             bagDiscId: selectedDiscId,
             distanceFt,
-            windMph: windMph ? Number(windMph) : null,
-            windDirection: windDirection || null,
-            courseName: courseName || null,
-            holeNumber: holeNumber ? Number(holeNumber) : null,
+            windMph: null,
+            windDirection: getWindDirection(),
+            courseName: COURSES.flatMap(g => g.courses).find(c => c.slug === courseSlug)?.name ?? null,
+            holeNumber: selectedHole?.hole ?? null,
             notes: "GPS measured",
           }),
         });
@@ -135,10 +162,12 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
         setDistanceFt(0);
         setSelectedDiscId(null);
         setShowDetails(false);
-        setCourseName("");
-        setHoleNumber("");
-        setWindMph("");
-        setWindDirection("");
+        setCourseSlug("");
+        setSelectedHole(null);
+        setHoles([]);
+        setWindDir("none");
+        setWindStr("light");
+        setWindCross("none");
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       }
@@ -175,10 +204,12 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
               setSelectedDiscId(null);
               setError(null);
               setShowDetails(false);
-              setCourseName("");
-              setHoleNumber("");
-              setWindMph("");
-              setWindDirection("");
+              setCourseSlug("");
+              setSelectedHole(null);
+              setHoles([]);
+              setWindDir("none");
+              setWindStr("light");
+              setWindCross("none");
             }}
             className="text-xs text-forest-400"
           >
@@ -284,53 +315,103 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
             </button>
 
             {showDetails && (
-              <div className="space-y-2 p-3 bg-forest-50 rounded-lg border border-forest-200">
+              <div className="space-y-3 p-3 bg-forest-50 rounded-lg border border-forest-200">
+                {/* Course selector */}
                 <div>
-                  <label className="text-xs text-forest-600 block mb-1">Course name</label>
-                  <input
-                    type="text"
-                    value={courseName}
-                    onChange={(e) => setCourseName(e.target.value)}
-                    placeholder="e.g. Stafford Creek"
-                    className="input-pill text-xs w-full"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-forest-600 block mb-1">Hole #</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="18"
-                      value={holeNumber}
-                      onChange={(e) => setHoleNumber(e.target.value)}
-                      placeholder="1-18"
-                      className="input-pill text-xs w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-forest-600 block mb-1">Wind (mph)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={windMph}
-                      onChange={(e) => setWindMph(e.target.value)}
-                      placeholder="0-20"
-                      className="input-pill text-xs w-full"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs text-forest-600 block mb-1">Wind direction</label>
-                  <select value={windDirection} onChange={(e) => setWindDirection(e.target.value)} className="input-pill text-xs w-full">
-                    <option value="">— None —</option>
-                    <option value="calm">Calm</option>
-                    <option value="head">Head</option>
-                    <option value="tail">Tail</option>
-                    <option value="cross_ltor">Cross (L→R)</option>
-                    <option value="cross_rtol">Cross (R→L)</option>
+                  <label className="text-xs text-forest-600 block mb-1">📍 Course</label>
+                  <select value={courseSlug} onChange={(e) => loadCourse(e.target.value)} className="input-pill text-xs w-full">
+                    <option value="">— Pick a course —</option>
+                    {COURSES.filter(g => g.courses.length).map(g => (
+                      <optgroup key={g.name} label={g.name}>
+                        {g.courses.map(c => <option key={c.slug} value={c.slug}>{c.name} ({c.city})</option>)}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
+
+                {/* Hole selector */}
+                {courseSlug && (
+                  <div>
+                    <label className="text-xs text-forest-600 block mb-1">Hole</label>
+                    {loadingHoles ? (
+                      <p className="text-xs text-forest-500 text-center py-2">Loading holes…</p>
+                    ) : holes.length > 0 ? (
+                      <div className="grid grid-cols-4 gap-1">
+                        {holes.map(h => (
+                          <button
+                            key={h.hole}
+                            onClick={() => setSelectedHole(h)}
+                            className={`py-1.5 rounded text-xs font-semibold transition-colors ${
+                              selectedHole?.hole === h.hole
+                                ? "bg-forest-700 text-white"
+                                : "bg-forest-100 text-forest-700 hover:bg-forest-200"
+                            }`}
+                          >
+                            {h.hole}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Wind direction */}
+                <div>
+                  <label className="text-xs text-forest-600 block mb-1">Wind direction</label>
+                  <div className="flex gap-1">
+                    {(["none", "head", "tail"] as const).map(dir => (
+                      <button
+                        key={dir}
+                        onClick={() => setWindDir(dir)}
+                        className={`flex-1 py-1.5 rounded text-xs font-medium transition-colors ${
+                          windDir === dir ? "bg-forest-700 text-white" : "bg-forest-100 text-forest-600 hover:bg-forest-200"
+                        }`}
+                      >
+                        {dir === "none" ? "Calm" : dir === "head" ? "Head" : "Tail"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Wind strength — only when head or tail */}
+                {windDir !== "none" && (
+                  <div>
+                    <label className="text-xs text-forest-600 block mb-1">Wind strength</label>
+                    <div className="flex gap-1">
+                      {(["light", "strong"] as const).map(str => (
+                        <button
+                          key={str}
+                          onClick={() => setWindStr(str)}
+                          className={`flex-1 py-1.5 rounded text-xs font-medium transition-colors ${
+                            windStr === str ? "bg-forest-600 text-white" : "bg-forest-100 text-forest-500 hover:bg-forest-200"
+                          }`}
+                        >
+                          {str === "light" ? "Light" : "Strong"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Crosswind */}
+                {windDir === "none" && (
+                  <div>
+                    <label className="text-xs text-forest-600 block mb-1">Crosswind</label>
+                    <div className="flex gap-1">
+                      {(["none", "ltor", "rtol"] as const).map(cross => (
+                        <button
+                          key={cross}
+                          onClick={() => setWindCross(cross)}
+                          className={`flex-1 py-1.5 rounded text-xs font-medium transition-colors ${
+                            windCross === cross ? "bg-forest-700 text-white" : "bg-forest-100 text-forest-600 hover:bg-forest-200"
+                          }`}
+                        >
+                          {cross === "none" ? "No cross" : cross === "ltor" ? "L→R" : "R→L"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
