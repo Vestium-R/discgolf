@@ -29,10 +29,14 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error:", error);
+      throw new Error(`Database error: ${error.message}`);
+    }
     return NextResponse.json({ ok: true, throw: data });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Throw log error:", message, err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
