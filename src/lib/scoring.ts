@@ -1,4 +1,5 @@
 import type { Player, PlayerStats, Round, SeasonHistory } from "./types";
+import type { PlayerId } from "./id-validation";
 
 /**
  * N - position + 1 with ties splitting points.
@@ -21,7 +22,7 @@ export function pointsForRound(round: Round): Map<string, number> {
   return out;
 }
 
-export function winnersOfRound(round: Round): string[] {
+export function winnersOfRound(round: Round): PlayerId[] {
   return round.results.filter((r) => r.position === 1).map((r) => r.playerId);
 }
 
@@ -108,10 +109,10 @@ export function seasonChampion(standings: PlayerStats[]): PlayerStats | null {
 
 export type BadgeEvent = {
   round: Round;
-  holderId: string;
-  prevHolderId: string | null;
+  holderId: PlayerId;
+  prevHolderId: PlayerId | null;
   kind: "first" | "defended" | "stolen" | "no-change";
-  winnerId: string;
+  winnerId: PlayerId;
 };
 
 /**
@@ -125,11 +126,11 @@ export type BadgeEvent = {
 export function badgeTimeline(
   rounds: Round[],
   season: number,
-  initialHolderId: string | null = null
+  initialHolderId: PlayerId | null = null
 ): BadgeEvent[] {
   const rs = countingSeasonRounds(rounds, season);
   const events: BadgeEvent[] = [];
-  let holder: string | null = initialHolderId;
+  let holder: PlayerId | null = initialHolderId;
   for (const round of rs) {
     const winner = round.results.find((r) => r.position === 1)?.playerId ?? null;
     if (!holder) {
@@ -228,7 +229,7 @@ export function longestStreak(rounds: Round[], season: number, playerId: string)
 export function badgeHoldStreak(
   rounds: Round[],
   season: number,
-  initialHolderId: string | null = null
+  initialHolderId: PlayerId | null = null
 ): number {
   const events = badgeTimeline(rounds, season, initialHolderId);
   if (events.length === 0) return 0;

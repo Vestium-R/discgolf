@@ -1,7 +1,8 @@
 import { supabaseSession } from "./supabase/server";
+import { asAuthUserId, type AuthUserId } from "./id-validation";
 
 export type SessionUser = {
-  id: string;
+  id: AuthUserId;
   email: string;
 };
 
@@ -9,7 +10,7 @@ export async function getUser(): Promise<SessionUser | null> {
   const supabase = await supabaseSession();
   const { data } = await supabase.auth.getUser();
   if (!data.user?.email) return null;
-  return { id: data.user.id, email: data.user.email };
+  return { id: asAuthUserId(data.user.id, "auth.getUser()"), email: data.user.email };
 }
 
 function adminEmails(): string[] {

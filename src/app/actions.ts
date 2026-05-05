@@ -25,6 +25,7 @@ import {
 import type { Round, RoundResult, RoundVariant } from "@/lib/types";
 import { slug } from "@/lib/slug";
 import { parseUdiscUrl, matchPlayer, type ParsedEntry } from "@/lib/udisc";
+import { asPlayerId, type PlayerId } from "@/lib/id-validation";
 
 type CookieToSet = { name: string; value: string; options?: Parameters<Awaited<ReturnType<typeof cookies>>["set"]>[2] };
 
@@ -128,17 +129,17 @@ export async function submitLinkedRoundAction(formData: FormData): Promise<void>
     const assignedId = String(formData.get(formKey) ?? "").trim();
     const autoMatch = matchPlayer(e.rawName, liveRoster, e.username);
 
-    let playerId: string | null = null;
+    let playerId: PlayerId | null = null;
 
     if (assignedId === "__new__") {
       // Create a fresh roster player with the UDisc display name
-      const id = crypto.randomUUID();
+      const id = asPlayerId(crypto.randomUUID());
       const playerSlug = uniqueId(slug(e.rawName), liveRoster.map((p) => p.slug));
       await upsertPlayer({ id, name: e.rawName, slug: playerSlug, active: true });
       liveRoster.push({ id, name: e.rawName, slug: playerSlug, active: true });
       playerId = id;
     } else if (assignedId) {
-      playerId = assignedId;
+      playerId = asPlayerId(assignedId, "form data");
     } else if (autoMatch) {
       playerId = autoMatch.id;
     }
@@ -184,7 +185,7 @@ export async function addPlayerAction(formData: FormData): Promise<void> {
   const udiscHandle = String(formData.get("udiscHandle") ?? "").trim();
   if (!name) return;
   const roster = await getRoster();
-  const id = crypto.randomUUID();
+  const id = asPlayerId(crypto.randomUUID());
   const playerSlug = uniqueId(slug(name), roster.map((p) => p.slug));
   await upsertPlayer({ id, name, slug: playerSlug, udiscHandle: udiscHandle || undefined, active: true });
   revalidatePath("/admin");
@@ -227,13 +228,15 @@ export async function updateSeasonConfigAction(formData: FormData): Promise<void
   await requireAdmin();
   const season = Number(formData.get("season") ?? 0);
   if (!season) redirect("/admin?err=badseason");
-  const initialBadgeHolderPlayerId = String(formData.get("initialBadgeHolderPlayerId") ?? "").trim() || undefined;
+  const initialBadgeHolderPlayerIdStr = String(formData.get("initialBadgeHolderPlayerId") ?? "").trim() || undefined;
   const badgeImageUrl = String(formData.get("badgeImageUrl") ?? "").trim() || undefined;
-  const championPlayerId = String(formData.get("championPlayerId") ?? "").trim() || undefined;
+  const championPlayerIdStr = String(formData.get("championPlayerId") ?? "").trim() || undefined;
   const championName = String(formData.get("championName") ?? "").trim();
   const note = String(formData.get("note") ?? "").trim() || undefined;
   const { upsertSeasonHistory, getRoster } = await import("@/lib/store");
   const roster = await getRoster();
+  const initialBadgeHolderPlayerId = initialBadgeHolderPlayerIdStr ? asPlayerId(initialBadgeHolderPlayerIdStr, "form data") : undefined;
+  const championPlayerId = championPlayerIdStr ? asPlayerId(championPlayerIdStr, "form data") : undefined;
   const championFromId = championPlayerId ? roster.find((p) => p.id === championPlayerId)?.name : undefined;
   try {
     await upsertSeasonHistory({

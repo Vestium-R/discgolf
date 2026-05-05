@@ -15,6 +15,7 @@ import {
 import { SignInForm } from "@/components/SignInForm";
 import { BadgeCrown } from "@/components/BadgeCrown";
 import { AuditPage } from "@/app/admin/audit-page";
+import { IntegrityPanel } from "@/app/admin/integrity-panel";
 
 export default async function AdminPage({
   searchParams,
@@ -281,6 +282,8 @@ export default async function AdminPage({
         </form>
         </div>
       </details>
+
+      <IntegrityPanel />
 
       <details className="card p-0">
         <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">

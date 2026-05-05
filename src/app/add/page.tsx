@@ -12,6 +12,7 @@ import { parseUdiscUrl, matchPlayer } from "@/lib/udisc";
 import { PasteUdiscBox } from "@/components/PasteUdiscBox";
 import { submitRoundAction, submitLinkedRoundAction } from "@/app/actions";
 import type { Round, RoundResult } from "@/lib/types";
+import type { PlayerId } from "@/lib/id-validation";
 
 type Params = {
   udiscUrl?: string;
@@ -41,7 +42,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
   const [roster, settings] = await Promise.all([getRoster(), getSettings()]);
 
   let preview: Awaited<ReturnType<typeof parseUdiscUrl>> | null = null;
-  const suggestions = new Map<string, string | null>();
+  const suggestions = new Map<string, PlayerId | null>();
   let scorecardId: string | null = null;
 
   if (udiscUrl) {

@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "./supabase/server";
 import type { BagDisc, Player, Round, RoundVariant, SeasonHistory, Settings } from "./types";
-import { validateRoundResultIds, validateSeasonHistoryIds } from "./id-validation";
+import { validateRoundResultIds, validateSeasonHistoryIds, analyzeIdFormats, asPlayerId, asAuthUserId, type PlayerId, type AuthUserId } from "./id-validation";
 
 type PlayerRow = {
   id: string;
@@ -43,7 +43,7 @@ type SettingsRow = { id: number; current_season: number };
 
 function mapPlayer(r: PlayerRow): Player {
   return {
-    id: r.id,
+    id: asPlayerId(r.id, "players row"),
     name: r.name,
     slug: r.slug,
     udiscHandle: r.udisc_handle ?? undefined,
@@ -78,7 +78,10 @@ function mapRound(r: RoundRow): Round {
     counts: r.counts ?? true,
     temperatureC: tempC,
     windKph,
-    results: r.results,
+    results: r.results.map(res => ({
+      ...res,
+      playerId: asPlayerId(res.playerId, `round ${r.id}`),
+    })),
     createdAt: r.created_at,
   };
 }
@@ -86,11 +89,15 @@ function mapRound(r: RoundRow): Round {
 function mapHistory(r: HistoryRow): SeasonHistory {
   return {
     season: r.season,
-    championPlayerId: r.champion_player_id ?? undefined,
+    championPlayerId: r.champion_player_id
+      ? asPlayerId(r.champion_player_id, `season_history season ${r.season}`)
+      : undefined,
     championName: r.champion_name,
     note: r.note ?? undefined,
     badgeImageUrl: r.badge_image_url ?? undefined,
-    initialBadgeHolderPlayerId: r.initial_badge_holder_player_id ?? undefined,
+    initialBadgeHolderPlayerId: r.initial_badge_holder_player_id
+      ? asPlayerId(r.initial_badge_holder_player_id, `season_history season ${r.season}`)
+      : undefined,
   };
 }
 
@@ -451,7 +458,7 @@ type BagDiscRow = {
 function rowToDisc(r: BagDiscRow): BagDisc {
   return {
     id: r.id,
-    userId: r.user_id,
+    userId: asAuthUserId(r.user_id, "bag_discs row"),
     discName: r.disc_name,
     manufacturer: r.manufacturer ?? undefined,
     type: r.type as BagDisc["type"],
@@ -469,7 +476,7 @@ function rowToDisc(r: BagDiscRow): BagDisc {
   };
 }
 
-export async function getBagDiscs(userId: string): Promise<BagDisc[]> {
+export async function getBagDiscs(userId: AuthUserId): Promise<BagDisc[]> {
   const { data, error } = await supabaseAdmin()
     .from("bag_discs")
     .select("*")
@@ -480,7 +487,7 @@ export async function getBagDiscs(userId: string): Promise<BagDisc[]> {
   return (data as BagDiscRow[]).map(rowToDisc);
 }
 
-export async function addBagDisc(userId: string, disc: Omit<BagDisc, "id" | "userId" | "createdAt">): Promise<void> {
+export async function addBagDisc(userId: AuthUserId, disc: Omit<BagDisc, "id" | "userId" | "createdAt">): Promise<void> {
   const { error } = await supabaseAdmin()
     .from("bag_discs")
     .insert({
@@ -501,7 +508,7 @@ export async function addBagDisc(userId: string, disc: Omit<BagDisc, "id" | "use
   if (error) throw error;
 }
 
-export async function updateBagDisc(id: string, userId: string, disc: Partial<Omit<BagDisc, "id" | "userId" | "createdAt">>): Promise<void> {
+export async function updateBagDisc(id: string, userId: AuthUserId, disc: Partial<Omit<BagDisc, "id" | "userId" | "createdAt">>): Promise<void> {
   const patch: Record<string, unknown> = {};
   if (disc.discName !== undefined)    patch.disc_name    = disc.discName;
   if (disc.manufacturer !== undefined) patch.manufacturer = disc.manufacturer ?? null;
@@ -522,7 +529,7 @@ export async function updateBagDisc(id: string, userId: string, disc: Partial<Om
   if (error) throw error;
 }
 
-export async function toggleBagStorage(id: string, userId: string, inStorage: boolean): Promise<void> {
+export async function toggleBagStorage(id: string, userId: AuthUserId, inStorage: boolean): Promise<void> {
   const { error } = await supabaseAdmin()
     .from("bag_discs")
     .update({ in_storage: inStorage })
@@ -531,11 +538,98 @@ export async function toggleBagStorage(id: string, userId: string, inStorage: bo
   if (error) throw error;
 }
 
-export async function removeBagDisc(id: string, userId: string): Promise<void> {
+export async function removeBagDisc(id: string, userId: AuthUserId): Promise<void> {
   const { error } = await supabaseAdmin()
     .from("bag_discs")
     .delete()
     .eq("id", id)
     .eq("user_id", userId);
   if (error) throw error;
+}
+
+export type DataIntegrityReport = {
+  playerCount: number;
+  playersWithUUID: number;
+  playersWithInvalidId: number;
+  roundCount: number;
+  orphanedRoundResultCount: number;
+  roundsWithMixedIds: number;
+  seasonHistoryCount: number;
+  orphanedChampionIds: number;
+  orphanedBadgeHolderIds: number;
+  bagDiscCount: number;
+  bagDiscsWithInvalidUserId: number;
+  checkedAt: string;
+};
+
+export async function runDataIntegrityChecks(): Promise<DataIntegrityReport> {
+  const supabase = supabaseAdmin();
+  const [playersRes, roundsRes, historyRes, bagDiscsRes] = await Promise.all([
+    supabase.from("players").select("id"),
+    supabase.from("rounds").select("id, results"),
+    supabase.from("season_history").select("season, champion_player_id, initial_badge_holder_player_id"),
+    supabase.from("bag_discs").select("user_id"),
+  ]);
+
+  const players = (playersRes.data || []) as Array<{ id: string }>;
+  const rounds = (roundsRes.data || []) as Array<{ id: string; results: Array<{ playerId: string }> }>;
+  const history = (historyRes.data || []) as Array<{
+    season: number;
+    champion_player_id: string | null;
+    initial_badge_holder_player_id: string | null;
+  }>;
+  const bagDiscs = (bagDiscsRes.data || []) as Array<{ user_id: string }>;
+
+  const validPlayerIds = new Set(players.map((p) => p.id));
+
+  // Player ID analysis
+  const playerIds = players.map((p) => p.id);
+  const { uuids: playersWithUUID, invalid: playersWithInvalidId } = analyzeIdFormats(playerIds);
+
+  // Round analysis
+  let orphanedRoundResultCount = 0;
+  let roundsWithMixedIds = 0;
+
+  for (const round of rounds) {
+    const resultPlayerIds = round.results.map((r) => r.playerId);
+    const validation = validateRoundResultIds(resultPlayerIds, `round ${round.id}`);
+    if (!validation.valid) roundsWithMixedIds += 1;
+
+    for (const result of round.results) {
+      if (!validPlayerIds.has(result.playerId)) {
+        orphanedRoundResultCount += 1;
+      }
+    }
+  }
+
+  // Season history analysis
+  let orphanedChampionIds = 0;
+  let orphanedBadgeHolderIds = 0;
+  for (const h of history) {
+    if (h.champion_player_id && !validPlayerIds.has(h.champion_player_id)) {
+      orphanedChampionIds += 1;
+    }
+    if (h.initial_badge_holder_player_id && !validPlayerIds.has(h.initial_badge_holder_player_id)) {
+      orphanedBadgeHolderIds += 1;
+    }
+  }
+
+  // Bag discs user_id analysis
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const bagDiscsWithInvalidUserId = bagDiscs.filter((d) => !uuidRegex.test(d.user_id)).length;
+
+  return {
+    playerCount: players.length,
+    playersWithUUID: playersWithUUID.length,
+    playersWithInvalidId: playersWithInvalidId.length,
+    roundCount: rounds.length,
+    orphanedRoundResultCount,
+    roundsWithMixedIds,
+    seasonHistoryCount: history.length,
+    orphanedChampionIds,
+    orphanedBadgeHolderIds,
+    bagDiscCount: bagDiscs.length,
+    bagDiscsWithInvalidUserId,
+    checkedAt: new Date().toISOString(),
+  };
 }

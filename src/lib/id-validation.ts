@@ -138,3 +138,48 @@ export function analyzeIdFormats(
     invalid,
   };
 }
+
+// ─── Branded ID Types ────────────────────────────────────────────────────────
+
+/**
+ * PlayerId: a UUID that references players.id (the roster table).
+ * Created via asPlayerId() which validates UUID format.
+ * Used in: Round.results.playerId, Player.id, SeasonHistory.*PlayerId
+ */
+export type PlayerId = string & { readonly __brand: "PlayerId" };
+
+/**
+ * AuthUserId: a UUID that references auth.users.id.
+ * Created via asAuthUserId() which validates UUID format.
+ * Used in: BagDisc.userId, disc_throws.user_id, SessionUser.id
+ */
+export type AuthUserId = string & { readonly __brand: "AuthUserId" };
+
+/**
+ * Wrap a string as PlayerId after validating UUID format.
+ * Throws if the value is not a valid UUID — call at system boundaries
+ * (mapPlayer, mapRound in store.ts) not in hot paths.
+ */
+export function asPlayerId(value: string, context?: string): PlayerId {
+  if (!isValidUUID(value)) {
+    throw new Error(
+      `Expected PlayerId (UUID) but got "${value}"${context ? ` in ${context}` : ""}. ` +
+        "All player IDs must be UUID format after migration."
+    );
+  }
+  return value as PlayerId;
+}
+
+/**
+ * Wrap a string as AuthUserId after validating UUID format.
+ * Throws if the value is not a valid UUID.
+ */
+export function asAuthUserId(value: string, context?: string): AuthUserId {
+  if (!isValidUUID(value)) {
+    throw new Error(
+      `Expected AuthUserId (UUID) but got "${value}"${context ? ` in ${context}` : ""}. ` +
+        "auth.users.id must always be UUID."
+    );
+  }
+  return value as AuthUserId;
+}

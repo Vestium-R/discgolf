@@ -4,13 +4,14 @@ import { prettyDate } from "@/lib/format";
 import { parseUdiscUrl } from "@/lib/udisc";
 import { Avatar } from "@/components/Avatar";
 import { BadgeCrown } from "@/components/BadgeCrown";
+import type { PlayerId } from "@/lib/id-validation";
 
 type LayoutStats = {
   name: string; // the layout label (e.g. "The Demon Layout"), or "Default" if course has no layout suffix
   fullName: string; // "Course — Layout" as stored on the round
   rounds: number;
-  winners: Map<string, number>;
-  mostRecent: { date: string; roundId: string; winnerId: string } | null;
+  winners: Map<PlayerId, number>;
+  mostRecent: { date: string; roundId: string; winnerId: PlayerId } | null;
 };
 
 type CourseGroup = {

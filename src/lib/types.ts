@@ -1,5 +1,7 @@
+import type { PlayerId, AuthUserId } from "./id-validation";
+
 export type Player = {
-  id: string;
+  id: PlayerId;
   name: string;
   slug: string;
   udiscHandle?: string;
@@ -8,7 +10,7 @@ export type Player = {
 };
 
 export type RoundResult = {
-  playerId: string;
+  playerId: PlayerId;
   position: number;
   score?: number;
   relativeScore?: number;
@@ -49,11 +51,11 @@ export const VARIANT_EMOJI: Record<RoundVariant, string> = {
 
 export type SeasonHistory = {
   season: number;
-  championPlayerId?: string;
+  championPlayerId?: PlayerId;
   championName: string;
   note?: string;
   badgeImageUrl?: string;
-  initialBadgeHolderPlayerId?: string;
+  initialBadgeHolderPlayerId?: PlayerId;
 };
 
 export type Settings = {
@@ -64,7 +66,7 @@ export type DiscType = "putter" | "midrange" | "fairway_driver" | "distance_driv
 
 export type BagDisc = {
   id: string;
-  userId: string;
+  userId: AuthUserId;
   discName: string;
   manufacturer?: string;
   type: DiscType;
