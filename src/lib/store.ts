@@ -300,6 +300,61 @@ export async function migratePlayerIdsInRounds(): Promise<{ updated: number; err
   return { updated, errors };
 }
 
+export async function migratePlayerIdsInHistory(): Promise<{ updated: number; errors: string[] }> {
+  const [players, { data: history }] = await Promise.all([
+    getRoster(),
+    supabaseAdmin().from("season_history").select("*"),
+  ]);
+  const slugToId = new Map(players.map(p => [p.slug, p.id]));
+
+  let updated = 0;
+  const errors: string[] = [];
+
+  if (!history) return { updated: 0, errors: ["Failed to fetch season_history"] };
+
+  for (const row of history as HistoryRow[]) {
+    let changed = false;
+    const updates: Record<string, string | null> = {};
+
+    // Check champion_player_id
+    if (row.champion_player_id && row.champion_player_id.length < 36) {
+      const uuid = slugToId.get(row.champion_player_id);
+      if (uuid) {
+        updates.champion_player_id = uuid;
+        changed = true;
+      } else {
+        errors.push(`Season ${row.season}: Could not find player for champion "${row.champion_player_id}"`);
+      }
+    }
+
+    // Check initial_badge_holder_player_id
+    if (row.initial_badge_holder_player_id && row.initial_badge_holder_player_id.length < 36) {
+      const uuid = slugToId.get(row.initial_badge_holder_player_id);
+      if (uuid) {
+        updates.initial_badge_holder_player_id = uuid;
+        changed = true;
+      } else {
+        errors.push(`Season ${row.season}: Could not find player for badge holder "${row.initial_badge_holder_player_id}"`);
+      }
+    }
+
+    if (changed) {
+      const { error } = await supabaseAdmin()
+        .from("season_history")
+        .update(updates)
+        .eq("season", row.season);
+
+      if (error) {
+        errors.push(`Season ${row.season}: ${error.message}`);
+      } else {
+        updated++;
+      }
+    }
+  }
+
+  return { updated, errors };
+}
+
 // ─── User prefs ─────────────────────────────────────────────────────────────
 
 export type UserPrefs = {

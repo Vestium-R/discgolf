@@ -11,6 +11,7 @@ import {
   getRounds,
   getSettings,
   insertRound,
+  migratePlayerIdsInHistory,
   migratePlayerIdsInRounds,
   saveSettings,
   setPlayerActive,
@@ -403,11 +404,20 @@ export async function updateRoundScoresAction(formData: FormData): Promise<void>
 
 export async function migratePlayerIdsAction(): Promise<void> {
   await requireAdmin();
-  const result = await migratePlayerIdsInRounds();
+  const [roundsResult, historyResult] = await Promise.all([
+    migratePlayerIdsInRounds(),
+    migratePlayerIdsInHistory(),
+  ]);
+
+  const allErrors = [...roundsResult.errors, ...historyResult.errors];
+  const msg = `Migrated ${roundsResult.updated} rounds & ${historyResult.updated} history entries${
+    allErrors.length > 0 ? `. Errors: ${allErrors.join("; ")}` : ""
+  }`;
+
   revalidatePath("/");
   revalidatePath("/stats");
   revalidatePath("/rounds");
-  redirect(`/admin?ok=Migrated ${result.updated} rounds${result.errors.length > 0 ? `. Errors: ${result.errors.join(", ")}` : ""}`);
+  redirect(`/admin?ok=${encodeURIComponent(msg)}`);
 }
 
 export async function signOutAction(): Promise<void> {
