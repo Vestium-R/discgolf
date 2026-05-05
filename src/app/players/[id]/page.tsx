@@ -132,9 +132,16 @@ export default async function PlayerPage({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <Link href="/" className="text-sm text-forest-600 hover:underline">← Home</Link>
-        <SeasonPicker seasons={seasons} active={season} base={`/players/${id}?season=`} />
+        <div className="flex items-center gap-2">
+          {user && user.id === id && (
+            <Link href="/my-throws" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+              📏 My Throws
+            </Link>
+          )}
+          <SeasonPicker seasons={seasons} active={season} base={`/players/${id}?season=`} />
+        </div>
       </div>
 
       <header className="card p-5">

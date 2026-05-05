@@ -1,5 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import type { BagDisc, DiscType } from "@/lib/types";
 import type { DiscThrowStats } from "@/lib/store";
 import { DISC_TYPE_COLORS, DISC_TYPE_LABELS } from "@/lib/types";
@@ -146,9 +147,9 @@ function DiscRow({d,editing,onEdit,onStopEdit,showStorage,stats}:{d:BagDisc;edit
           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cls}`}>{label}</span>
           {d.notes&&<span className="text-[10px] text-forest-400 italic">{d.notes}</span>}
           {stats&&stats.throwCount>0&&(
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+            <Link href={`/my-throws?discId=${d.id}`} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
               {stats.throwCount} throw{stats.throwCount!==1?'s':''} · {stats.avgDistanceFt}ft avg
-            </span>
+            </Link>
           )}
         </div>
       </div>
