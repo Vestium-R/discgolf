@@ -4,21 +4,21 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const primaryTabs = [
-  { href: "/",         label: "Home",     icon: "🏠", exact: true },
-  { href: "/in-round", label: "In Round", icon: "🥏" },
-  { href: "/add",      label: "Add",      icon: "+",  add: true },
-  { href: "/bag",      label: "Bag",      icon: "🎒" },
-  { href: "/rounds",   label: "Rounds",   icon: "🗂️" },
+  { href: "/",          label: "Home",      icon: "🏠", exact: true },
+  { href: "/in-round",  label: "In Round",  icon: "🥏" },
+  { href: "/my-throws", label: "My Throws", icon: "📏" },
+  { href: "/add",       label: "Add",       icon: "+",  add: true },
+  { href: "/bag",       label: "Bag",       icon: "🎒" },
+  { href: "/rounds",    label: "Rounds",    icon: "🗂️" },
 ];
 
 const moreTabs = [
-  { href: "/my-throws", label: "My Throws", icon: "📏" },
-  { href: "/stats",     label: "Stats",     icon: "📊" },
-  { href: "/seasons",   label: "Seasons",   icon: "🏆" },
-  { href: "/courses",   label: "Courses",   icon: "📍" },
-  { href: "/rules",     label: "Rules",     icon: "📋" },
-  { href: "/setup",     label: "Setup",     icon: "📱" },
-  { href: "/admin",     label: "Admin",     icon: "⚙️" },
+  { href: "/stats",   label: "Stats",   icon: "📊" },
+  { href: "/seasons", label: "Seasons", icon: "🏆" },
+  { href: "/courses", label: "Courses", icon: "📍" },
+  { href: "/rules",   label: "Rules",   icon: "📋" },
+  { href: "/setup",   label: "Setup",   icon: "📱" },
+  { href: "/admin",   label: "Admin",   icon: "⚙️" },
 ];
 
 export function BottomNav() {
