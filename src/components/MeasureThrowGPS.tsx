@@ -35,6 +35,11 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [courseName, setCourseName] = useState<string>("");
+  const [holeNumber, setHoleNumber] = useState<string>("");
+  const [windMph, setWindMph] = useState<string>("");
+  const [windDirection, setWindDirection] = useState<string>("");
 
   const bagDiscs = discs.filter(d => !d.inStorage);
   const selectedDisc = selectedDiscId ? bagDiscs.find(d => d.id === selectedDiscId) : null;
@@ -112,10 +117,10 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
           body: JSON.stringify({
             bagDiscId: selectedDiscId,
             distanceFt,
-            windMph: null,
-            windDirection: null,
-            courseName: null,
-            holeNumber: null,
+            windMph: windMph ? Number(windMph) : null,
+            windDirection: windDirection || null,
+            courseName: courseName || null,
+            holeNumber: holeNumber ? Number(holeNumber) : null,
             notes: "GPS measured",
           }),
         });
@@ -129,6 +134,11 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
         setStartPoint(null);
         setDistanceFt(0);
         setSelectedDiscId(null);
+        setShowDetails(false);
+        setCourseName("");
+        setHoleNumber("");
+        setWindMph("");
+        setWindDirection("");
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       }
@@ -164,6 +174,11 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
               setDistanceFt(0);
               setSelectedDiscId(null);
               setError(null);
+              setShowDetails(false);
+              setCourseName("");
+              setHoleNumber("");
+              setWindMph("");
+              setWindDirection("");
             }}
             className="text-xs text-forest-400"
           >
@@ -259,6 +274,66 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
                 </button>
               ))}
             </div>
+
+            {/* Optional details section */}
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              className="text-xs text-forest-600 hover:text-forest-800 flex items-center gap-1"
+            >
+              {showDetails ? "▼" : "▶"} Add course details (optional)
+            </button>
+
+            {showDetails && (
+              <div className="space-y-2 p-3 bg-forest-50 rounded-lg border border-forest-200">
+                <div>
+                  <label className="text-xs text-forest-600 block mb-1">Course name</label>
+                  <input
+                    type="text"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                    placeholder="e.g. Stafford Creek"
+                    className="input-pill text-xs w-full"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-forest-600 block mb-1">Hole #</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="18"
+                      value={holeNumber}
+                      onChange={(e) => setHoleNumber(e.target.value)}
+                      placeholder="1-18"
+                      className="input-pill text-xs w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-forest-600 block mb-1">Wind (mph)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={windMph}
+                      onChange={(e) => setWindMph(e.target.value)}
+                      placeholder="0-20"
+                      className="input-pill text-xs w-full"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-forest-600 block mb-1">Wind direction</label>
+                  <select value={windDirection} onChange={(e) => setWindDirection(e.target.value)} className="input-pill text-xs w-full">
+                    <option value="">— None —</option>
+                    <option value="calm">Calm</option>
+                    <option value="head">Head</option>
+                    <option value="tail">Tail</option>
+                    <option value="cross_ltor">Cross (L→R)</option>
+                    <option value="cross_rtol">Cross (R→L)</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={saveThrow}
               disabled={!selectedDiscId || pending}
