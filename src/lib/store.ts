@@ -266,16 +266,20 @@ export async function migratePlayerIdsInRounds(): Promise<{ updated: number; err
 
   for (const round of rounds) {
     const updatedResults = round.results.map(res => {
-      const uuid = slugToId.get(res.playerId);
-      if (!uuid && res.playerId.length < 36) {
-        // Old format player ID, needs migration
-        if (!uuid) {
-          errors.push(`Round ${round.id}: Could not find player for "${res.playerId}"`);
-          return res; // Keep old ID if can't find mapping
-        }
-        return { ...res, playerId: uuid };
+      // If already UUID (36 chars), keep as-is
+      if (res.playerId.length === 36) {
+        return res;
       }
-      return res; // Already UUID or can't determine
+
+      // Try to find UUID for this slug/old ID
+      const uuid = slugToId.get(res.playerId);
+      if (uuid) {
+        return { ...res, playerId: uuid };
+      } else {
+        // Couldn't find mapping for this old ID
+        errors.push(`Round ${round.id}: Could not find player for "${res.playerId}"`);
+        return res; // Keep old ID
+      }
     });
 
     // Only update if there were changes
