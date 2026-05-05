@@ -12,12 +12,13 @@ const primaryTabs = [
 ];
 
 const moreTabs = [
-  { href: "/stats",   label: "Stats",   icon: "📊" },
-  { href: "/seasons", label: "Seasons", icon: "🏆" },
-  { href: "/courses", label: "Courses", icon: "📍" },
-  { href: "/rules",   label: "Rules",   icon: "📋" },
-  { href: "/setup",   label: "Setup",   icon: "📱" },
-  { href: "/admin",   label: "Admin",   icon: "⚙️" },
+  { href: "/my-throws", label: "My Throws", icon: "📏" },
+  { href: "/stats",     label: "Stats",     icon: "📊" },
+  { href: "/seasons",   label: "Seasons",   icon: "🏆" },
+  { href: "/courses",   label: "Courses",   icon: "📍" },
+  { href: "/rules",     label: "Rules",     icon: "📋" },
+  { href: "/setup",     label: "Setup",     icon: "📱" },
+  { href: "/admin",     label: "Admin",     icon: "⚙️" },
 ];
 
 export function BottomNav() {
