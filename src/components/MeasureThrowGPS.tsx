@@ -29,10 +29,12 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("idle");
   const [startPoint, setStartPoint] = useState<GPSPoint | null>(null);
+  const [currentPoint, setCurrentPoint] = useState<GPSPoint | null>(null);
   const [distanceFt, setDistanceFt] = useState(0);
   const [selectedDiscId, setSelectedDiscId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [watchId, setWatchId] = useState<number | null>(null);
 
   const bagDiscs = discs.filter(d => !d.inStorage);
   const selectedDisc = selectedDiscId ? bagDiscs.find(d => d.id === selectedDiscId) : null;
@@ -45,7 +47,9 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
     }
 
     setStage("tracking");
+    setDistanceFt(0);
 
+    // Get initial position
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const point: GPSPoint = {
@@ -55,6 +59,26 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
           timestamp: Date.now(),
         };
         setStartPoint(point);
+
+        // Watch for position updates
+        const id = navigator.geolocation.watchPosition(
+          (pos) => {
+            const current: GPSPoint = {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+              accuracy: pos.coords.accuracy,
+              timestamp: Date.now(),
+            };
+            setCurrentPoint(current);
+            const dist = haversineDistance(point, current);
+            setDistanceFt(Math.round(dist));
+          },
+          (err) => {
+            setError(`GPS error: ${err.message}`);
+          },
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+        setWatchId(id);
       },
       (err) => {
         setError(`GPS error: ${err.message}`);
@@ -65,40 +89,19 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
   }
 
   function stopTracking() {
-    if (!startPoint) {
-      setError("Failed to get start position");
-      setStage("idle");
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      setWatchId(null);
+    }
+
+    if (!startPoint || distanceFt < 30 || distanceFt > 600) {
+      setError("Distance must be 30–600 ft");
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const endPoint: GPSPoint = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          timestamp: Date.now(),
-        };
-
-        const distance = haversineDistance(startPoint, endPoint);
-        setDistanceFt(Math.round(distance));
-        setStage("confirm");
-      },
-      (err) => {
-        setError(`GPS error: ${err.message}`);
-        setStage("tracking");
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }
-
-  function confirmAndSelectDisc() {
-    if (distanceFt < 30 || distanceFt > 600) {
-      setError("Distance must be 30–600 ft (check GPS accuracy)");
-      return;
-    }
     setStage("select-disc");
   }
+
 
   function saveThrow() {
     if (!selectedDiscId) {
@@ -173,42 +176,43 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
         )}
 
         {stage === "tracking" && (
-          <div className="space-y-3">
-            <p className="text-sm text-forest-700">
-              🟢 GPS tracking active. Walk to where the disc landed and click "Stop GPS".
+          <div className="space-y-4">
+            <div className="bg-forest-50 rounded-xl p-6">
+              <div className="text-center">
+                <div className="text-5xl font-bold text-forest-900">
+                  {distanceFt}
+                </div>
+                <div className="text-sm text-forest-600 mt-2">feet</div>
+                {currentPoint && (
+                  <div className="text-xs text-forest-500 mt-3">
+                    Accuracy: ±{Math.round(currentPoint.accuracy)} ft
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-forest-700 text-center">
+              🟢 GPS tracking active. Walk to the landing spot.
             </p>
             <button
               onClick={stopTracking}
-              className="btn-primary w-full bg-red-600 hover:bg-red-700"
+              className="btn-primary w-full bg-green-600 hover:bg-green-700"
             >
-              📍 Stop GPS
-            </button>
-          </div>
-        )}
-
-        {stage === "confirm" && (
-          <div className="space-y-4">
-            <div className="bg-forest-50 rounded-xl p-4">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-forest-900">
-                  {distanceFt} ft
-                </div>
-                <p className="text-xs text-forest-500 mt-1">
-                  measured distance
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={confirmAndSelectDisc}
-              className="btn-primary w-full"
-            >
-              Next: Select disc
+              ✓ Confirm distance
             </button>
             <button
-              onClick={() => setStage("idle")}
-              className="btn-secondary w-full"
+              onClick={() => {
+                if (watchId !== null) {
+                  navigator.geolocation.clearWatch(watchId);
+                  setWatchId(null);
+                }
+                setStage("idle");
+                setStartPoint(null);
+                setCurrentPoint(null);
+                setDistanceFt(0);
+              }}
+              className="btn-secondary w-full text-sm"
             >
-              Back
+              Cancel
             </button>
           </div>
         )}
