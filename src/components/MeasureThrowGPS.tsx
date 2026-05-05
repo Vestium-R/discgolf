@@ -51,7 +51,7 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
     setCurrentPoint(null);
 
     // Start watching position immediately to let GPS warm up
-    let bestPosition: GPSPoint | null = null;
+    let capturedStart: GPSPoint | null = null;
     const id = navigator.geolocation.watchPosition(
       (pos) => {
         const current: GPSPoint = {
@@ -62,14 +62,15 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
         };
 
         // Capture first position as starting point when accuracy is decent
-        if (!startPoint && pos.coords.accuracy < 50) {
+        if (!capturedStart && pos.coords.accuracy < 50) {
+          capturedStart = current;
           setStartPoint(current);
         }
 
         // Update current position and distance
-        if (startPoint) {
+        if (capturedStart) {
           setCurrentPoint(current);
-          const dist = haversineDistance(startPoint, current);
+          const dist = haversineDistance(capturedStart, current);
           setDistanceFt(Math.round(Math.max(dist, 0)));
         }
       },
