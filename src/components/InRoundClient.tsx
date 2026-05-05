@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { BagDisc } from "@/lib/types";
 import type { UserPrefs, DiscThrow } from "@/lib/store";
+import { asAuthUserId } from "@/lib/id-validation";
 import { WhatToThrow } from "@/components/WhatToThrow";
 import { BagList } from "@/components/BagList";
 import { MeasureThrowGPS } from "@/components/MeasureThrowGPS";
@@ -84,7 +85,7 @@ export function InRoundClient({
             <h3 className="font-display font-bold text-forest-800">📏 My Throws</h3>
             <Link href="/my-throws" className="text-xs text-blue-600 hover:underline">View all</Link>
           </div>
-          <ThrowsClient initialThrows={throws} userId={userId} />
+          <ThrowsClient initialThrows={throws} userId={asAuthUserId(userId)} />
         </section>
       )}
 
