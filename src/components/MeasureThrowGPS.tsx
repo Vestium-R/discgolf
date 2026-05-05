@@ -126,7 +126,7 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
         setError(`GPS error: ${err.message}`);
         setStage("idle");
       },
-      { enableHighAccuracy: true, timeout: 3000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
     );
     setWatchId(id);
   }
