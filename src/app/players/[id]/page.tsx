@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getHistory, getRoster, getRounds, getSettings } from "@/lib/store";
+import { getUser } from "@/lib/auth";
+import { getHistory, getRoster, getRounds, getSettings, getUserThrows } from "@/lib/store";
 import {
   availableSeasons,
   computeStandings,
@@ -14,6 +15,7 @@ import { fmtPoints, prettyDate, ordinal } from "@/lib/format";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";
 import { Avatar } from "@/components/Avatar";
 import { SeasonPicker } from "@/components/SeasonPicker";
+import { ThrowsClient } from "@/components/ThrowsClient";
 
 export default async function PlayerPage({
   params,
@@ -24,14 +26,21 @@ export default async function PlayerPage({
 }) {
   const { id } = await params;
   const { season: seasonParam } = await searchParams;
-  const [roster, rounds, settings, history] = await Promise.all([
+  const [roster, rounds, settings, history, user] = await Promise.all([
     getRoster(),
     getRounds(),
     getSettings(),
     getHistory(),
+    getUser(),
   ]);
   const player = roster.find((p) => p.id === id);
   if (!player) notFound();
+
+  // Fetch user's throws if viewing their own profile
+  let userThrows = null;
+  if (user && user.id === id) {
+    userThrows = await getUserThrows(user.id);
+  }
 
   const season = Number(seasonParam) || settings.currentSeason;
   const badgeImage = history.find((h) => h.season === season)?.badgeImageUrl;
@@ -293,6 +302,13 @@ export default async function PlayerPage({
               );
             })}
           </ul>
+        </section>
+      )}
+
+      {userThrows && (
+        <section className="space-y-4">
+          <h3 className="font-display text-lg font-bold text-forest-800">📏 My Throws</h3>
+          <ThrowsClient initialThrows={userThrows} userId={user!.id} />
         </section>
       )}
     </div>
