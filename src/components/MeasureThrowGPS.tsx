@@ -48,44 +48,38 @@ export function MeasureThrowGPS({ discs }: { discs: BagDisc[] }) {
 
     setStage("tracking");
     setDistanceFt(0);
+    setCurrentPoint(null);
 
-    // Get initial position
-    navigator.geolocation.getCurrentPosition(
+    // Start watching position immediately to let GPS warm up
+    let bestPosition: GPSPoint | null = null;
+    const id = navigator.geolocation.watchPosition(
       (pos) => {
-        const point: GPSPoint = {
+        const current: GPSPoint = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
           timestamp: Date.now(),
         };
-        setStartPoint(point);
 
-        // Watch for position updates
-        const id = navigator.geolocation.watchPosition(
-          (pos) => {
-            const current: GPSPoint = {
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-              accuracy: pos.coords.accuracy,
-              timestamp: Date.now(),
-            };
-            setCurrentPoint(current);
-            const dist = haversineDistance(point, current);
-            setDistanceFt(Math.round(dist));
-          },
-          (err) => {
-            setError(`GPS error: ${err.message}`);
-          },
-          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-        );
-        setWatchId(id);
+        // Capture first position as starting point when accuracy is decent
+        if (!startPoint && pos.coords.accuracy < 50) {
+          setStartPoint(current);
+        }
+
+        // Update current position and distance
+        if (startPoint) {
+          setCurrentPoint(current);
+          const dist = haversineDistance(startPoint, current);
+          setDistanceFt(Math.round(Math.max(dist, 0)));
+        }
       },
       (err) => {
         setError(`GPS error: ${err.message}`);
         setStage("idle");
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 3000, maximumAge: 0 }
     );
+    setWatchId(id);
   }
 
   function stopTracking() {
