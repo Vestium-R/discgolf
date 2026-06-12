@@ -5,6 +5,10 @@ import { getUser } from "@/lib/auth";
 import { BottomNav } from "@/components/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { DesktopNav } from "@/components/DesktopNav";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+// Runs before paint to avoid a flash of the wrong theme
+const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark");}catch(e){}})();`;
 
 export const metadata: Metadata = {
   title: "The Patch",
@@ -24,6 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className="min-h-screen">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <header className="sticky top-0 z-20 border-b border-forest-200 bg-white/80 backdrop-blur">
           <div className="mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold text-forest-800 shrink-0">
@@ -32,6 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             {/* Top nav — desktop only; mobile uses the bottom tab bar */}
             <DesktopNav userId={user?.id} />
+            <ThemeToggle />
           </div>
         </header>
 

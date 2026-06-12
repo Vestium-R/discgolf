@@ -29,61 +29,58 @@
   --forest-900: 31 51 35;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1512;
-    --text: #dfeade;
+/* dark theme — applied via .dark class on <html> (set by theme script / toggle) */
+html.dark {
+  --bg: #0f1512;
+  --text: #dfeade;
 
-    /* inverted ramp: tints become dark, text shades become light */
-    --forest-50: 26 36 29;
-    --forest-100: 36 51 41;
-    --forest-200: 46 66 52;
-    --forest-300: 62 90 70;
-    --forest-400: 109 148 117;
-    --forest-500: 139 175 146;
-    --forest-600: 163 196 170;
-    --forest-700: 186 213 192;
-    --forest-800: 210 230 213;
-    --forest-900: 232 243 233;
-  }
-
-  /* white surfaces become dark surfaces (text-white is untouched) */
-  .bg-white { background-color: #18211b; }
-  .bg-white\/95 { background-color: rgb(24 33 27 / 0.95); }
-  .bg-white\/80 { background-color: rgb(24 33 27 / 0.8); }
-
-  /* green fills that carry white text must stay dark green */
-  .bg-forest-500 { background-color: #4e7c54; }
-  .bg-forest-600 { background-color: #3b6441; }
-  .bg-forest-700 { background-color: #305036; }
-  .hover\:bg-forest-600:hover { background-color: #335a39; }
-  .hover\:bg-forest-700:hover { background-color: #2a4730; }
-  .text-forest-200 { color: rgb(192 213 191); }
-
-  .btn-primary { background-color: #3b6441; }
-  .btn-primary:hover { background-color: #305036; }
-
-  /* accent tints */
-  .bg-amber-50 { background-color: rgb(233 185 73 / 0.08); }
-  .bg-amber-50\/40 { background-color: rgb(233 185 73 / 0.06); }
-  .hover\:bg-amber-100:hover { background-color: rgb(233 185 73 / 0.15); }
-  .border-amber-100 { border-color: rgb(233 185 73 / 0.2); }
-  .border-amber-200 { border-color: rgb(233 185 73 / 0.3); }
-  .hover\:border-amber-300:hover { border-color: rgb(233 185 73 / 0.45); }
-  .text-amber-800 { color: #ecd9a0; }
-  .text-amber-900 { color: #f3e3b3; }
-  .bg-lime-50 { background-color: rgb(132 204 22 / 0.08); }
-  .border-lime-200 { border-color: rgb(132 204 22 / 0.25); }
-  .bg-red-50 { background-color: rgb(220 38 38 / 0.12); }
-  .text-red-700 { color: #fca5a5; }
+  /* inverted ramp: tints become dark, text shades become light */
+  --forest-50: 26 36 29;
+  --forest-100: 36 51 41;
+  --forest-200: 46 66 52;
+  --forest-300: 62 90 70;
+  --forest-400: 109 148 117;
+  --forest-500: 139 175 146;
+  --forest-600: 163 196 170;
+  --forest-700: 186 213 192;
+  --forest-800: 210 230 213;
+  --forest-900: 232 243 233;
 }
+
+/* white surfaces become dark surfaces (text-white is untouched) */
+html.dark .bg-white { background-color: #18211b; }
+html.dark .bg-white\/95 { background-color: rgb(24 33 27 / 0.95); }
+html.dark .bg-white\/80 { background-color: rgb(24 33 27 / 0.8); }
+
+/* green fills that carry white text must stay dark green */
+html.dark .bg-forest-500 { background-color: #4e7c54; }
+html.dark .bg-forest-600 { background-color: #3b6441; }
+html.dark .bg-forest-700 { background-color: #305036; }
+html.dark .hover\:bg-forest-600:hover { background-color: #335a39; }
+html.dark .hover\:bg-forest-700:hover { background-color: #2a4730; }
+html.dark .text-forest-200 { color: rgb(192 213 191); }
+
+html.dark .btn-primary { background-color: #3b6441; }
+html.dark .btn-primary:hover { background-color: #305036; }
+
+/* accent tints */
+html.dark .bg-amber-50 { background-color: rgb(233 185 73 / 0.08); }
+html.dark .bg-amber-50\/40 { background-color: rgb(233 185 73 / 0.06); }
+html.dark .hover\:bg-amber-100:hover { background-color: rgb(233 185 73 / 0.15); }
+html.dark .border-amber-100 { border-color: rgb(233 185 73 / 0.2); }
+html.dark .border-amber-200 { border-color: rgb(233 185 73 / 0.3); }
+html.dark .hover\:border-amber-300:hover { border-color: rgb(233 185 73 / 0.45); }
+html.dark .text-amber-800 { color: #ecd9a0; }
+html.dark .text-amber-900 { color: #f3e3b3; }
+html.dark .bg-lime-50 { background-color: rgb(132 204 22 / 0.08); }
+html.dark .border-lime-200 { border-color: rgb(132 204 22 / 0.25); }
+html.dark .bg-red-50 { background-color: rgb(220 38 38 / 0.12); }
+html.dark .text-red-700 { color: #fca5a5; }
 
 html {
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  html { color-scheme: dark; }
-}
+html.dark { color-scheme: dark; }
 
 html, body {
   background: var(--bg);
