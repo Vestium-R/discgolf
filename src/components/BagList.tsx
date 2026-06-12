@@ -5,10 +5,6 @@ import type { BagDisc, DiscType } from "@/lib/types";
 import type { DiscThrowStats } from "@/lib/store";
 import { DISC_TYPE_COLORS, DISC_TYPE_LABELS } from "@/lib/types";
 import { removeDiscAction, toggleStorageAction, updateDiscAction } from "@/app/bag/actions";
-import { analyzeBagDiscsAction } from "@/app/bag/ai-analyze";
-import { AI_FACTORS } from "@/lib/ai-factors";
-import { loadPrefs } from "@/components/BagSettings";
-import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 import { DISC_DB } from "@/lib/discs-db";
 import { getPlasticsForManufacturer } from "@/lib/plastics-db";
 
@@ -179,18 +175,6 @@ export function BagList({discs,title,showStorage,gaps,isStorage,throwStats}:{
   const [sort,setSort] = useState<SortKey>("type");
   const [editId,setEditId] = useState<string|null>(null);
   const [storageOpen,setStorageOpen] = useState(false);
-  const [aiText,setAiText] = useState<string|null>(null);
-  const [aiErr,setAiErr] = useState<string|null>(null);
-  const [aiPending,startAiT] = useTransition();
-
-  function analyse() {
-    setAiText(null); setAiErr(null);
-    const lp = loadPrefs();
-    startAiT(async()=>{
-      const res = await analyzeBagDiscsAction(discs, lp.maxDist, lp.playStyle ?? "flat", lp.throwStyle ?? "RHBH", (lp as any).yearsPlaying);
-      if (res.ok) setAiText(res.text); else setAiErr(res.error);
-    });
-  }
 
   // Storage section: collapsible
   if (isStorage) {
@@ -228,18 +212,7 @@ export function BagList({discs,title,showStorage,gaps,isStorage,throwStats}:{
             </button>
           ))}
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-forest-400">{discs.length}</span>
-          {discs.length>=3&&(
-            <span className="flex items-center gap-1">
-              <button onClick={analyse} disabled={aiPending}
-                className="text-xs text-forest-600 hover:text-forest-800 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-forest-50 transition-colors">
-                {aiPending?"…":"✨"} <span className="hidden sm:inline">Analyse</span>
-              </button>
-              <AIFactorsBadge factors={AI_FACTORS.bagAnalysis} direction="down" />
-            </span>
-          )}
-        </div>
+        <span className="ml-auto text-xs text-forest-400">{discs.length}</span>
       </div>
 
       {/* Disc list */}
@@ -277,17 +250,6 @@ export function BagList({discs,title,showStorage,gaps,isStorage,throwStats}:{
             <span key={i} className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full">
               ⚠ {g}
             </span>
-          ))}
-        </div>
-      )}
-
-      {/* AI analysis inline */}
-      {(aiPending||aiText||aiErr)&&(
-        <div className="border-t border-forest-100 px-4 py-3 space-y-1.5 bg-forest-50">
-          {aiPending&&<div className="space-y-1.5 animate-pulse">{[1,.8,.9,.7,.85].map((w,i)=><div key={i} className="h-2.5 bg-forest-200 rounded" style={{width:`${w*100}%`}}/>)}</div>}
-          {aiErr&&<p className="text-xs text-red-700">{aiErr}</p>}
-          {aiText&&aiText.split("\n").filter(Boolean).map((line,i)=>(
-            <p key={i} className="text-xs text-forest-700 leading-relaxed">{line}</p>
           ))}
         </div>
       )}

@@ -61,8 +61,8 @@ function discLine(d: BagDisc): string {
 // ── Gemini setup ──────────────────────────────────────────────────────────────
 
 const HARDCODED_MODELS: { name: string; apiVersion: string }[] = [
-  { name: "gemini-2.5-flash-lite", apiVersion: "v1" },
   { name: "gemini-2.5-flash",      apiVersion: "v1" },
+  { name: "gemini-2.5-flash-lite", apiVersion: "v1" },
   { name: "gemini-2.0-flash",      apiVersion: "v1" },
 ];
 
@@ -350,7 +350,14 @@ Their current bag:
 ${bagContext}
 ${playerCtx}
 
-Which single disc should they consider removing? Name it and give one clear reason — redundancy, wrong fit for their style, or outclassed by another disc they own. 2-3 sentences max.`;
+Which single disc should they consider removing? Work strictly from the flight numbers listed above — do not assume a disc's flight from its name or reputation.
+
+Rules:
+- A disc is only redundant if ANOTHER disc in the bag is within 2 speed AND within 1 stability of it. Check this before claiming overlap, and name the actual overlapping disc with its flight numbers.
+- Never recommend removing a disc that is the ONLY one covering its speed range or stability slot (e.g. their only overstable fairway, only understable mid).
+- If every disc fills a unique role, say so — "nothing needs to go" is a valid answer.
+
+2-3 sentences max.`;
 
   } else if (question === "storage") {
     const storeContext = storageDiscs.length > 0
@@ -382,6 +389,9 @@ Which single disc in their bag is the most versatile — handles the widest vari
     const os = bagDiscs.filter(d => stab(d) > 1).length;
     const neu = bagDiscs.filter(d => stab(d) >= -0.5 && stab(d) <= 1).length;
     const us = bagDiscs.filter(d => stab(d) < -0.5).length;
+    const storeContext = storageDiscs.length > 0
+      ? storageDiscs.map(discLine).join("\n")
+      : "(no discs in storage)";
 
     prompt = `You're a disc golf coach. The player received this bag analysis:
 "${priorAnalysis}"
@@ -390,9 +400,14 @@ Their bag:
 ${bagContext}
 Breakdown: ${byType("putter").length} putters, ${byType("midrange").length} midranges, ${byType("fairway_driver").length} fairways, ${byType("distance_driver").length} distance drivers
 Stability: ${os} overstable | ${neu} neutral | ${us} understable
+
+Their storage (discs they own but don't carry):
+${storeContext}
 ${playerCtx}
 
-What's the single biggest type or stability gap given their play style? Name the specific type (e.g. "understable fairway driver") and suggest one real disc with flight numbers they should consider adding. 2-3 sentences max.`;
+What's the single biggest type or stability gap given their play style? Name the specific type (e.g. "understable fairway driver").
+
+Then check their STORAGE first: if a disc there fills this gap, tell them to bag that disc — they already own it, don't suggest buying anything. Only if nothing in storage fits, suggest one real disc with flight numbers to buy. 2-4 sentences max.`;
 
   } else {
     return { ok: false, error: "Unknown follow-up question." };
