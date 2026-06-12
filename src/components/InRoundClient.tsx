@@ -83,7 +83,7 @@ export function InRoundClient({
         <section className="space-y-4 mt-6 pt-6 border-t border-forest-100">
           <div className="flex items-center justify-between">
             <h3 className="font-display font-bold text-forest-800">📏 My Throws</h3>
-            <Link href="/my-throws" className="text-xs text-blue-600 hover:underline">View all</Link>
+            <Link href="/my-throws" className="text-xs text-forest-600 hover:text-forest-800 hover:underline">View all</Link>
           </div>
           <ThrowsClient initialThrows={throws} userId={asAuthUserId(userId)} />
         </section>

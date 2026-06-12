@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { ChevronDown, User, Settings } from "lucide-react";
 import type { AuthUserId } from "@/lib/id-validation";
 
 export function DesktopNav({ userId }: { userId?: AuthUserId }) {
@@ -49,9 +50,7 @@ export function DesktopNav({ userId }: { userId?: AuthUserId }) {
           }`}
         >
           <span>Stats</span>
-          <span className={`text-xs transition-transform ${openDropdown === "stats" ? "rotate-180" : ""}`}>
-            ▼
-          </span>
+          <ChevronDown size={14} className={`transition-transform ${openDropdown === "stats" ? "rotate-180" : ""}`} />
         </button>
         <div
           className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-48 transition-all duration-150 ${
@@ -63,7 +62,7 @@ export function DesktopNav({ userId }: { userId?: AuthUserId }) {
           {userId && (
             <>
               <NavLink href="/my-stats" active={isActive("/players/")}>
-                👤 My Stats
+                <span className="inline-flex items-center gap-1.5"><User size={14} /> My Stats</span>
               </NavLink>
               <div className="h-px bg-forest-100 my-1" />
             </>
@@ -101,9 +100,7 @@ export function DesktopNav({ userId }: { userId?: AuthUserId }) {
           }`}
         >
           <span>More</span>
-          <span className={`text-xs transition-transform ${openDropdown === "more" ? "rotate-180" : ""}`}>
-            ▼
-          </span>
+          <ChevronDown size={14} className={`transition-transform ${openDropdown === "more" ? "rotate-180" : ""}`} />
         </button>
         <div
           className={`absolute top-full left-0 mt-2 bg-white border border-forest-200 rounded-lg shadow-xl p-3 space-y-0 z-50 w-40 transition-all duration-150 ${
@@ -116,7 +113,7 @@ export function DesktopNav({ userId }: { userId?: AuthUserId }) {
             Setup
           </NavLink>
           <NavLink href="/admin" active={isActive("/admin")}>
-            ⚙ Admin
+            <span className="inline-flex items-center gap-1.5"><Settings size={14} /> Admin</span>
           </NavLink>
         </div>
       </div>

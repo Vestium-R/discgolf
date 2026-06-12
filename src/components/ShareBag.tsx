@@ -8,7 +8,7 @@ export function ShareBag({ discs }: { discs: BagDisc[] }) {
   const bagDiscs = discs.filter(d => !d.inStorage);
   const shareText = [
     `I've got a ${bagDiscs.length}-disc bag 🥏`,
-    ...bagDiscs.map(d => `• ${d.discName} (${d.speed}/${d.glide || '—'}/${d.turn || '—'}/${d.fade || '—'})`),
+    ...bagDiscs.map(d => `• ${d.discName} (${d.speed}/${d.glide ?? '—'}/${d.turn ?? '—'}/${d.fade ?? '—'})`),
   ].join("\n");
 
   function copyToClipboard() {

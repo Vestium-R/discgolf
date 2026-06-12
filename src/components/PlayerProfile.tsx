@@ -1,6 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
+import { User } from "lucide-react";
 import type { UserPrefs } from "@/lib/store";
+import { Disclosure } from "@/components/Disclosure";
 import type { BagPrefs } from "@/components/BagSettings";
 import { saveUserPrefsAction } from "@/app/bag/actions";
 import { loadPrefs, savePrefs } from "@/components/BagSettings";
@@ -14,7 +16,6 @@ const PLAY_STYLES: { value: string; label: string; hint: string }[] = [
 ];
 
 export function PlayerProfile({ initial }: { initial: UserPrefs }) {
-  const [open, setOpen] = useState(false);
   const [prefs, setPrefs] = useState<UserPrefs>(initial);
   const [saved, setSaved] = useState(false);
   const [pending, startT] = useTransition();
@@ -45,21 +46,8 @@ export function PlayerProfile({ initial }: { initial: UserPrefs }) {
   ].filter(Boolean).join(" · ");
 
   return (
-    <div className="rounded-2xl border border-forest-100 bg-white shadow-sm overflow-hidden">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-forest-50 transition-colors"
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm">👤</span>
-          <span className="text-xs font-semibold text-forest-700">Player profile</span>
-          {!open && <span className="text-xs text-forest-400 truncate">· {summary}</span>}
-        </div>
-        <span className="text-forest-400 text-xs shrink-0 ml-2">{open ? "▲" : "▼"}</span>
-      </button>
-
-      {open && (
-        <div className="border-t border-forest-100 px-4 py-3 space-y-3">
+    <Disclosure icon={<User size={16} />} title="Player profile" summary={summary}>
+      <div className="space-y-3">
           {/* Throw style */}
           <div>
             <label className="text-[10px] font-semibold text-forest-600 uppercase tracking-wide block mb-1">Throw style</label>
@@ -112,8 +100,7 @@ export function PlayerProfile({ initial }: { initial: UserPrefs }) {
             className={`btn-primary w-full text-sm ${saved ? "bg-green-600 hover:bg-green-700" : ""}`}>
             {pending ? "Saving…" : saved ? "Saved ✓" : "Save profile"}
           </button>
-        </div>
-      )}
-    </div>
+      </div>
+    </Disclosure>
   );
 }

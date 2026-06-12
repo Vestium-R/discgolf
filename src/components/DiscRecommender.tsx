@@ -1,6 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
+import { ShoppingCart } from "lucide-react";
 import { recommendDiscAction } from "@/app/bag/ai-analyze";
+import { Disclosure } from "@/components/Disclosure";
 import { AI_FACTORS } from "@/lib/ai-factors";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 import type { DiscType } from "@/lib/types";
@@ -20,7 +22,6 @@ const STAB_OPTIONS = [
 const BRANDS = [...new Set(DISC_DB.map(d => d.manufacturer))].sort();
 
 export function DiscRecommender() {
-  const [open, setOpen] = useState(false);
   const [type, setType] = useState<string>("");
   const [stab, setStab] = useState("");
   const [brand, setBrand] = useState("");
@@ -40,25 +41,12 @@ export function DiscRecommender() {
     });
   }
 
-  if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} className="btn-secondary w-full text-sm">
-        🛒 Recommend a disc for me
-      </button>
-    );
-  }
-
   return (
-    <div className="card p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <h3 className="font-display font-bold text-forest-800">Recommend a disc</h3>
-          <AIFactorsBadge factors={AI_FACTORS.discRecommender} direction="down" />
-        </div>
-        <button onClick={() => { setOpen(false); setResult(null); }}
-          className="text-xs text-forest-400 hover:text-forest-700">✕</button>
-      </div>
-
+    <Disclosure
+      icon={<ShoppingCart size={16} />}
+      title="Recommend a disc"
+      summary="Find your next disc to buy"
+    >
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-semibold text-forest-700 block mb-1">Type</label>
@@ -115,9 +103,12 @@ export function DiscRecommender() {
         </div>
       </div>
 
-      <button onClick={go} disabled={pending} className="btn-primary w-full">
-        {pending ? "Finding discs…" : "✨ Find me a disc"}
-      </button>
+      <span className="flex items-center gap-1">
+        <button onClick={go} disabled={pending} className="btn-primary flex-1">
+          {pending ? "Finding discs…" : "Find me a disc"}
+        </button>
+        <AIFactorsBadge factors={AI_FACTORS.discRecommender} />
+      </span>
 
       {err && <p className="text-sm text-red-700">{err}</p>}
 
@@ -136,6 +127,6 @@ export function DiscRecommender() {
           ))}
         </div>
       )}
-    </div>
+    </Disclosure>
   );
 }

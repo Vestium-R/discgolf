@@ -17,6 +17,7 @@ import { RankDelta } from "@/components/RankDelta";
 import { PasteUdiscBox } from "@/components/PasteUdiscBox";
 import { SeasonPicker } from "@/components/SeasonPicker";
 import { ShareStandings } from "@/components/ShareStandings";
+import { InsightTicker } from "@/components/InsightTicker";
 import { fmtPoints, prettyDate } from "@/lib/format";
 
 export default async function HomePage() {
@@ -90,9 +91,8 @@ export default async function HomePage() {
     insights.push({ emoji: "👀", text: `${p.player.name} has played ${p.roundsPlayed} rounds this season without a win. The drought continues.` });
   }
 
-  const insight: Insight | null = insights.length > 0
-    ? insights[Math.floor(Math.random() * insights.length)]
-    : null;
+  // Shuffle so each visit starts somewhere different; the ticker cycles through all of them.
+  const shuffledInsights = [...insights].sort(() => Math.random() - 0.5);
 
   const playedRoster = standings.filter((s) => s.roundsPlayed > 0);
 
@@ -178,12 +178,7 @@ export default async function HomePage() {
             </p>
           </div>
         </div>
-        {insight && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-center gap-3">
-            <span className="text-2xl shrink-0">{insight.emoji}</span>
-            <p className="text-sm text-amber-900">{insight.text}</p>
-          </div>
-        )}
+        <InsightTicker insights={shuffledInsights} />
         {last && (
           <p className="text-xs text-forest-600 text-center">
             Last round:{" "}
@@ -222,13 +217,13 @@ export default async function HomePage() {
             {standings.map((s, i) => {
               const isBadge = s.player.id === badgeId;
               const rank = i + 1;
-              const dim = s.roundsPlayed === 0 ? "opacity-40" : "";
+              const dim = s.roundsPlayed === 0 ? "opacity-60" : "";
               const hotStreak = currentStreak(rounds, season, s.player.id);
               return (
                 <li key={s.player.id} className={isBadge ? "bg-amber-50/40" : ""}>
                   <Link href={`/players/${s.player.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-forest-50">
                     <span className={`w-6 text-center shrink-0 ${dim}`}>
-                      {s.roundsPlayed > 0 ? <MedalBadge position={rank} /> : <span className="text-xs text-forest-400">{rank}</span>}
+                      {s.roundsPlayed > 0 ? <MedalBadge position={rank} /> : <span className="text-xs text-forest-500">{rank}</span>}
                     </span>
                     <Avatar playerId={s.player.id} name={s.player.name} size="sm" imageUrl={s.player.udiscAvatarUrl} />
                     <div className={`flex-1 min-w-0 ${dim}`}>
@@ -264,12 +259,12 @@ export default async function HomePage() {
               {standings.map((s, i) => {
                 const isBadge = s.player.id === badgeId;
                 const rank = i + 1;
-                const dim = s.roundsPlayed === 0 ? "text-forest-400" : "";
+                const dim = s.roundsPlayed === 0 ? "text-forest-500" : "";
                 const hotStreak = currentStreak(rounds, season, s.player.id);
                 return (
                   <tr key={s.player.id} className={`border-t border-forest-100 ${isBadge ? "bg-amber-50/40" : ""}`}>
                     <td className="py-2 px-3">
-                      {s.roundsPlayed > 0 ? <MedalBadge position={rank} /> : <span className="text-forest-400 text-xs">{rank}</span>}
+                      {s.roundsPlayed > 0 ? <MedalBadge position={rank} /> : <span className="text-forest-500 text-xs">{rank}</span>}
                     </td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2 min-w-0">

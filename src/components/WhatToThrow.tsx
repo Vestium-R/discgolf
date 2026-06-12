@@ -10,6 +10,8 @@ import { plasticStabOffset } from "@/lib/plastics-db";
 import type { UserPrefs } from "@/lib/store";
 import { AI_FACTORS } from "@/lib/ai-factors";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
+import { Disclosure } from "@/components/Disclosure";
+import { Target } from "lucide-react";
 
 // ── Wind types ─────────────────────────────────────────────────────────────────
 type WindDir = "none" | "head" | "tail";
@@ -237,7 +239,6 @@ type Mode = "general" | "course";
 const allCourses = COURSES.flatMap(g => g.courses);
 
 export function WhatToThrow({ discs, serverPrefs, defaultOpen = false }: { discs: BagDisc[]; serverPrefs?: UserPrefs; defaultOpen?: boolean }) {
-  const [open, setOpen]     = useState(defaultOpen);
   const [mode, setMode]     = useState<Mode>("course");
   const [dist, setDist]     = useState(200);
   // Wind
@@ -299,22 +300,13 @@ export function WhatToThrow({ discs, serverPrefs, defaultOpen = false }: { discs
     }, () => setGeoLoading(false), { timeout: 8000 });
   }
 
-  if (!open) return (
-    <button onClick={() => setOpen(true)} className="btn-secondary w-full text-sm">
-      🎯 What should I throw?
-    </button>
-  );
-
   return (
-    <div className="card p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <h3 className="font-display font-bold text-forest-800">What to throw</h3>
-          <AIFactorsBadge factors={AI_FACTORS.whatToThrow} direction="down" />
-        </div>
-        <button onClick={() => { setOpen(false); setAiText(null); }} className="text-xs text-forest-400 hover:text-forest-700">✕</button>
-      </div>
-
+    <Disclosure
+      icon={<Target size={16} />}
+      title="What to throw"
+      summary="Shot recommendations from your bag"
+      defaultOpen={defaultOpen}
+    >
       {/* Mode toggle */}
       <div className="flex gap-1 bg-forest-50 rounded-xl p-1">
         {(["course","general"] as Mode[]).map(m => (
@@ -471,6 +463,6 @@ export function WhatToThrow({ discs, serverPrefs, defaultOpen = false }: { discs
           </div>
         )}
       </div>
-    </div>
+    </Disclosure>
   );
 }

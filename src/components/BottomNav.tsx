@@ -2,23 +2,38 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import {
+  Home,
+  Disc,
+  Backpack,
+  History,
+  User,
+  BarChart3,
+  Trophy,
+  MapPin,
+  ClipboardList,
+  Smartphone,
+  Settings,
+  MoreHorizontal,
+  type LucideIcon,
+} from "lucide-react";
 
-const primaryTabs = [
-  { href: "/",         label: "Home",     icon: "🏠", exact: true },
-  { href: "/in-round", label: "In Round", icon: "🥏" },
-  { href: "/add",      label: "Add",      icon: "+",  add: true },
-  { href: "/bag",      label: "Bag",      icon: "🎒" },
-  { href: "/rounds",   label: "Rounds",   icon: "🗂️" },
+const primaryTabs: { href: string; label: string; icon: LucideIcon; exact?: boolean; add?: boolean }[] = [
+  { href: "/",         label: "Home",     icon: Home, exact: true },
+  { href: "/in-round", label: "In Round", icon: Disc },
+  { href: "/add",      label: "Add",      icon: Home, add: true },
+  { href: "/bag",      label: "Bag",      icon: Backpack },
+  { href: "/rounds",   label: "Rounds",   icon: History },
 ];
 
-const moreTabs = [
-  { href: "/my-stats", label: "My Stats", icon: "👤" },
-  { href: "/stats",    label: "Stats",    icon: "📊" },
-  { href: "/seasons",  label: "Seasons",  icon: "🏆" },
-  { href: "/courses",  label: "Courses",  icon: "📍" },
-  { href: "/rules",    label: "Rules",    icon: "📋" },
-  { href: "/setup",    label: "Setup",    icon: "📱" },
-  { href: "/admin",    label: "Admin",    icon: "⚙️" },
+const moreTabs: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/my-stats", label: "My Stats", icon: User },
+  { href: "/stats",    label: "Stats",    icon: BarChart3 },
+  { href: "/seasons",  label: "Seasons",  icon: Trophy },
+  { href: "/courses",  label: "Courses",  icon: MapPin },
+  { href: "/rules",    label: "Rules",    icon: ClipboardList },
+  { href: "/setup",    label: "Setup",    icon: Smartphone },
+  { href: "/admin",    label: "Admin",    icon: Settings },
 ];
 
 export function BottomNav() {
@@ -45,15 +60,16 @@ export function BottomNav() {
             <div className="grid grid-cols-3 gap-1 pb-1">
               {moreTabs.map((t) => {
                 const active = pathname.startsWith(t.href);
+                const Icon = t.icon;
                 return (
                   <Link
                     key={t.href}
                     href={t.href}
                     className={`flex flex-col items-center gap-1 py-3 rounded-xl text-xs font-medium transition-colors ${
-                      active ? "bg-forest-100 text-forest-800" : "text-forest-500 hover:bg-forest-50"
+                      active ? "bg-forest-100 text-forest-800" : "text-forest-600 hover:bg-forest-50"
                     }`}
                   >
-                    <span className="text-xl">{t.icon}</span>
+                    <Icon size={22} strokeWidth={1.75} />
                     <span>{t.label}</span>
                   </Link>
                 );
@@ -71,6 +87,7 @@ export function BottomNav() {
         <div className="flex h-14 max-w-5xl mx-auto">
           {primaryTabs.map((tab) => {
             const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
+            const Icon = tab.icon;
 
             if (tab.add) {
               return (
@@ -92,11 +109,11 @@ export function BottomNav() {
                 key={tab.href}
                 href={tab.href}
                 className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors ${
-                  active ? "text-forest-800" : "text-forest-400"
+                  active ? "text-forest-800" : "text-forest-500"
                 }`}
               >
                 {active && <span className="absolute top-0 left-1/4 right-1/4 h-[2px] rounded-b bg-forest-700" />}
-                <span className="text-lg leading-none">{tab.icon}</span>
+                <Icon size={20} strokeWidth={active ? 2.25 : 1.75} />
                 <span>{tab.label}</span>
               </Link>
             );
@@ -106,13 +123,13 @@ export function BottomNav() {
           <button
             onClick={() => setMoreOpen((o) => !o)}
             className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors ${
-              moreActive || moreOpen ? "text-forest-800" : "text-forest-400"
+              moreActive || moreOpen ? "text-forest-800" : "text-forest-500"
             }`}
           >
             {(moreActive || moreOpen) && (
               <span className="absolute top-0 left-1/4 right-1/4 h-[2px] rounded-b bg-forest-700" />
             )}
-            <span className="text-lg leading-none">•••</span>
+            <MoreHorizontal size={20} strokeWidth={moreActive || moreOpen ? 2.25 : 1.75} />
             <span>More</span>
           </button>
         </div>

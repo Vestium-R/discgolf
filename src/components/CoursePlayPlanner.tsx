@@ -1,13 +1,14 @@
 "use client";
 import { useState, useTransition } from "react";
+import { MapPin } from "lucide-react";
 import { planCourseAction } from "@/app/bag/ai-analyze";
+import { Disclosure } from "@/components/Disclosure";
 import { AI_FACTORS } from "@/lib/ai-factors";
 import { COURSES } from "@/components/CourseList";
 import { AIFactorsBadge } from "@/components/AIFactorsBadge";
 import type { UserPrefs } from "@/lib/store";
 
 export function CoursePlayPlanner({ serverPrefs }: { serverPrefs?: UserPrefs }) {
-  const [open, setOpen] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState("");
   const [selectedName, setSelectedName] = useState("");
   const [customName, setCustomName] = useState("");
@@ -32,19 +33,12 @@ export function CoursePlayPlanner({ serverPrefs }: { serverPrefs?: UserPrefs }) 
     });
   }
 
-  if (!open) return (
-    <button onClick={() => setOpen(true)} className="btn-secondary w-full text-sm">
-      📍 Plan my bag for a course
-    </button>
-  );
-
   return (
-    <div className="card p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display font-bold text-forest-800">Course bag planner</h3>
-        <button onClick={() => { setOpen(false); setResult(null); }} className="text-xs text-forest-400 hover:text-forest-700">✕</button>
-      </div>
-
+    <Disclosure
+      icon={<MapPin size={16} />}
+      title="Course bag planner"
+      summary="Plan my bag for a course"
+    >
       <div className="space-y-3">
         <div>
           <label className="text-xs font-semibold text-forest-700 block mb-1">Select a local course</label>
@@ -87,7 +81,7 @@ export function CoursePlayPlanner({ serverPrefs }: { serverPrefs?: UserPrefs }) 
 
       <span className="flex items-center gap-1">
         <button onClick={plan} disabled={pending || !courseName.trim()} className="btn-primary flex-1">
-          {pending ? "Planning…" : "✨ Plan my bag"}
+          {pending ? "Planning…" : "Plan my bag"}
         </button>
         <AIFactorsBadge factors={AI_FACTORS.coursePlanner} />
       </span>
@@ -107,6 +101,6 @@ export function CoursePlayPlanner({ serverPrefs }: { serverPrefs?: UserPrefs }) 
           ))}
         </div>
       )}
-    </div>
+    </Disclosure>
   );
 }

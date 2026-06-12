@@ -136,7 +136,7 @@ export default async function BagPage() {
         <div className="border-t-2 border-forest-100 pt-6 space-y-4">
           <h3 className="text-xs font-semibold text-forest-600 uppercase tracking-widest">Analysis & Learning</h3>
 
-          <BagAnalysis discs={discs.filter(d => !d.inStorage)} serverPrefs={userPrefs} />
+          <BagAnalysis discs={discs.filter(d => !d.inStorage)} storageDiscs={discs.filter(d => d.inStorage)} serverPrefs={userPrefs} />
 
           <DiscRecommender />
 

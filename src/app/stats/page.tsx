@@ -80,7 +80,7 @@ export default async function StatsPage() {
                   style={{ height: `${(count / maxMonth) * 100}%`, minHeight: 2 }}
                   title={`${ym}: ${count}`}
                 />
-                <span className="text-[9px] text-forest-600 rotate-45 origin-top-left whitespace-nowrap">{ym.slice(2)}</span>
+                <span className="text-[10px] text-forest-700 rotate-45 origin-top-left whitespace-nowrap">{ym.slice(2)}</span>
               </div>
             ))}
           </div>

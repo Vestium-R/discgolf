@@ -61,9 +61,9 @@ function discLine(d: BagDisc): string {
 // ── Gemini setup ──────────────────────────────────────────────────────────────
 
 const HARDCODED_MODELS: { name: string; apiVersion: string }[] = [
-  { name: "gemini-1.5-flash-8b", apiVersion: "v1" },
-  { name: "gemini-1.5-flash",    apiVersion: "v1" },
-  { name: "gemini-1.5-pro",      apiVersion: "v1" },
+  { name: "gemini-2.5-flash-lite", apiVersion: "v1" },
+  { name: "gemini-2.5-flash",      apiVersion: "v1" },
+  { name: "gemini-2.0-flash",      apiVersion: "v1" },
 ];
 
 let cachedModels: { name: string; apiVersion: string }[] = [];
@@ -80,10 +80,13 @@ async function findAvailableModels(apiKey: string): Promise<{ name: string; apiV
         if (!(m.supportedGenerationMethods ?? []).includes("generateContent")) continue;
         if (!m.name.includes("flash") && !m.name.includes("pro")) continue;
         const name = m.name.replace("models/", "");
-        const is2x = name.includes("2.0") || name.includes("2.5");
-        const is8b = name.includes("8b");
-        const is15 = name.includes("1.5");
-        const priority = is2x ? -1 : is8b && is15 ? 3 : is15 ? 2 : 0;
+        if (name.includes("thinking") || name.includes("exp") || name.includes("preview")) continue;
+        const priority =
+          name.includes("2.5") && name.includes("flash") && name.includes("lite") ? 5 :
+          name.includes("2.5") && name.includes("flash") ? 4 :
+          name.includes("2.0") && name.includes("flash") ? 3 :
+          name.includes("2.5") || name.includes("2.0") ? 2 :
+          name.includes("1.5") ? -1 : 0;
         if (!found.some(f => f.name === name)) found.push({ name, apiVersion, priority });
       }
     } catch { /* try next */ }
@@ -309,6 +312,91 @@ Recommend 2-3 discs from the list above. For each:
 3. One sentence on how to throw it given their play style
 
 Don't recommend anything they already own. Be specific and practical. Under 200 words.`;
+
+  try {
+    return { ok: true, text: await gemini(prompt) };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+export async function analyzeBagFollowUpAction(
+  bagDiscs: BagDisc[],
+  storageDiscs: BagDisc[],
+  playerMaxDist = 300,
+  playStyle = "flat",
+  throwStyle = "RHBH",
+  yearsPlaying: number | undefined,
+  priorAnalysis: string,
+  question: string,
+): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  const apiKey = process.env.GOOGLE_AI_KEY;
+  if (!apiKey) return { ok: false, error: "AI not configured." };
+
+  const bagContext = bagDiscs.map(discLine).join("\n");
+  const playerCtx = [
+    playStyleNote(playStyle, throwStyle),
+    skillNote(playerMaxDist),
+    yearsNote(yearsPlaying),
+  ].filter(Boolean).join("\n");
+
+  let prompt: string;
+
+  if (question === "unbag") {
+    prompt = `You're a disc golf coach. The player received this bag analysis:
+"${priorAnalysis}"
+
+Their current bag:
+${bagContext}
+${playerCtx}
+
+Which single disc should they consider removing? Name it and give one clear reason — redundancy, wrong fit for their style, or outclassed by another disc they own. 2-3 sentences max.`;
+
+  } else if (question === "storage") {
+    const storeContext = storageDiscs.length > 0
+      ? storageDiscs.map(discLine).join("\n")
+      : "(no discs in storage)";
+    prompt = `You're a disc golf coach. The player received this bag analysis:
+"${priorAnalysis}"
+
+In bag:
+${bagContext}
+
+In storage:
+${storeContext}
+
+${playerCtx}
+
+Is there a specific disc in their storage that would better fill a gap in their bag? If yes, name it and explain why it fits the gap better than what's currently bagged. If nothing in storage improves their setup, say so honestly. 2-3 sentences max.`;
+
+  } else if (question === "versatile") {
+    prompt = `You're a disc golf coach. Look at this player's bag:
+${bagContext}
+${playerCtx}
+
+Which single disc in their bag is the most versatile — handles the widest variety of shots and situations for their throw style and skill level? Name it and explain why in 2-3 sentences.`;
+
+  } else if (question === "gap") {
+    const byType = (t: BagDisc["type"]) => bagDiscs.filter(d => d.type === t);
+    const stab = (d: BagDisc) => (d.turn ?? 0) + (d.fade ?? 0);
+    const os = bagDiscs.filter(d => stab(d) > 1).length;
+    const neu = bagDiscs.filter(d => stab(d) >= -0.5 && stab(d) <= 1).length;
+    const us = bagDiscs.filter(d => stab(d) < -0.5).length;
+
+    prompt = `You're a disc golf coach. The player received this bag analysis:
+"${priorAnalysis}"
+
+Their bag:
+${bagContext}
+Breakdown: ${byType("putter").length} putters, ${byType("midrange").length} midranges, ${byType("fairway_driver").length} fairways, ${byType("distance_driver").length} distance drivers
+Stability: ${os} overstable | ${neu} neutral | ${us} understable
+${playerCtx}
+
+What's the single biggest type or stability gap given their play style? Name the specific type (e.g. "understable fairway driver") and suggest one real disc with flight numbers they should consider adding. 2-3 sentences max.`;
+
+  } else {
+    return { ok: false, error: "Unknown follow-up question." };
+  }
 
   try {
     return { ok: true, text: await gemini(prompt) };
