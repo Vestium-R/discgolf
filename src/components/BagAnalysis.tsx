@@ -47,7 +47,7 @@ export function BagAnalysis({
     setFollowUpError(null);
     setActiveFollowUp(null);
     startTransition(async () => {
-      const res = await analyzeBagDiscsAction(discs, maxDist, playStyle, throwStyle, yearsPlaying);
+      const res = await analyzeBagDiscsAction(discs, maxDist, playStyle, throwStyle, yearsPlaying, storageDiscs);
       if (res.ok) setAnalysis(res.text);
       else setError(res.error);
     });

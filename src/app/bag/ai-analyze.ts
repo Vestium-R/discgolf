@@ -178,6 +178,7 @@ export async function analyzeBagDiscsAction(
   playStyle = "flat",
   throwStyle = "RHBH",
   yearsPlaying?: number,
+  storageDiscs: BagDisc[] = [],
 ): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   if (discs.length < 3) return { ok: false, error: "Add at least 3 discs for a useful analysis." };
   const apiKey = process.env.GOOGLE_AI_KEY;
@@ -188,11 +189,15 @@ export async function analyzeBagDiscsAction(
   const os = discs.filter(d => stab(d) > 1).length;
   const neu = discs.filter(d => stab(d) >= -0.5 && stab(d) <= 1).length;
   const us = discs.filter(d => stab(d) < -0.5).length;
+  const storeContext = storageDiscs.length > 0 ? storageDiscs.map(discLine).join("\n") : "(none)";
 
   const prompt = `You're a supportive disc golf coach reviewing a student's bag. Be encouraging, specific, and practical.
 
 Player bag (${discs.length} discs):
 ${discs.map(discLine).join("\n")}
+
+In storage (owned but not carried):
+${storeContext}
 
 Breakdown: ${byType("putter").length} putters, ${byType("midrange").length} midranges, ${byType("fairway_driver").length} fairways, ${byType("distance_driver").length} distance drivers
 Stability split: ${os} overstable | ${neu} neutral | ${us} understable
@@ -202,7 +207,7 @@ ${yearsNote(yearsPlaying)}
 
 Coaching response in 2-3 short paragraphs:
 1. What this bag says about how they play — be specific and read the stability spread alongside their stated style.
-2. If any, name the one or two biggest gaps. Name specific discs with flight numbers they'd benefit from. One gap per item.
+2. If any, name the one or two biggest gaps. For each gap, check their STORAGE first — if a stored disc fills it, tell them to bag that disc (they already own it). Only suggest a disc to buy if nothing in storage fits, and never suggest buying anything similar (within 2 speed and 1 stability) to a disc they already own. One gap per item.
 3. One thing they're doing right — name a specific disc and why it's a smart choice for their style.
 
 Tone: encouraging, like a coach who's played 20 years. No bullet lists. Under 250 words.`;
