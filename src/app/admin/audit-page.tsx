@@ -213,23 +213,7 @@ export function AuditPage() {
                       alert(`Fix failed: ${error instanceof Error ? error.message : "Unknown error"}`);
                     }
                   }}
-                  onAddToDb={async () => {
-                    const { bagDisc } = mismatch;
-                    try {
-                      await addDiscToDatabase({
-                        manufacturer: bagDisc.manufacturer ?? "",
-                        name: bagDisc.disc_name,
-                        type: bagDisc.type as DiscRecord["type"],
-                        speed: bagDisc.speed,
-                        glide: bagDisc.glide ?? 0,
-                        turn: bagDisc.turn ?? 0,
-                        fade: bagDisc.fade ?? 0,
-                      });
-                      await handleAudit();
-                    } catch (error) {
-                      alert(`Add failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-                    }
-                  }}
+                  onAddToDb={() => {}}
                   fixing={fixing}
                 />
               ))}
@@ -252,11 +236,13 @@ function MismatchRow({
   onAddToDb: () => void;
   fixing: boolean;
 }) {
+  const [showSnippet, setShowSnippet] = useState(false);
   const { bagDisc, dbDisc, mismatchType, expected } = mismatch;
 
   if (mismatchType === "not_found") {
+    const snippet = `  { manufacturer: "${bagDisc.manufacturer}", name: "${bagDisc.disc_name}", type: "${bagDisc.type}", speed: ${bagDisc.speed}, glide: ${bagDisc.glide ?? 0}, turn: ${bagDisc.turn ?? 0}, fade: ${bagDisc.fade ?? 0} },`;
     return (
-      <div className="bg-red-50 border border-red-200 rounded p-3">
+      <div className="bg-red-50 border border-red-200 rounded p-3 space-y-2">
         <div className="flex justify-between items-start">
           <div>
             <div className="font-semibold text-red-900">
@@ -268,13 +254,26 @@ function MismatchRow({
             </div>
           </div>
           <button
-            onClick={onAddToDb}
-            disabled={fixing}
+            onClick={() => setShowSnippet((s) => !s)}
             className="btn-secondary text-xs px-2 py-1 whitespace-nowrap ml-2"
           >
-            Add to DB
+            {showSnippet ? "Hide" : "Add to DB"}
           </button>
         </div>
+        {showSnippet && (
+          <div className="space-y-1">
+            <p className="text-xs text-red-700">Copy into <code>src/lib/discs-db.ts</code> and redeploy:</p>
+            <div className="flex gap-2 items-start">
+              <code className="text-xs bg-red-100 rounded p-2 flex-1 break-all font-mono">{snippet}</code>
+              <button
+                onClick={() => navigator.clipboard.writeText(snippet)}
+                className="btn-secondary text-xs px-2 py-1 whitespace-nowrap shrink-0"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
