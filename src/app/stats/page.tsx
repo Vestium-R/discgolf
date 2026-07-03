@@ -3,6 +3,7 @@ import { getHistory, getPatchTransfers, getRoster, getRounds, getSettings } from
 import {
   availableSeasons,
   allTimeLongestStreak,
+  badgeTimeline,
   computeStandings,
   patchThefts,
   recentForm,
@@ -36,11 +37,27 @@ export default async function StatsPage() {
   const thefts = patchThefts(rounds, history, transfers);
   const monthly = roundsByMonth(rounds);
 
+  // Patch stats across all seasons
+  const patchDefends = new Map<string, number>();
+  const patchRoundsHeld = new Map<string, number>();
+  let totalPatchChanges = 0;
+  for (const season of seasons) {
+    const initialHolder = history.find((h) => h.season === season)?.initialBadgeHolderPlayerId ?? null;
+    const tl = badgeTimeline(rounds, season, initialHolder, transfers);
+    for (const e of tl) {
+      patchRoundsHeld.set(e.holderId, (patchRoundsHeld.get(e.holderId) ?? 0) + 1);
+      if (e.kind === "defended") patchDefends.set(e.holderId, (patchDefends.get(e.holderId) ?? 0) + 1);
+      if (e.kind === "stolen") totalPatchChanges++;
+    }
+  }
+
   const activePlayers = roster.filter((p) => (allTimeRounds.get(p.id) ?? 0) > 0);
 
   const mostWins = [...activePlayers].sort((a, b) => (allTimeWins.get(b.id) ?? 0) - (allTimeWins.get(a.id) ?? 0)).slice(0, 5);
   const mostActive = [...activePlayers].sort((a, b) => (allTimeRounds.get(b.id) ?? 0) - (allTimeRounds.get(a.id) ?? 0)).slice(0, 5);
-  const topThieves = [...activePlayers].sort((a, b) => (thefts.get(b.id) ?? 0) - (thefts.get(a.id) ?? 0)).slice(0, 5);
+  const topThieves = [...activePlayers].sort((a, b) => (thefts.get(b.id) ?? 0) - (thefts.get(a.id) ?? 0)).filter((p) => (thefts.get(p.id) ?? 0) > 0).slice(0, 5);
+  const topDefenders = [...activePlayers].sort((a, b) => (patchDefends.get(b.id) ?? 0) - (patchDefends.get(a.id) ?? 0)).filter((p) => (patchDefends.get(p.id) ?? 0) > 0).slice(0, 5);
+  const mostHeld = [...activePlayers].sort((a, b) => (patchRoundsHeld.get(b.id) ?? 0) - (patchRoundsHeld.get(a.id) ?? 0)).filter((p) => (patchRoundsHeld.get(p.id) ?? 0) > 0).slice(0, 5);
 
   const longestStreakRows = activePlayers
     .map((p) => ({ p, streak: allTimeLongestStreak(rounds, p.id) }))
@@ -92,9 +109,21 @@ export default async function StatsPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Leaderboard title="🏆 Most wins" rows={mostWins.map((p) => ({ p, v: allTimeWins.get(p.id) ?? 0 }))} />
         <Leaderboard title="🥏 Most rounds played" rows={mostActive.map((p) => ({ p, v: allTimeRounds.get(p.id) ?? 0 }))} />
-        <Leaderboard title="🗡 Patch thieves" rows={topThieves.map((p) => ({ p, v: thefts.get(p.id) ?? 0 }))} />
         <Leaderboard title="🔥 Longest win streak" rows={longestStreakRows.map((r) => ({ p: r.p, v: r.streak }))} />
       </div>
+
+      {/* PATCH STATS */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <h3 className="font-display font-bold text-forest-800">🧥 Patch stats</h3>
+          <span className="text-xs text-forest-500">all-time · {totalPatchChanges} total change{totalPatchChanges !== 1 ? "s" : ""}</span>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Leaderboard title="🗡 Most steals" rows={topThieves.map((p) => ({ p, v: thefts.get(p.id) ?? 0 }))} unit="steal" />
+          <Leaderboard title="🛡 Most defends" rows={topDefenders.map((p) => ({ p, v: patchDefends.get(p.id) ?? 0 }))} unit="defend" />
+          <Leaderboard title="📅 Most rounds held" rows={mostHeld.map((p) => ({ p, v: patchRoundsHeld.get(p.id) ?? 0 }))} unit="round" />
+        </div>
+      </section>
 
       {/* RECENT FORM */}
       <section className="card p-4">
@@ -162,9 +191,11 @@ function Tile({ label, value }: { label: string; value: string }) {
 function Leaderboard({
   title,
   rows,
+  unit,
 }: {
   title: string;
   rows: { p: { id: string; name: string; udiscAvatarUrl?: string }; v: number }[];
+  unit?: string;
 }) {
   const max = Math.max(1, ...rows.map((r) => r.v));
   return (
@@ -186,7 +217,7 @@ function Leaderboard({
                   style={{ width: `${(r.v / max) * 100}%` }}
                 />
               </div>
-              <span className="text-sm font-semibold tabular-nums text-forest-800 w-8 text-right">{r.v}</span>
+              <span className="text-sm font-semibold tabular-nums text-forest-800 w-8 text-right" title={unit ? `${r.v} ${r.v === 1 ? unit : unit + "s"}` : undefined}>{r.v}</span>
             </li>
           ))
         )}
