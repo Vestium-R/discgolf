@@ -4,6 +4,7 @@ import {
   availableSeasons,
   badgeHoldStreak,
   badgeTimeline,
+  checkHolderParticipation,
   computeStandings,
   currentBadgeHolder,
   headToHead,
@@ -45,6 +46,7 @@ export default async function HomePage() {
   const timeline = badgeTimeline(rounds, season, initialHolderId, transfers).slice(-6).reverse();
   const deltas = rankDeltas(roster, rounds, season);
   const held = badgeHoldStreak(rounds, season, initialHolderId, transfers);
+  const forfeitStatus = badgeId ? checkHolderParticipation(rounds, season, badgeId) : null;
   const pastChampions = history
     .filter((h) => h.season < season && h.championName)
     .sort((a, b) => b.season - a.season);
@@ -295,6 +297,13 @@ export default async function HomePage() {
         {/* PATCH TIMELINE */}
         <section className="lg:col-span-2 card p-4">
           <h2 className="font-display font-bold text-forest-800 mb-3">Patch passes</h2>
+          {forfeitStatus && (forfeitStatus.forfeited || forfeitStatus.atRisk) && (
+            <div className={`rounded-lg px-3 py-2 text-xs mb-3 ${forfeitStatus.forfeited ? "bg-red-50 border border-red-200 text-red-700" : "bg-amber-50 border border-amber-200 text-amber-700"}`}>
+              {forfeitStatus.forfeited
+                ? `⚠️ ${badgeHolder?.name ?? "Holder"} has missed ${forfeitStatus.consecutiveMisses} rounds in a row — forfeit triggered.`
+                : `⚠️ ${badgeHolder?.name ?? "Holder"} has missed ${forfeitStatus.consecutiveMisses} rounds in a row — 1 more triggers forfeit.`}
+            </div>
+          )}
           {timeline.length === 0 ? (
             <p className="text-sm text-forest-600">No rounds yet this season.</p>
           ) : (
