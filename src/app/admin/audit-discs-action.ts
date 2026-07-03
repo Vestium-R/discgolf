@@ -1,25 +1,12 @@
 "use server";
 
 import { getUser } from "@/lib/auth";
-import { supabaseSession, supabaseAdmin } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/server";
 import { auditBagDiscs, auditSummary } from "@/lib/disc-audit";
 import { getRoster } from "@/lib/store";
 import { DISC_DB, type DiscRecord } from "@/lib/discs-db";
 
-async function getMergedDiscDb(): Promise<DiscRecord[]> {
-  const { data } = await supabaseAdmin().from("custom_discs").select("*");
-  const base = DISC_DB as unknown as DiscRecord[];
-  const custom: DiscRecord[] = (data ?? []).map((r) => ({
-    manufacturer: String(r.manufacturer),
-    name: String(r.name),
-    type: String(r.type) as DiscRecord["type"],
-    speed: Number(r.speed),
-    glide: Number(r.glide),
-    turn: Number(r.turn),
-    fade: Number(r.fade),
-  }));
-  return [...base, ...custom];
-}
+const discDb = DISC_DB as unknown as DiscRecord[];
 
 export async function getRosterForAudit() {
   try {
@@ -61,7 +48,6 @@ export async function auditUserBagDiscs(userId?: string) {
     if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
 
     console.log("auditUserBagDiscs: Got", bagDiscs?.length, "discs");
-    const discDb = await getMergedDiscDb();
     const mismatches = auditBagDiscs(bagDiscs || [], discDb);
     const summary = auditSummary(mismatches);
 
@@ -93,7 +79,6 @@ export async function auditAllBagDiscs() {
     if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
 
     console.log("auditAllBagDiscs: Got", bagDiscs?.length, "discs");
-    const discDb = await getMergedDiscDb();
     const mismatches = auditBagDiscs(bagDiscs || [], discDb);
     const summary = auditSummary(mismatches);
 
@@ -183,24 +168,6 @@ export async function updateDiscInDatabase(disc: DiscRecord) {
   }
 }
 
-export async function addDiscToDatabase(disc: DiscRecord) {
-  const user = await getUser();
-  if (!user) throw new Error("Not authenticated");
-  if (!disc.manufacturer || !disc.name) throw new Error("Manufacturer and name are required");
-
-  const { error } = await supabaseAdmin().from("custom_discs").insert({
-    manufacturer: disc.manufacturer,
-    name: disc.name,
-    type: disc.type,
-    speed: disc.speed,
-    glide: disc.glide,
-    turn: disc.turn,
-    fade: disc.fade,
-  });
-
-  if (error) throw new Error(error.message);
-  return { success: true, message: `Added ${disc.name}` };
-}
 
 export async function fixBagDiscsUserIds() {
   try {

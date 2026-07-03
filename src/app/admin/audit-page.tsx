@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { auditUserBagDiscs, auditAllBagDiscs, fixBagDiscFlightNumbers, updateDiscInDatabase, addDiscToDatabase, getRosterForAudit } from "@/app/admin/audit-discs-action";
+import { auditUserBagDiscs, auditAllBagDiscs, fixBagDiscFlightNumbers, updateDiscInDatabase, getRosterForAudit } from "@/app/admin/audit-discs-action";
 import type { DiscMismatch } from "@/lib/disc-audit";
 import { DISC_DB, type DiscRecord } from "@/lib/discs-db";
 
@@ -213,22 +213,10 @@ export function AuditPage() {
                       alert(`Fix failed: ${error instanceof Error ? error.message : "Unknown error"}`);
                     }
                   }}
-                  onAddToDb={async () => {
+                  onAddToDb={() => {
                     const { bagDisc } = mismatch;
-                    try {
-                      await addDiscToDatabase({
-                        manufacturer: bagDisc.manufacturer ?? "",
-                        name: bagDisc.disc_name,
-                        type: bagDisc.type as DiscRecord["type"],
-                        speed: bagDisc.speed,
-                        glide: bagDisc.glide ?? 0,
-                        turn: bagDisc.turn ?? 0,
-                        fade: bagDisc.fade ?? 0,
-                      });
-                      await handleAudit();
-                    } catch (error) {
-                      alert(`Add failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-                    }
+                    const snippet = `  { manufacturer: "${bagDisc.manufacturer ?? ""}", name: "${bagDisc.disc_name}", type: "${bagDisc.type}", speed: ${bagDisc.speed}, glide: ${bagDisc.glide ?? 0}, turn: ${bagDisc.turn ?? 0}, fade: ${bagDisc.fade ?? 0} },`;
+                    navigator.clipboard.writeText(snippet).then(() => alert(`Copied! Paste into src/lib/discs-db.ts and push.\n\n${snippet}`));
                   }}
                   fixing={fixing}
                 />
@@ -544,27 +532,19 @@ function DiscAddForm({
     turn: 0,
     fade: 1,
   });
-  const [saving, setSaving] = useState(false);
 
   function handleChange(key: string, value: string | number) {
     setFormData({ ...formData, [key]: value });
   }
 
-  async function handleSave() {
+  function handleSave() {
     if (!formData.manufacturer.trim() || !formData.name.trim()) {
       alert("Manufacturer and name are required");
       return;
     }
-
-    setSaving(true);
-    try {
-      await addDiscToDatabase(formData);
-      onSave(formData);
-    } catch (error) {
-      alert(`Save failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-    } finally {
-      setSaving(false);
-    }
+    const snippet = `  { manufacturer: "${formData.manufacturer}", name: "${formData.name}", type: "${formData.type}", speed: ${formData.speed}, glide: ${formData.glide}, turn: ${formData.turn}, fade: ${formData.fade} },`;
+    navigator.clipboard.writeText(snippet).then(() => alert(`Copied! Paste into src/lib/discs-db.ts and push.\n\n${snippet}`));
+    onSave(formData);
   }
 
   return (
@@ -648,13 +628,12 @@ function DiscAddForm({
         </div>
       </div>
       <div className="flex gap-2">
-        <button onClick={handleSave} disabled={saving} className="btn-primary text-sm flex-1">
-          {saving ? "Adding..." : "Add Disc"}
+        <button onClick={handleSave} className="btn-primary text-sm flex-1">
+          Copy snippet
         </button>
         <button
           onClick={onCancel}
-          disabled={saving}
-          className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50"
         >
           Cancel
         </button>
