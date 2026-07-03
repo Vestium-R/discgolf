@@ -17,6 +17,7 @@ import { SignInForm } from "@/components/SignInForm";
 import { BadgeCrown } from "@/components/BadgeCrown";
 import { AuditPage } from "@/app/admin/audit-page";
 import { IntegrityPanel } from "@/app/admin/integrity-panel";
+import { currentBadgeHolder, checkHolderParticipation } from "@/lib/scoring";
 
 export default async function AdminPage({
   searchParams,
@@ -67,6 +68,12 @@ export default async function AdminPage({
     getRounds(),
     getPatchTransfers(),
   ]);
+
+  const currentSeason = settings.currentSeason;
+  const seasonHistory = history.find((h) => h.season === currentSeason);
+  const holderId = currentBadgeHolder(rounds, currentSeason, seasonHistory?.initialBadgeHolderPlayerId ?? null, patchTransfers);
+  const holderPlayer = holderId ? roster.find((p) => p.id === holderId) : null;
+  const forfeitStatus = holderId ? checkHolderParticipation(rounds, currentSeason, holderId) : null;
 
   return (
     <div className="space-y-4">
@@ -276,11 +283,31 @@ export default async function AdminPage({
       </details>
 
 
-      <details className="card p-0">
+      <details className="card p-0" open={forfeitStatus?.forfeited || forfeitStatus?.atRisk ? true : undefined}>
         <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
           ▼ Patch transfers (admin override)
+          {forfeitStatus?.forfeited && <span className="ml-2 text-xs font-normal bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Forfeit triggered</span>}
+          {!forfeitStatus?.forfeited && forfeitStatus?.atRisk && <span className="ml-2 text-xs font-normal bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">At risk</span>}
         </summary>
         <div className="p-4 border-t border-forest-100 space-y-4">
+
+          {forfeitStatus && (forfeitStatus.forfeited || forfeitStatus.atRisk) && (
+            <div className={`rounded-lg p-3 text-sm space-y-1 ${forfeitStatus.forfeited ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"}`}>
+              <div className={`font-semibold ${forfeitStatus.forfeited ? "text-red-800" : "text-amber-800"}`}>
+                {forfeitStatus.forfeited ? "Forfeit triggered" : "At risk"} — {holderPlayer?.name ?? "current holder"}
+              </div>
+              <div className={`text-xs ${forfeitStatus.forfeited ? "text-red-600" : "text-amber-600"}`}>
+                {forfeitStatus.consecutiveMisses} consecutive round{forfeitStatus.consecutiveMisses !== 1 ? "s" : ""} missed
+                · played {forfeitStatus.roundsPlayed} of {forfeitStatus.totalRounds} this season
+              </div>
+              {forfeitStatus.forfeited && (
+                <div className="text-red-700 text-xs font-medium">
+                  Use the transfer form below to reassign the patch to a random active member.
+                </div>
+              )}
+            </div>
+          )}
+
           <p className="text-xs text-forest-600">
             Use this when a player voluntarily gives up the patch outside of normal game rules.
             The transfer takes effect after the selected round — all subsequent rounds will see

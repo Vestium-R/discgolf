@@ -332,6 +332,38 @@ export function allTimeLongestStreak(rounds: Round[], playerId: string): number 
   return best;
 }
 
+export type HolderForfeitStatus = {
+  consecutiveMisses: number;
+  roundsPlayed: number;
+  totalRounds: number;
+  forfeited: boolean;
+  atRisk: boolean;
+};
+
+/** Checks whether the current patch holder has triggered (or is approaching) a forfeit: 3+ consecutive misses. */
+export function checkHolderParticipation(
+  rounds: Round[],
+  season: number,
+  holderId: string
+): HolderForfeitStatus {
+  const rs = countingSeasonRounds(rounds, season);
+  const played = rs.map((r) => r.results.some((x) => x.playerId === holderId));
+
+  let consecutiveMisses = 0;
+  for (let i = played.length - 1; i >= 0; i--) {
+    if (!played[i]) consecutiveMisses++;
+    else break;
+  }
+
+  return {
+    consecutiveMisses,
+    roundsPlayed: played.filter(Boolean).length,
+    totalRounds: played.length,
+    forfeited: consecutiveMisses >= 3,
+    atRisk: consecutiveMisses === 2,
+  };
+}
+
 /** Rounds grouped by YYYY-MM for activity charts. */
 export function roundsByMonth(rounds: Round[]): Map<string, number> {
   const out = new Map<string, number>();

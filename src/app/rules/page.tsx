@@ -42,18 +42,9 @@ export default function RulesPage() {
 
       <section className="card p-5 space-y-3">
         <h3 className="font-display font-bold text-forest-800">⚖️ Forfeit</h3>
-        <p className="text-sm text-forest-700">The holder must stay active. Forfeit triggers if either of these is true:</p>
-        <ul className="text-sm text-forest-700 space-y-2 pl-4 list-disc">
-          <li>
-            <strong>Miss 3 consecutive rounds</strong> — sitting out 3 in a row hands it over.
-          </li>
-          <li>
-            <strong>Play fewer than 1 in 3 rounds overall</strong> — you can&apos;t show up just often enough to reset the streak clock.
-            Over any 6-round window, you need at least 2 appearances.
-          </li>
-        </ul>
         <p className="text-sm text-forest-700">
-          When forfeit triggers, the admin transfers the patch to a random active card member for the next round.
+          Miss <strong>3 consecutive rounds</strong> and the patch is forfeited.
+          The admin transfers it to a random active card member for the next round.
         </p>
       </section>
 
