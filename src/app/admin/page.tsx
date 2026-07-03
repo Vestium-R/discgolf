@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { getUser, isAdminEmail } from "@/lib/auth";
-import { getHistory, getRoster, getSettings } from "@/lib/store";
+import { getHistory, getPatchTransfers, getRoster, getRounds, getSettings } from "@/lib/store";
 import {
   addPlayerAction,
   autoInactivateAction,
   backfillAllRoundsAction,
-  migratePlayerIdsAction,
+  createPatchTransferAction,
+  deletePatchTransferAction,
   signOutAction,
   togglePlayerActiveAction,
   updatePlayerAction,
@@ -59,7 +60,13 @@ export default async function AdminPage({
     );
   }
 
-  const [roster, settings, history] = await Promise.all([getRoster(), getSettings(), getHistory()]);
+  const [roster, settings, history, rounds, patchTransfers] = await Promise.all([
+    getRoster(),
+    getSettings(),
+    getHistory(),
+    getRounds(),
+    getPatchTransfers(),
+  ]);
 
   return (
     <div className="space-y-4">
@@ -268,18 +275,100 @@ export default async function AdminPage({
         </div>
       </details>
 
+
       <details className="card p-0">
         <summary className="cursor-pointer p-4 font-display font-bold text-forest-800 hover:bg-forest-50 select-none">
-          ▼ Migrate player IDs
+          ▼ Patch transfers (admin override)
         </summary>
-        <div className="p-4 border-t border-forest-100 space-y-3">
-        <p className="text-sm text-forest-600">
-          Convert old player IDs (slugs like &quot;jeffrey-rijkse&quot;) in rounds to UUID format.
-          This fixes stats/rounds showing 0 points after the UUID migration.
-        </p>
-        <form action={migratePlayerIdsAction}>
-          <button className="btn-primary">Migrate round player IDs to UUID</button>
-        </form>
+        <div className="p-4 border-t border-forest-100 space-y-4">
+          <p className="text-xs text-forest-600">
+            Use this when a player voluntarily gives up the patch outside of normal game rules.
+            The transfer takes effect after the selected round — all subsequent rounds will see
+            the new holder. Rounds before the transfer are unchanged.
+          </p>
+
+          {patchTransfers.length > 0 && (
+            <ul className="divide-y divide-forest-100">
+              {patchTransfers.map((t) => {
+                const fromPlayer = t.fromPlayerId ? roster.find((p) => p.id === t.fromPlayerId) : null;
+                const toPlayer = roster.find((p) => p.id === t.toPlayerId);
+                const afterRound = t.effectiveAfterRoundId ? rounds.find((r) => r.id === t.effectiveAfterRoundId) : null;
+                return (
+                  <li key={t.id} className="py-2 flex flex-wrap items-center gap-3 text-sm">
+                    <span className="font-semibold text-forest-800">Season {t.season}</span>
+                    <span className="text-forest-600">
+                      {fromPlayer ? `${fromPlayer.name} →` : "→"} {toPlayer?.name ?? t.toPlayerId}
+                    </span>
+                    <span className="text-forest-500 text-xs">
+                      {afterRound ? `after ${afterRound.date}${afterRound.courseName ? ` (${afterRound.courseName})` : ""}` : "before first round"}
+                    </span>
+                    {t.reason && <span className="text-forest-500 italic text-xs">{t.reason}</span>}
+                    <form action={deletePatchTransferAction} className="ml-auto">
+                      <input type="hidden" name="id" value={t.id} />
+                      <button className="text-xs text-red-700 hover:underline">Delete</button>
+                    </form>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <form action={createPatchTransferAction} className="space-y-2 border-t border-forest-100 pt-4">
+            <h4 className="text-sm font-semibold text-forest-800">Add patch transfer</h4>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="text-xs">
+                <span className="block text-forest-700 mb-1">Season</span>
+                <input
+                  type="number"
+                  name="season"
+                  defaultValue={settings.currentSeason}
+                  required
+                  className="input-pill"
+                />
+              </label>
+              <label className="text-xs">
+                <span className="block text-forest-700 mb-1">From player (current holder, optional)</span>
+                <select name="fromPlayerId" className="input-pill">
+                  <option value="">— auto / unknown —</option>
+                  {roster.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs">
+                <span className="block text-forest-700 mb-1">New patch holder</span>
+                <select name="toPlayerId" required className="input-pill">
+                  <option value="">— select player —</option>
+                  {roster.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs">
+                <span className="block text-forest-700 mb-1">Effective after round</span>
+                <select name="effectiveAfterRoundId" className="input-pill">
+                  <option value="">— before first round —</option>
+                  {[...rounds]
+                    .filter((r) => r.counts !== false)
+                    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))
+                    .map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.date}{r.courseName ? ` · ${r.courseName}` : ""} (S{r.season})
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <label className="text-xs sm:col-span-2">
+                <span className="block text-forest-700 mb-1">Reason (optional)</span>
+                <input
+                  name="reason"
+                  placeholder="e.g. Player moved away, gave up patch voluntarily"
+                  className="input-pill"
+                />
+              </label>
+            </div>
+            <button className="btn-primary">Add transfer</button>
+          </form>
         </div>
       </details>
 

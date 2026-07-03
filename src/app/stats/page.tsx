@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getRoster, getRounds, getSettings, getHistory } from "@/lib/store";
+import { getHistory, getPatchTransfers, getRoster, getRounds, getSettings } from "@/lib/store";
 import {
   availableSeasons,
   allTimeLongestStreak,
@@ -14,11 +14,12 @@ import { BadgeCrown } from "@/components/BadgeCrown";
 import { prettyDate } from "@/lib/format";
 
 export default async function StatsPage() {
-  const [roster, rounds, settings, history] = await Promise.all([
+  const [roster, rounds, settings, history, transfers] = await Promise.all([
     getRoster(),
     getRounds(),
     getSettings(),
     getHistory(),
+    getPatchTransfers(),
   ]);
   const seasons = availableSeasons(rounds, settings.currentSeason, history.map((h) => h.season));
 
@@ -32,7 +33,7 @@ export default async function StatsPage() {
       if (res.position <= 3) allTimePodiums.set(res.playerId, (allTimePodiums.get(res.playerId) ?? 0) + 1);
     }
   }
-  const thefts = patchThefts(rounds, history);
+  const thefts = patchThefts(rounds, history, transfers);
   const monthly = roundsByMonth(rounds);
 
   const activePlayers = roster.filter((p) => (allTimeRounds.get(p.id) ?? 0) > 0);

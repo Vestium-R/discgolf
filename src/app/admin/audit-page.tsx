@@ -213,6 +213,23 @@ export function AuditPage() {
                       alert(`Fix failed: ${error instanceof Error ? error.message : "Unknown error"}`);
                     }
                   }}
+                  onAddToDb={async () => {
+                    const { bagDisc } = mismatch;
+                    try {
+                      await addDiscToDatabase({
+                        manufacturer: bagDisc.manufacturer ?? "",
+                        name: bagDisc.disc_name,
+                        type: bagDisc.type as DiscRecord["type"],
+                        speed: bagDisc.speed,
+                        glide: bagDisc.glide ?? 0,
+                        turn: bagDisc.turn ?? 0,
+                        fade: bagDisc.fade ?? 0,
+                      });
+                      await handleAudit();
+                    } catch (error) {
+                      alert(`Add failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+                    }
+                  }}
                   fixing={fixing}
                 />
               ))}
@@ -227,10 +244,12 @@ export function AuditPage() {
 function MismatchRow({
   mismatch,
   onFix,
+  onAddToDb,
   fixing,
 }: {
   mismatch: DiscMismatch;
   onFix: () => void;
+  onAddToDb: () => void;
   fixing: boolean;
 }) {
   const { bagDisc, dbDisc, mismatchType, expected } = mismatch;
@@ -248,6 +267,13 @@ function MismatchRow({
               {bagDisc.speed}/{bagDisc.glide}/{bagDisc.turn}/{bagDisc.fade}
             </div>
           </div>
+          <button
+            onClick={onAddToDb}
+            disabled={fixing}
+            className="btn-secondary text-xs px-2 py-1 whitespace-nowrap ml-2"
+          >
+            Add to DB
+          </button>
         </div>
       </div>
     );

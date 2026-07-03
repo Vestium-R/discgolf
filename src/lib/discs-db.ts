@@ -359,7 +359,7 @@ export const DISC_DB = [
   { manufacturer: "MVP", name: "Uplink", type: "midrange", speed: 5, glide: 5, turn: -3, fade: 0 },
   { manufacturer: "MVP", name: "Vector", type: "midrange", speed: 5, glide: 4, turn: 0, fade: 2 },
   { manufacturer: "MVP", name: "Vertex", type: "midrange", speed: 4, glide: 4, turn: -2, fade: 0 },
-  { manufacturer: "MVP", name: "Volt", type: "fairway_driver", speed: 8, glide: 5, turn: 0, fade: 2 },
+  { manufacturer: "MVP", name: "Volt", type: "fairway_driver", speed: 8, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "MVP", name: "Wave", type: "distance_driver", speed: 11, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "MVP", name: "Zenith", type: "distance_driver", speed: 11, glide: 5, turn: 0, fade: 2 },
 
@@ -399,6 +399,7 @@ export const DISC_DB = [
   { manufacturer: "Axiom", name: "Tenacity", type: "distance_driver", speed: 13, glide: 5, turn: -2, fade: 2 },
   { manufacturer: "Axiom", name: "Theory", type: "midrange", speed: 4, glide: 4, turn: -1, fade: 1 },
   { manufacturer: "Axiom", name: "Thrill", type: "distance_driver", speed: 11, glide: 4, turn: 0, fade: 3 },
+  { manufacturer: "Axiom", name: "Time Lapse", type: "distance_driver", speed: 12, glide: 5, turn: -1, fade: 2 },
   { manufacturer: "Axiom", name: "Trance", type: "fairway_driver", speed: 8, glide: 5, turn: -2, fade: 1 },
   { manufacturer: "Axiom", name: "Vanish", type: "distance_driver", speed: 11, glide: 5, turn: -3, fade: 2 },
   { manufacturer: "Axiom", name: "Virus", type: "distance_driver", speed: 9, glide: 5, turn: -3, fade: 1 },

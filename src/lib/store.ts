@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "./supabase/server";
-import type { BagDisc, Player, Round, RoundVariant, SeasonHistory, Settings } from "./types";
+import type { BagDisc, PatchTransfer, Player, Round, RoundVariant, SeasonHistory, Settings } from "./types";
 import { validateRoundResultIds, validateSeasonHistoryIds, analyzeIdFormats, asPlayerId, asAuthUserId, type PlayerId, type AuthUserId } from "./id-validation";
 
 type PlayerRow = {
@@ -281,6 +281,57 @@ export async function getSettings(): Promise<Settings> {
     return fallback;
   }
   return { currentSeason: (data as SettingsRow).current_season };
+}
+
+// ─── Patch transfers ────────────────────────────────────────────────────────
+
+type PatchTransferRow = {
+  id: string;
+  season: number;
+  from_player_id: string | null;
+  to_player_id: string;
+  effective_after_round_id: string | null;
+  reason: string | null;
+  created_at: string;
+};
+
+function mapTransfer(r: PatchTransferRow): PatchTransfer {
+  return {
+    id: r.id,
+    season: r.season,
+    fromPlayerId: r.from_player_id ? asPlayerId(r.from_player_id, `patch_transfer ${r.id}`) : undefined,
+    toPlayerId: asPlayerId(r.to_player_id, `patch_transfer ${r.id}`),
+    effectiveAfterRoundId: r.effective_after_round_id ?? undefined,
+    reason: r.reason ?? undefined,
+    createdAt: r.created_at,
+  };
+}
+
+export async function getPatchTransfers(): Promise<PatchTransfer[]> {
+  const { data, error } = await supabaseAdmin()
+    .from("patch_transfers")
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data as PatchTransferRow[]).map(mapTransfer);
+}
+
+export async function createPatchTransfer(
+  t: Omit<PatchTransfer, "id" | "createdAt">
+): Promise<void> {
+  const { error } = await supabaseAdmin().from("patch_transfers").insert({
+    season: t.season,
+    from_player_id: t.fromPlayerId ?? null,
+    to_player_id: t.toPlayerId,
+    effective_after_round_id: t.effectiveAfterRoundId ?? null,
+    reason: t.reason ?? null,
+  });
+  if (error) throw error;
+}
+
+export async function deletePatchTransfer(id: string): Promise<void> {
+  const { error } = await supabaseAdmin().from("patch_transfers").delete().eq("id", id);
+  if (error) throw error;
 }
 
 // ─── Migrations ─────────────────────────────────────────────────────────────

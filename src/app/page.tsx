@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getHistory, getRoster, getRounds, getSettings } from "@/lib/store";
+import { getHistory, getPatchTransfers, getRoster, getRounds, getSettings } from "@/lib/store";
 import {
   availableSeasons,
   badgeHoldStreak,
@@ -21,11 +21,12 @@ import { InsightTicker } from "@/components/InsightTicker";
 import { fmtPoints, prettyDate } from "@/lib/format";
 
 export default async function HomePage() {
-  const [roster, rounds, settings, history] = await Promise.all([
+  const [roster, rounds, settings, history, transfers] = await Promise.all([
     getRoster(),
     getRounds(),
     getSettings(),
     getHistory(),
+    getPatchTransfers(),
   ]);
   const season = settings.currentSeason;
   const seasonRec = history.find((h) => h.season === season);
@@ -35,15 +36,15 @@ export default async function HomePage() {
   const standings = computeStandings(roster, rounds, season).filter(
     (s) => s.player.active || s.roundsPlayed > 0,
   );
-  const badgeId = currentBadgeHolder(rounds, season, initialHolderId);
+  const badgeId = currentBadgeHolder(rounds, season, initialHolderId, transfers);
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
   const leader = standings.find((s) => s.roundsPlayed > 0) ?? null;
   const leaderDifferentFromBadge = leader && leader.player.id !== badgeId;
   const rs = seasonRounds(rounds, season);
   const last = rs.at(-1);
-  const timeline = badgeTimeline(rounds, season, initialHolderId).slice(-6).reverse();
+  const timeline = badgeTimeline(rounds, season, initialHolderId, transfers).slice(-6).reverse();
   const deltas = rankDeltas(roster, rounds, season);
-  const held = badgeHoldStreak(rounds, season, initialHolderId);
+  const held = badgeHoldStreak(rounds, season, initialHolderId, transfers);
   const pastChampions = history
     .filter((h) => h.season < season && h.championName)
     .sort((a, b) => b.season - a.season);

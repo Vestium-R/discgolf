@@ -1,4 +1,4 @@
-import type { Player, PlayerStats, Round, SeasonHistory } from "./types";
+import type { PatchTransfer, Player, PlayerStats, Round, SeasonHistory } from "./types";
 import type { PlayerId } from "./id-validation";
 
 /**
@@ -83,21 +83,27 @@ export function computeStandings(roster: Player[], rounds: Round[], season: numb
 export function currentBadgeHolder(
   rounds: Round[],
   season: number,
-  initialHolderId: string | null = null
+  initialHolderId: string | null = null,
+  transfers: PatchTransfer[] = []
 ): string | null {
   const rs = countingSeasonRounds(rounds, season);
-  let holder: string | null = initialHolderId;
+  const seasonTransfers = transfers.filter((t) => t.season === season);
+  // Apply transfers with no round ref before first round
+  const preTransfer = seasonTransfers.filter((t) => !t.effectiveAfterRoundId).at(-1);
+  let holder: string | null = preTransfer ? preTransfer.toPlayerId : initialHolderId;
   for (const r of rs) {
     if (!holder) {
       const winner = r.results.find((x) => x.position === 1);
       if (winner) holder = winner.playerId;
-      continue;
+    } else {
+      const holderPlayed = r.results.some((x) => x.playerId === holder);
+      if (holderPlayed) {
+        const winner = r.results.find((x) => x.position === 1);
+        if (winner) holder = winner.playerId;
+      }
     }
-    const holderPlayed = r.results.some((x) => x.playerId === holder);
-    if (!holderPlayed) continue;
-    const winner = r.results.find((x) => x.position === 1);
-    if (!winner) continue;
-    holder = winner.playerId;
+    const transfer = seasonTransfers.find((t) => t.effectiveAfterRoundId === r.id);
+    if (transfer) holder = transfer.toPlayerId;
   }
   return holder;
 }
@@ -126,11 +132,15 @@ export type BadgeEvent = {
 export function badgeTimeline(
   rounds: Round[],
   season: number,
-  initialHolderId: PlayerId | null = null
+  initialHolderId: PlayerId | null = null,
+  transfers: PatchTransfer[] = []
 ): BadgeEvent[] {
   const rs = countingSeasonRounds(rounds, season);
+  const seasonTransfers = transfers.filter((t) => t.season === season);
+  // Apply transfers with no round ref before first round
+  const preTransfer = seasonTransfers.filter((t) => !t.effectiveAfterRoundId).at(-1);
   const events: BadgeEvent[] = [];
-  let holder: PlayerId | null = initialHolderId;
+  let holder: PlayerId | null = preTransfer ? (preTransfer.toPlayerId as PlayerId) : initialHolderId;
   for (const round of rs) {
     const winner = round.results.find((r) => r.position === 1)?.playerId ?? null;
     if (!holder) {
@@ -138,20 +148,22 @@ export function badgeTimeline(
         events.push({ round, holderId: winner, prevHolderId: null, kind: "first", winnerId: winner });
         holder = winner;
       }
-      continue;
-    }
-    const holderPlayed = round.results.some((x) => x.playerId === holder);
-    if (!holderPlayed) {
-      events.push({ round, holderId: holder, prevHolderId: holder, kind: "no-change", winnerId: winner ?? holder });
-      continue;
-    }
-    if (!winner) continue;
-    if (winner === holder) {
-      events.push({ round, holderId: holder, prevHolderId: holder, kind: "defended", winnerId: winner });
     } else {
-      events.push({ round, holderId: winner, prevHolderId: holder, kind: "stolen", winnerId: winner });
-      holder = winner;
+      const holderPlayed = round.results.some((x) => x.playerId === holder);
+      if (!holderPlayed) {
+        events.push({ round, holderId: holder, prevHolderId: holder, kind: "no-change", winnerId: winner ?? holder });
+      } else if (winner) {
+        if (winner === holder) {
+          events.push({ round, holderId: holder, prevHolderId: holder, kind: "defended", winnerId: winner });
+        } else {
+          events.push({ round, holderId: winner, prevHolderId: holder, kind: "stolen", winnerId: winner });
+          holder = winner;
+        }
+      }
     }
+    // Apply admin transfer after this round
+    const transfer = seasonTransfers.find((t) => t.effectiveAfterRoundId === round.id);
+    if (transfer) holder = transfer.toPlayerId as PlayerId;
   }
   return events;
 }
@@ -229,9 +241,10 @@ export function longestStreak(rounds: Round[], season: number, playerId: string)
 export function badgeHoldStreak(
   rounds: Round[],
   season: number,
-  initialHolderId: PlayerId | null = null
+  initialHolderId: PlayerId | null = null,
+  transfers: PatchTransfer[] = []
 ): number {
-  const events = badgeTimeline(rounds, season, initialHolderId);
+  const events = badgeTimeline(rounds, season, initialHolderId, transfers);
   if (events.length === 0) return 0;
   let streak = 0;
   for (let i = events.length - 1; i >= 0; i--) {
@@ -290,12 +303,16 @@ export function courseLeaders(
 }
 
 /** Per-player patch thefts — uses badgeTimeline so the initial holder is correctly accounted for. */
-export function patchThefts(rounds: Round[], history: SeasonHistory[]): Map<string, number> {
+export function patchThefts(
+  rounds: Round[],
+  history: SeasonHistory[],
+  transfers: PatchTransfer[] = []
+): Map<string, number> {
   const seasons = [...new Set(rounds.map((r) => r.season))];
   const out = new Map<string, number>();
   for (const season of seasons) {
     const initialHolder = history.find((h) => h.season === season)?.initialBadgeHolderPlayerId ?? null;
-    for (const event of badgeTimeline(rounds, season, initialHolder)) {
+    for (const event of badgeTimeline(rounds, season, initialHolder, transfers)) {
       if (event.kind === "stolen") {
         out.set(event.holderId, (out.get(event.holderId) ?? 0) + 1);
       }

@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getHistory, getRoster, getRounds } from "@/lib/store";
+import { getHistory, getPatchTransfers, getRoster, getRounds } from "@/lib/store";
 import { badgeTimeline } from "@/lib/scoring";
 
 export const alt = "Traveling Patch round summary";
@@ -8,7 +8,7 @@ export const contentType = "image/png";
 
 export default async function OgImage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [roster, rounds, history] = await Promise.all([getRoster(), getRounds(), getHistory()]);
+  const [roster, rounds, history, transfers] = await Promise.all([getRoster(), getRounds(), getHistory(), getPatchTransfers()]);
   const round = rounds.find((r) => r.id === id);
   if (!round) {
     return new ImageResponse(<Fallback title="Round not found" subtitle="" />, size);
@@ -18,7 +18,7 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
   const winnerName = (winner && byId.get(winner.playerId)?.name) ?? "Unknown";
 
   const seasonRec = history.find((h) => h.season === round.season);
-  const events = badgeTimeline(rounds, round.season, seasonRec?.initialBadgeHolderPlayerId ?? null);
+  const events = badgeTimeline(rounds, round.season, seasonRec?.initialBadgeHolderPlayerId ?? null, transfers);
   const thisEvent = events.find((e) => e.round.id === round.id);
   const prevHolder = thisEvent?.prevHolderId ? byId.get(thisEvent.prevHolderId) : null;
   const holderAfter = thisEvent ? byId.get(thisEvent.holderId) : null;

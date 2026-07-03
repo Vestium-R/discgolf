@@ -62,6 +62,16 @@ export type Settings = {
   currentSeason: number;
 };
 
+export type PatchTransfer = {
+  id: string;
+  season: number;
+  fromPlayerId?: PlayerId;
+  toPlayerId: PlayerId;
+  effectiveAfterRoundId?: string;
+  reason?: string;
+  createdAt: string;
+};
+
 export type DiscType = "putter" | "midrange" | "fairway_driver" | "distance_driver";
 
 export type BagDisc = {

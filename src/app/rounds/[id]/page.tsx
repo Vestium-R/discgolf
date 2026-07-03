@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getHistory, getRoster, getRounds } from "@/lib/store";
+import { getHistory, getPatchTransfers, getRoster, getRounds } from "@/lib/store";
 import { badgeTimeline, headToHead, pointsForRound } from "@/lib/scoring";
 import { getRounds as _getRoundsForMeta } from "@/lib/store";
 
@@ -36,11 +36,12 @@ export default async function RoundDetail({
 }) {
   const { id } = await params;
   const { new: isNew, dup, refetched } = await searchParams;
-  const [roster, rounds, history, admin] = await Promise.all([
+  const [roster, rounds, history, admin, transfers] = await Promise.all([
     getRoster(),
     getRounds(),
     getHistory(),
     isAdmin(),
+    getPatchTransfers(),
   ]);
   const round = rounds.find((r) => r.id === id);
   if (!round) notFound();
@@ -55,7 +56,7 @@ export default async function RoundDetail({
   const winnerName = winner?.name ?? "Unknown";
 
   // Figure out what actually happened to the patch in THIS round
-  const events = badgeTimeline(rounds, round.season, initialHolder);
+  const events = badgeTimeline(rounds, round.season, initialHolder, transfers);
   const thisEvent = events.find((e) => e.round.id === round.id);
   const prevHolder = thisEvent?.prevHolderId ? byId.get(thisEvent.prevHolderId) : null;
   const holderAfter = thisEvent ? byId.get(thisEvent.holderId) : null;

@@ -6,6 +6,8 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { requireAdmin } from "@/lib/auth";
 import {
+  createPatchTransfer,
+  deletePatchTransfer,
   deleteRound,
   getRoster,
   getRounds,
@@ -453,6 +455,53 @@ function uniqueId(base: string, taken: string[]): string {
   let n = 2;
   while (taken.includes(`${base}-${n}`)) n++;
   return `${base}-${n}`;
+}
+
+// ─── Patch transfers ────────────────────────────────────────────────────────
+
+export async function createPatchTransferAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const season = Number(formData.get("season"));
+  const toPlayerId = String(formData.get("toPlayerId") ?? "").trim();
+  const fromPlayerId = String(formData.get("fromPlayerId") ?? "").trim() || undefined;
+  const effectiveAfterRoundId = String(formData.get("effectiveAfterRoundId") ?? "").trim() || undefined;
+  const reason = String(formData.get("reason") ?? "").trim() || undefined;
+
+  if (!toPlayerId || !Number.isFinite(season)) {
+    redirect("/admin?err=" + encodeURIComponent("Missing required fields (season, to player)"));
+  }
+
+  try {
+    await createPatchTransfer({
+      season,
+      fromPlayerId: fromPlayerId ? asPlayerId(fromPlayerId, "transfer") : undefined,
+      toPlayerId: asPlayerId(toPlayerId, "transfer"),
+      effectiveAfterRoundId,
+      reason,
+    });
+  } catch (e) {
+    redirect("/admin?err=" + encodeURIComponent(String(e)));
+  }
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/rounds");
+  redirect("/admin?ok=transfer-created");
+}
+
+export async function deletePatchTransferAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) redirect("/admin?err=missing-transfer-id");
+
+  try {
+    await deletePatchTransfer(id);
+  } catch (e) {
+    redirect("/admin?err=" + encodeURIComponent(String(e)));
+  }
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/rounds");
+  redirect("/admin?ok=transfer-deleted");
 }
 
 // Preview helper (pure) — called by the /add page

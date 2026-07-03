@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getHistory, getRoster, getRounds, getSettings } from "@/lib/store";
+import { getHistory, getPatchTransfers, getRoster, getRounds, getSettings } from "@/lib/store";
 import {
   availableSeasons,
   badgeTimeline,
@@ -32,11 +32,12 @@ export default async function SeasonPage({
   if (!Number.isFinite(year)) notFound();
   const { layout: layoutFilter } = await searchParams;
 
-  const [roster, rounds, settings, history] = await Promise.all([
+  const [roster, rounds, settings, history, transfers] = await Promise.all([
     getRoster(),
     getRounds(),
     getSettings(),
     getHistory(),
+    getPatchTransfers(),
   ]);
   const seasons = availableSeasons(rounds, settings.currentSeason, history.map((h) => h.season));
   const rsAll = seasonRounds(rounds, year);
@@ -55,12 +56,12 @@ export default async function SeasonPage({
   const initial = rec?.initialBadgeHolderPlayerId ?? null;
   const champ = isCurrent ? null : seasonChampion(standings);
   const badgeId = isCurrent
-    ? currentBadgeHolder(filteredRounds, year, initial)
+    ? currentBadgeHolder(filteredRounds, year, initial, transfers)
     : rec?.championPlayerId ?? champ?.player.id ?? null;
   const badgeHolder = badgeId ? roster.find((p) => p.id === badgeId) : null;
   const paceLeader = isCurrent ? seasonChampion(standings) : null;
   const paceLeaderDifferent = paceLeader && paceLeader.player.id !== badgeId;
-  const timeline = badgeTimeline(filteredRounds, year, initial).reverse();
+  const timeline = badgeTimeline(filteredRounds, year, initial, transfers).reverse();
   const badgeImage = rec?.badgeImageUrl;
 
   return (
