@@ -27,9 +27,11 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
       ? `🗡 ${holderAfter?.name ?? "?"} stole the patch`
       : thisEvent.kind === "defended"
         ? `🛡 ${holderAfter?.name ?? "?"} defended the patch`
-        : thisEvent.kind === "no-change"
-          ? `💤 ${prevHolder?.name ?? "?"} kept the patch — ${winnerName} won the round`
-          : `🥏 ${holderAfter?.name ?? "?"} took the patch`
+        : thisEvent.kind === "transfer"
+          ? `↔ Admin transfer → ${holderAfter?.name ?? "?"}`
+          : thisEvent.kind === "no-change"
+            ? `💤 ${prevHolder?.name ?? "?"} kept the patch — ${winnerName} won the round`
+            : `🥏 ${holderAfter?.name ?? "?"} took the patch`
     : `${winnerName} won the round`;
   const subtitle = `${round.date}${round.courseName ? ` · ${round.courseName}` : ""}`;
 

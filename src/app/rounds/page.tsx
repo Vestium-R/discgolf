@@ -48,6 +48,7 @@ export default async function RoundsPage({
           const patchLabel = patch
             ? patch.kind === "stolen" ? { icon: "🗡", label: byName.get(patch.holderId) ?? patch.holderId }
             : patch.kind === "defended" ? { icon: "🛡", label: byName.get(patch.holderId) ?? patch.holderId }
+            : patch.kind === "transfer" ? { icon: "↔", label: byName.get(patch.holderId) ?? patch.holderId }
             : patch.kind === "first" ? { icon: "🥏", label: byName.get(patch.holderId) ?? patch.holderId }
             : { icon: "💤", label: byName.get(patch.holderId) ?? patch.holderId }
             : null;

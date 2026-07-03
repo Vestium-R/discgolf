@@ -324,6 +324,7 @@ export default async function HomePage() {
                         <div className="text-xs text-forest-600">
                           {t.kind === "stolen" ? <>🗡 Stole the patch</> :
                            t.kind === "defended" ? <>🛡 Defended</> :
+                           t.kind === "transfer" ? <>↔ Admin transfer</> :
                            t.kind === "no-change" ? <>💤 Patch stayed (holder sat out)</> :
                            <>🥏 First of the season</>}
                           {" · "}{prettyDate(t.round.date)}

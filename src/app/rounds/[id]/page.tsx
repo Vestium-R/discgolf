@@ -57,9 +57,12 @@ export default async function RoundDetail({
 
   // Figure out what actually happened to the patch in THIS round
   const events = badgeTimeline(rounds, round.season, initialHolder, transfers);
-  const thisEvent = events.find((e) => e.round.id === round.id);
+  const roundEvents = events.filter((e) => e.round.id === round.id);
+  const thisEvent = roundEvents.find((e) => e.kind !== "transfer");
+  const transferEvent = roundEvents.find((e) => e.kind === "transfer");
   const prevHolder = thisEvent?.prevHolderId ? byId.get(thisEvent.prevHolderId) : null;
   const holderAfter = thisEvent ? byId.get(thisEvent.holderId) : null;
+  const transferTo = transferEvent ? byId.get(transferEvent.holderId) : null;
   const patchMsg = thisEvent
     ? thisEvent.kind === "stolen"
       ? `🗡 ${holderAfter?.name ?? "?"} stole the patch from ${prevHolder?.name ?? "?"}`
@@ -238,6 +241,21 @@ export default async function RoundDetail({
           </a>
         )}
       </header>
+
+      {thisEvent && round.counts !== false && (
+        <div className="rounded-2xl border border-forest-200 bg-white px-4 py-2 text-sm text-forest-700 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="shrink-0">🧥</span>
+            <span>{patchMsg}</span>
+          </div>
+          {transferTo && (
+            <div className="flex items-center gap-2 text-amber-700">
+              <span className="shrink-0">↔</span>
+              <span>Admin transfer → <strong>{transferTo.name}</strong></span>
+            </div>
+          )}
+        </div>
+      )}
 
       {roundInsight && (
         <div className="rounded-2xl border border-forest-200 bg-white px-4 py-2 text-sm text-forest-700 flex items-center gap-2">

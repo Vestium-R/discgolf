@@ -45,7 +45,13 @@ export default async function StatsPage() {
     const initialHolder = history.find((h) => h.season === season)?.initialBadgeHolderPlayerId ?? null;
     const tl = badgeTimeline(rounds, season, initialHolder, transfers);
     for (const e of tl) {
-      patchRoundsHeld.set(e.holderId, (patchRoundsHeld.get(e.holderId) ?? 0) + 1);
+      if (e.kind === "defended" || e.kind === "first") {
+        // holder played as holder
+        patchRoundsHeld.set(e.holderId, (patchRoundsHeld.get(e.holderId) ?? 0) + 1);
+      } else if (e.kind === "stolen" && e.prevHolderId) {
+        // previous holder played (and lost) — they were the holder that round
+        patchRoundsHeld.set(e.prevHolderId, (patchRoundsHeld.get(e.prevHolderId) ?? 0) + 1);
+      }
       if (e.kind === "defended") patchDefends.set(e.holderId, (patchDefends.get(e.holderId) ?? 0) + 1);
       if (e.kind === "stolen") totalPatchChanges++;
     }

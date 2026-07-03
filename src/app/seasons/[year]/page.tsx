@@ -10,9 +10,10 @@ import {
   seasonRounds,
 } from "@/lib/scoring";
 
-const kindLabel = (k: "first" | "defended" | "stolen" | "no-change") =>
+const kindLabel = (k: "first" | "defended" | "stolen" | "no-change" | "transfer") =>
   k === "stolen" ? "🗡 Stole the patch" :
   k === "defended" ? "🛡 Defended" :
+  k === "transfer" ? "↔ Admin transfer" :
   k === "no-change" ? "💤 Patch stayed (holder sat out)" :
   "🥏 First of the season";
 import { BadgeCrown, MedalBadge } from "@/components/BadgeCrown";

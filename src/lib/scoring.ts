@@ -117,7 +117,7 @@ export type BadgeEvent = {
   round: Round;
   holderId: PlayerId;
   prevHolderId: PlayerId | null;
-  kind: "first" | "defended" | "stolen" | "no-change";
+  kind: "first" | "defended" | "stolen" | "no-change" | "transfer";
   winnerId: PlayerId;
 };
 
@@ -161,9 +161,13 @@ export function badgeTimeline(
         }
       }
     }
-    // Apply admin transfer after this round
+    // Apply admin transfer after this round and emit it as a visible event
     const transfer = seasonTransfers.find((t) => t.effectiveAfterRoundId === round.id);
-    if (transfer) holder = transfer.toPlayerId as PlayerId;
+    if (transfer) {
+      const prev = holder;
+      holder = transfer.toPlayerId as PlayerId;
+      events.push({ round, holderId: holder, prevHolderId: prev, kind: "transfer", winnerId: holder });
+    }
   }
   return events;
 }
@@ -251,6 +255,7 @@ export function badgeHoldStreak(
     const k = events[i].kind;
     if (k === "defended") streak += 1;
     else if (k === "first" || k === "stolen") { streak += 1; break; }
+    else if (k === "transfer") break;
     // no-change: holder didn't play, doesn't count toward the streak
   }
   return streak;
