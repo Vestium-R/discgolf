@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getRoster, getRounds, getSettings } from "@/lib/store";
-import { availableSeasons, seasonRounds, winnersOfRound } from "@/lib/scoring";
+import { getRoster, getRounds, getSettings, getHistory, getPatchTransfers } from "@/lib/store";
+import { availableSeasons, badgeTimeline, seasonRounds, winnersOfRound } from "@/lib/scoring";
 import { prettyDate } from "@/lib/format";
 import { BadgeCrown } from "@/components/BadgeCrown";
 import { SeasonPicker } from "@/components/SeasonPicker";
@@ -12,12 +12,14 @@ export default async function RoundsPage({
 }: {
   searchParams: Promise<{ season?: string }>;
 }) {
-  const [roster, rounds, settings] = await Promise.all([getRoster(), getRounds(), getSettings()]);
+  const [roster, rounds, settings, history, transfers] = await Promise.all([getRoster(), getRounds(), getSettings(), getHistory(), getPatchTransfers()]);
   const { season: seasonParam } = await searchParams;
   const season = Number(seasonParam) || settings.currentSeason;
   const byName = new Map(roster.map((p) => [p.id, p.name]));
   const seasons = availableSeasons(rounds, settings.currentSeason, []);
   const all = [...seasonRounds(rounds, season)].reverse();
+  const initialHolderId = history.find((h) => h.season === season)?.initialBadgeHolderPlayerId ?? null;
+  const patchByRound = new Map(badgeTimeline(rounds, season, initialHolderId, transfers).map((e) => [e.round.id, e]));
 
   return (
     <div className="space-y-5">
@@ -42,6 +44,13 @@ export default async function RoundsPage({
           const winners = winnersOfRound(r).map((id) => byName.get(id) ?? id);
           const isLatest = idx === 0 && season === settings.currentSeason;
           const cond = rateConditions(r.temperatureC, r.windKph);
+          const patch = patchByRound.get(r.id);
+          const patchLabel = patch
+            ? patch.kind === "stolen" ? { icon: "🗡", label: byName.get(patch.holderId) ?? patch.holderId }
+            : patch.kind === "defended" ? { icon: "🛡", label: byName.get(patch.holderId) ?? patch.holderId }
+            : patch.kind === "first" ? { icon: "🥏", label: byName.get(patch.holderId) ?? patch.holderId }
+            : { icon: "💤", label: byName.get(patch.holderId) ?? patch.holderId }
+            : null;
           const playerInitials = [...r.results]
             .sort((a, b) => a.position - b.position)
             .map((x) => {
@@ -80,7 +89,12 @@ export default async function RoundsPage({
                       {r.counts === false && <span className="ml-1 text-purple-700">· history only</span>}
                     </div>
                   </div>
-                  {isLatest && r.counts !== false && <BadgeCrown size="sm" />}
+                  {patchLabel && r.counts !== false && (
+                    <div className="shrink-0 flex items-center gap-1 text-xs text-forest-600 whitespace-nowrap">
+                      <span>{patchLabel.icon}</span>
+                      <span className="hidden sm:inline">{patchLabel.label}</span>
+                    </div>
+                  )}
                 </div>
               </Link>
             </li>
