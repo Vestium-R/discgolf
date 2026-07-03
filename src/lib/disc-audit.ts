@@ -1,4 +1,4 @@
-import { DISC_DB, type DiscRecord } from "./discs-db";
+import type { DiscRecord } from "./discs-db";
 
 export type BagDisc = {
   id: string;
@@ -21,12 +21,12 @@ export type DiscMismatch = {
   expected?: { speed?: number; glide?: number; turn?: number; fade?: number; manufacturer?: string };
 };
 
-export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
+export function auditBagDiscs(bagDiscs: BagDisc[], discDb: DiscRecord[]): DiscMismatch[] {
   const mismatches: DiscMismatch[] = [];
 
   for (const bagDisc of bagDiscs) {
     // Find matching disc in DB by name and manufacturer
-    let dbDisc = DISC_DB.find(
+    let dbDisc = discDb.find(
       (d) =>
         d.name.toLowerCase() === bagDisc.disc_name.toLowerCase() &&
         d.manufacturer.toLowerCase() === (bagDisc.manufacturer || "").toLowerCase()
@@ -34,7 +34,7 @@ export function auditBagDiscs(bagDiscs: BagDisc[]): DiscMismatch[] {
 
     // If not found by exact match, try by name alone (in case manufacturer is wrong)
     if (!dbDisc) {
-      dbDisc = DISC_DB.find(
+      dbDisc = discDb.find(
         (d) => d.name.toLowerCase() === bagDisc.disc_name.toLowerCase()
       );
     }

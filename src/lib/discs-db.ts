@@ -7,7 +7,7 @@
 export type DiscRecord = {
   manufacturer: string;
   name: string;
-  type: "putter" | "midrange" | "fairway_driver" | "distance_driver";
+  type: "putter" | "midrange" | "fairway_driver" | "distance_driver" | "unknown";
   speed: number;
   glide: number;
   turn: number;

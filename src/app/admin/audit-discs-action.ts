@@ -4,7 +4,22 @@ import { getUser } from "@/lib/auth";
 import { supabaseSession, supabaseAdmin } from "@/lib/supabase/server";
 import { auditBagDiscs, auditSummary } from "@/lib/disc-audit";
 import { getRoster } from "@/lib/store";
-import type { DiscRecord } from "@/lib/discs-db";
+import { DISC_DB, type DiscRecord } from "@/lib/discs-db";
+
+async function getMergedDiscDb(): Promise<DiscRecord[]> {
+  const { data } = await supabaseAdmin().from("custom_discs").select("*");
+  const base = DISC_DB as unknown as DiscRecord[];
+  const custom: DiscRecord[] = (data ?? []).map((r) => ({
+    manufacturer: String(r.manufacturer),
+    name: String(r.name),
+    type: String(r.type) as DiscRecord["type"],
+    speed: Number(r.speed),
+    glide: Number(r.glide),
+    turn: Number(r.turn),
+    fade: Number(r.fade),
+  }));
+  return [...base, ...custom];
+}
 
 export async function getRosterForAudit() {
   try {
@@ -46,7 +61,8 @@ export async function auditUserBagDiscs(userId?: string) {
     if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
 
     console.log("auditUserBagDiscs: Got", bagDiscs?.length, "discs");
-    const mismatches = auditBagDiscs(bagDiscs || []);
+    const discDb = await getMergedDiscDb();
+    const mismatches = auditBagDiscs(bagDiscs || [], discDb);
     const summary = auditSummary(mismatches);
 
     return {
@@ -77,7 +93,8 @@ export async function auditAllBagDiscs() {
     if (error) throw new Error(`Failed to fetch bag discs: ${error.message}`);
 
     console.log("auditAllBagDiscs: Got", bagDiscs?.length, "discs");
-    const mismatches = auditBagDiscs(bagDiscs || []);
+    const discDb = await getMergedDiscDb();
+    const mismatches = auditBagDiscs(bagDiscs || [], discDb);
     const summary = auditSummary(mismatches);
 
     return {
@@ -167,64 +184,22 @@ export async function updateDiscInDatabase(disc: DiscRecord) {
 }
 
 export async function addDiscToDatabase(disc: DiscRecord) {
-  try {
-    const user = await getUser();
-    if (!user) throw new Error("Not authenticated");
+  const user = await getUser();
+  if (!user) throw new Error("Not authenticated");
+  if (!disc.manufacturer || !disc.name) throw new Error("Manufacturer and name are required");
 
-    if (!disc.manufacturer || !disc.name) {
-      throw new Error("Manufacturer and name are required");
-    }
+  const { error } = await supabaseAdmin().from("custom_discs").insert({
+    manufacturer: disc.manufacturer,
+    name: disc.name,
+    type: disc.type,
+    speed: disc.speed,
+    glide: disc.glide,
+    turn: disc.turn,
+    fade: disc.fade,
+  });
 
-    const fs = require("fs") as typeof import("fs");
-    const path = require("path") as typeof import("path");
-
-    const dbPath = path.join(process.cwd(), "src/lib/discs-db.ts");
-    console.log("addDiscToDatabase: dbPath =", dbPath);
-
-    if (!fs.existsSync(dbPath)) {
-      throw new Error(`Database file not found at ${dbPath}`);
-    }
-
-    let content = fs.readFileSync(dbPath, "utf-8");
-    console.log("addDiscToDatabase: Read file, size =", content.length);
-
-    // Check if disc already exists
-    const escapedMfg = disc.manufacturer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const escapedName = disc.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const existsPattern = new RegExp(
-      `manufacturer:\\s*"${escapedMfg}"\\s*,\\s*name:\\s*"${escapedName}"`
-    );
-
-    console.log("addDiscToDatabase: Checking if disc exists:", escapedMfg, escapedName);
-    if (existsPattern.test(content)) {
-      throw new Error(`Disc already exists: ${disc.manufacturer} ${disc.name}`);
-    }
-
-    // Create the new disc entry
-    const newDisc = `  { manufacturer: "${disc.manufacturer.replace(/"/g, '\\"')}", name: "${disc.name.replace(/"/g, '\\"')}", type: "${disc.type}", speed: ${disc.speed}, glide: ${disc.glide}, turn: ${disc.turn}, fade: ${disc.fade} },\n`;
-    console.log("addDiscToDatabase: New disc entry:", newDisc);
-
-    // Find the DISC_DB closing ]; by looking for the pattern (last disc object followed by ]);
-    const discDbEndPattern = /(\},\s*)\];/m;
-    if (!discDbEndPattern.test(content)) {
-      console.log("addDiscToDatabase: File content around last lines:", content.slice(-200));
-      throw new Error("Database file format invalid - cannot find DISC_DB closing ];");
-    }
-
-    const beforeReplace = content.length;
-    content = content.replace(discDbEndPattern, `$1\n${newDisc}];`);
-    const afterReplace = content.length;
-    console.log("addDiscToDatabase: File size before:", beforeReplace, "after:", afterReplace);
-
-    fs.writeFileSync(dbPath, content, "utf-8");
-
-    console.log(`Added disc: ${disc.manufacturer} ${disc.name}`);
-    return { success: true, message: `Added ${disc.name}` };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("addDiscToDatabase error:", message);
-    throw new Error(message);
-  }
+  if (error) throw new Error(error.message);
+  return { success: true, message: `Added ${disc.name}` };
 }
 
 export async function fixBagDiscsUserIds() {
