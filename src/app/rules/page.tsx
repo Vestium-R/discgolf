@@ -43,8 +43,9 @@ export default function RulesPage() {
       <section className="card p-5 space-y-3">
         <h3 className="font-display font-bold text-forest-800">⚖️ Forfeit</h3>
         <p className="text-sm text-forest-700">
-          If a holder stops playing regularly, the group can forfeit the patch. No drama — the
-          admin re-assigns the initial holder for the rest of the season, and it goes back into active play.
+          If the patch holder <strong>misses 5 consecutive rounds</strong>, the patch is forfeited.
+          The admin transfers it to a random active member, and it goes back into active play from the next round.
+          No drama — just keeps the season moving.
         </p>
       </section>
 
